@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01301253fe06dd54893ef9d847f9b940, type: 3}
   m_Name: PlayerDB
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.PlayerDataSO
-  _moveSpeed: 2
-  _jumpForce: 6
+  _moveSpeed: 0.7
+  _jumpForce: 2.5
   _maxJumps: 2
-  _gravityScale: 2
+  _gravityScale: 0.9
   _attackDamage: 20
   _chargeDamageMult: 2.5
   _chargeTime: 1.2
@@ -34,14 +34,16 @@ MonoBehaviour:
   _hitFlashColor: {r: 1, g: 0.25, b: 0.25, a: 0.6}
   _orbAttackRange: 2.5
   _orbFollowSmooth: 0.15
-  _orbBobAmplitude: 0.12
-  _orbBobSpeed: 2.5
+  _orbAnchorOffset: {x: -0.05, y: 0.15}
+  _orbWanderRadius: 0.06
+  _orbWanderSpeed: 0.5
+  _orbSpacing: 0.12
+  _orbCount: 2
   _orbDashSpeed: 16
   _orbHitDistance: 0.25
   _orbDashTimeout: 0.6
-  _orbSize: 0.25
-  _orbOffsets:
-  - {x: -0.7, y: 1.1}
-  - {x: -0.7, y: 0.4}
+  _orbSize: 0.05
   _orbColor: {r: 1, g: 0.9, b: 0.5, a: 0.9}
   _rewindTintColor: {r: 0.6, g: 0.6, b: 1, a: 1}
+  _chargingColor: {r: 1, g: 0.75, b: 0.4, a: 1}
+  _chargeReadyColor: {r: 1, g: 0.9, b: 0.2, a: 1}

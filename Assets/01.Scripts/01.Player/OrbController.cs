@@ -11,7 +11,8 @@ using Minsung.Utility;
 
 namespace Minsung.Player
 {
-    // 플레이어를 따라다니는 오브 하나. 평소에는 지정 오프셋 주변을 둥실거리며 따라오고,
+    // 플레이어를 따라다니는 오브 하나. 평소에는 몸통 왼쪽 위 대기 지점 주변을
+    // 펄린 노이즈로 자유롭게 떠다니며 따라오고,
     // Attack()이 호출되면 대상에게 돌진해 도달 시 타격 콜백을 실행한 뒤 다시 따라온다.
     public class OrbController : MonoBehaviour
     {
@@ -20,11 +21,11 @@ namespace Minsung.Player
         ****************************************/
 
         private Transform _followTarget;
-        private Vector2 _offset;
-        private float _bobPhase;   // 오브끼리 둥실거림이 겹치지 않게 하는 값
-        private Vector3 _velocity; // SmoothDamp용
+        private float _noiseSeed;   // 오브마다 다른 펄린 노이즈 좌표를 쓰기 위한 시드 (겹침 방지)
+        private Vector2 _slotOffset; // 대기 지점 기준 오브간 간격 (겹치지 않도록 벌려놓는 고정 오프셋)
+        private Vector3 _velocity;  // SmoothDamp용
         private Coroutine _coAttack;
-        private PlayerDataSO _playerSo; // 오브 밸런싱 DB 캐시 (매 프레임 둥실거림 계산에 사용)
+        private PlayerDataSO _playerSo; // 오브 밸런싱 DB 캐시 (매 프레임 떠다니기 계산에 사용)
 
         public bool IsAttacking => _coAttack != null;
 
@@ -49,8 +50,7 @@ namespace Minsung.Player
                 return;
             }
 
-            float bob = Mathf.Sin((Time.time * _playerSo.OrbBobSpeed) + _bobPhase) * _playerSo.OrbBobAmplitude;
-            Vector3 anchor = _followTarget.position + (Vector3)_offset + (Vector3.up * bob);
+            Vector3 anchor = _followTarget.position + (Vector3)WanderOffset();
             transform.position = Vector3.SmoothDamp(transform.position, anchor, ref _velocity, _playerSo.OrbFollowSmooth);
         }
 
@@ -58,12 +58,12 @@ namespace Minsung.Player
         *                Methods
         ****************************************/
 
-        public void Init(Transform followTarget, Vector2 offset, float bobPhase)
+        public void Init(Transform followTarget, float noiseSeed, Vector2 slotOffset)
         {
-            _followTarget      = followTarget;
-            _offset            = offset;
-            _bobPhase          = bobPhase;
-            transform.position = followTarget.position + (Vector3)offset;
+            _followTarget       = followTarget;
+            _noiseSeed          = noiseSeed;
+            _slotOffset         = slotOffset;
+            transform.position  = followTarget.position + (Vector3)WanderOffset();
         }
 
         /// <summary> 대기 위치로 즉시 순간이동. 주인(분신)이 풀에서 다시 활성화될 때 호출. </summary>
@@ -74,7 +74,17 @@ namespace Minsung.Player
                 return;
             }
             _velocity          = Vector3.zero; // 이전 활성 시점의 관성 제거
-            transform.position = _followTarget.position + (Vector3)_offset;
+            transform.position = _followTarget.position + (Vector3)WanderOffset();
+        }
+
+        // 몸통 왼쪽 위 대기 지점(OrbAnchorOffset) 기준, 펄린 노이즈로 자유롭게 떠다니는 오프셋
+        private Vector2 WanderOffset()
+        {
+            float t  = Time.time * _playerSo.OrbWanderSpeed;
+            float nx = (Mathf.PerlinNoise(_noiseSeed, t) * 2f) - 1f;
+            float ny = (Mathf.PerlinNoise(_noiseSeed + 91.7f, t) * 2f) - 1f;
+            Vector2 wander = new Vector2(nx, ny) * _playerSo.OrbWanderRadius;
+            return _playerSo.OrbAnchorOffset + _slotOffset + wander;
         }
 
         /// <summary> 대상에게 돌진해 도달하면 onHit을 1회 실행. 이미 공격 중이면 새 공격으로 교체. </summary>
