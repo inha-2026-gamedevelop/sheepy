@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01301253fe06dd54893ef9d847f9b940, type: 3}
+  m_Name: PlayerDB
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.PlayerDataSO
+  _moveSpeed: 2
+  _jumpForce: 6
+  _maxJumps: 2
+  _gravityScale: 2
+  _attackDamage: 20
+  _chargeDamageMult: 2.5
+  _chargeTime: 1.2
+  _attackCooldown: 0.3
+  _projectileSpeed: 10
+  _attackFlashTime: 0.1
+  _attackHitRadius: 0.6
+  _attackHitLifetime: 0.15
+  _maxHearts: 6
+  _invincibleDuration: 1
+  _deathRespawnDelay: 0.6
+  _knockbackForceX: 6
+  _knockbackForceY: 4
+  _knockbackStunTime: 0.15
+  _hitFlashDuration: 0.15
+  _hitFlashColor: {r: 1, g: 0.25, b: 0.25, a: 0.6}
+  _orbAttackRange: 2.5
+  _orbFollowSmooth: 0.15
+  _orbBobAmplitude: 0.12
+  _orbBobSpeed: 2.5
+  _orbDashSpeed: 16
+  _orbHitDistance: 0.25
+  _orbDashTimeout: 0.6
+  _orbSize: 0.25
+  _orbOffsets:
+  - {x: -0.7, y: 1.1}
+  - {x: -0.7, y: 0.4}
+  _orbColor: {r: 1, g: 0.9, b: 0.5, a: 0.9}
+  _rewindTintColor: {r: 0.6, g: 0.6, b: 1, a: 1}

@@ -1,0 +1,327 @@
+// System
+using System.Collections;
+using System.Collections.Generic;
+
+// Unity
+using UnityEngine;
+
+using Minsung.Common;
+using Minsung.Common.Data;
+using Minsung.Player;
+using Minsung.Utility;
+
+namespace Minsung.TimeSystem
+{
+    // 분신. 기록된 클립을 정방향 재생하며 다 재생하면 마지막 자세로 idle된다.
+    // 하트 0이면 즉시 풀로 반환하지 않고 비활성화만 한다 - 되감기로 부활해야 하기 때문.
+    [RequireComponent(typeof(Rigidbody2D))]
+    public class CloneController : MonoBehaviour, ICommandActor, IRewindable
+    {
+        /****************************************
+        *                Fields
+        ****************************************/
+
+        [Header("분신")]
+        [SerializeField] private Renderer _renderer;
+
+        private Color _color; // 분신 틴트 - TimeDB(GameDB.Time)에서 Awake 때 로드
+
+        private Rigidbody2D _rb;
+        private PlayerHealth _health; // 본체와 동일한 하트 체력
+        private PlayerOrbs _orbs; // 본체와 같은 오브 공격 대행
+        private PlayerAnimator _playerAnimator; // 프리팹에 본체와 같은 Animator + PlayerAnimator를 달면 자동 연결(선택)
+        private ClonePool _pool;
+        private readonly List<TickCommand> _clip = new List<TickCommand>();
+        private int _index;
+        private bool _finished;
+        private bool _attackFlashing;
+        private Coroutine _coAttackFlash;
+        private Material _material;
+        private WaitForSeconds _waitAttackFlash;
+
+        // 리와인드 참여 상태
+        private RewindManager _rewindManager;
+        private RingBuffer<CloneTick> _rewindBuffer; // 클립 재생 위치 + 하트 기록
+        private bool _isRewinding;
+        private int _deadTicks; // 사망 후 경과 틱 - 기록 창을 벗어나면 부활 불가 -> 풀 반환
+
+        // 한 틱의 분신 기록. 위치는 클립이 결정하므로 재생 인덱스와 체력(반칸)만 있으면 복원된다.
+        private readonly struct CloneTick
+        {
+            public readonly int ClipIndex;
+            public readonly int Halves; // 하트 반칸 단위
+
+            public bool IsAlive => Halves > 0;
+
+            public CloneTick(int clipIndex, int halves)
+            {
+                ClipIndex = clipIndex;
+                Halves    = halves;
+            }
+        }
+
+        /****************************************
+        *              Unity Event
+        ****************************************/
+
+        private void Awake()
+        {
+            _rb = GetComponent<Rigidbody2D>();
+            _rb.bodyType = RigidbodyType2D.Kinematic;
+            _orbs = GetComponent<PlayerOrbs>();
+            _playerAnimator = GetComponent<PlayerAnimator>();
+
+            if (_renderer != null)
+            {
+                _material = _renderer.material;
+            }
+            _color           = GameDB.Time.CloneTintColor;
+            _waitAttackFlash = new WaitForSeconds(GameDB.Time.CloneAttackFlashTime);
+
+            // Hazard 등이 본체와 똑같이 GetComponent<PlayerHealth>로 피해를 줄 수 있게 한다.
+            _health = GetComponent<PlayerHealth>();
+            if (_health == null)
+            {
+                _health = gameObject.AddComponent<PlayerHealth>();
+            }
+            _health.OnDeath += HandleDeath;
+
+            Collider2D col = GetComponent<Collider2D>();
+            if (col != null)
+            {
+                col.isTrigger = true;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_health != null)
+            {
+                _health.OnDeath -= HandleDeath;
+            }
+            _rewindManager?.Unregister(this);
+        }
+
+        private void FixedUpdate()
+        {
+            if (_isRewinding)
+            {
+                return;
+            }
+            if (!_finished)
+            {
+                PlayStep();
+            }
+            ApplyVisual();
+        }
+
+        /****************************************
+        *                Methods
+        ****************************************/
+
+        /// <summary> 풀 생성 직후 1회 호출. 사망 시 반환할 소속 풀을 기억해 둔다. </summary>
+        public void Setup(ClonePool pool)
+        {
+            _pool = pool;
+        }
+
+        /// <summary> 기록 버퍼의 내용을 자기 클립 리스트로 복사해 재생을 시작한다. </summary>
+        public void Init(RingBuffer<TickCommand> recorded)
+        {
+            recorded.CopyOrderedTo(_clip);
+            _index          = 0;
+            _attackFlashing = false;
+            _finished       = (_clip.Count == 0);
+
+            _health.ResetHearts();
+            UtilCoroutine.CheckStopCoroutine(ref _coAttackFlash, this);
+
+            if (!_finished)
+            {
+                _rb.position = _clip[0].Move.Position;
+            }
+
+            // 소환되는 순간부터 타임라인 참여자로 등록
+            if (_rewindBuffer == null)
+            {
+                _rewindBuffer = new RingBuffer<CloneTick>(RewindManager.TickCapacity);
+            }
+            _rewindBuffer.Clear();
+            _deadTicks   = 0;
+            _isRewinding = false;
+
+            _rewindManager = RewindManager.Instance;
+            _rewindManager?.Register(this);
+        }
+
+        /// <summary> 풀로 돌아가는 순간 ClonePool이 호출 </summary>
+        public void OnReturnedToPool()
+        {
+            _rewindManager?.Unregister(this);
+            _rewindBuffer?.Clear();
+            _deadTicks   = 0;
+            _isRewinding = false;
+        }
+
+        /// <summary> 피격 시 하트 amount개 차감 </summary>
+        public void TakeDamage(int amount = 1)
+        {
+            _health.TakeDamage(amount);
+        }
+
+        private void HandleDeath()
+        {
+            gameObject.SetActive(false);
+        }
+
+        public void RecordTick()
+        {
+            _rewindBuffer.Push(new CloneTick(_index, _health.CurrentHalves));
+
+            // 사망 시점이 기록 창을 완전히 벗어나면 더는 부활할 수 없다 -> 그때 풀로 반환.
+            if (!gameObject.activeSelf && (++_deadTicks >= RewindManager.TickCapacity))
+            {
+                ReturnToPool();
+            }
+        }
+
+        public void OnRewindStart()
+        {
+            _isRewinding = true;
+        }
+
+        public void ApplyRewindTick(int orderedIndex)
+        {
+            if (_rewindBuffer.TryGetOrdered(orderedIndex, out CloneTick tick))
+            {
+                ApplyTick(tick);
+            }
+        }
+
+        public void OnRewindEnd(int orderedIndex)
+        {
+            if (_rewindBuffer.TryGetOrdered(orderedIndex, out CloneTick tick))
+            {
+                ApplyTick(tick);
+            }
+
+            _isRewinding = false;
+            _rewindBuffer.Clear();
+
+            // 기록이 비워졌으니 이 분신은 더는 부활할 수 없다
+            if (!gameObject.activeSelf)
+            {
+                ReturnToPool();
+            }
+        }
+
+        private void ApplyTick(CloneTick tick)
+        {
+            if (tick.IsAlive && !gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+                _deadTicks      = 0;
+                _attackFlashing = false;
+            }
+
+            // 이 틱에도 죽어 있었으면 죽은 상태 유지
+            if (!gameObject.activeSelf)
+            {
+                return;
+            }
+
+            _index    = Mathf.Min(tick.ClipIndex, _clip.Count);
+            _finished = (_index >= _clip.Count);
+            _health.RestoreHalves(tick.Halves);
+
+            int poseIndex = Mathf.Clamp(_index - 1, 0, _clip.Count - 1);
+            if (_clip.Count > 0)
+            {
+                _rb.position = _clip[poseIndex].Move.Position;
+            }
+        }
+
+        private void ReturnToPool()
+        {
+            if (_pool != null)
+            {
+                _pool.Release(this);
+            }
+            else
+            {
+                OnReturnedToPool();
+                Destroy(gameObject);
+            }
+        }
+
+        private void PlayStep()
+        {
+            TickCommand tick = _clip[_index];
+            tick.Move.Apply(this);
+            if (tick.HasAttack)
+            {
+                tick.Attack.Execute(this);
+            }
+            if (tick.HasInteract)
+            {
+                tick.Interact.Execute(gameObject); // 되감기 전 상호작용을 그대로 재연 (레버 등)
+            }
+
+            ++_index;
+            if (_index >= _clip.Count)
+            {
+                _finished = true; // 마지막 자세로 멈춰 idle
+            }
+        }
+
+        public void SetPose(Vector2 position, Vector2 velocity, bool grounded)
+        {
+            _rb.position = position;
+
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetLocomotion(Mathf.Abs(velocity.x), grounded);
+            }
+        }
+
+        // charged면 본체와 같은 배율로 재현 (기록된 AttackCommand가 전달)
+        public void PlayAttack(bool reversed, bool charged)
+        {
+            UtilCoroutine.CheckRunCoroutine(ref _coAttackFlash, StartCoroutine(CoAttackFlash()), this);
+
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.TriggerAttack();
+            }
+
+            float damage = GameDB.Player.AttackDamage;
+            if (charged)
+            {
+                damage *= GameDB.Player.ChargeDamageMult;
+            }
+
+            if ((_orbs == null) || !_orbs.TryAttackNearest(damage))
+            {
+                AttackHitbox.Spawn(_rb.position, damage, DamageSource.PlayerClone, _health);
+            }
+        }
+
+        // 공격 순간 잠깐 흰색으로 번쩍이는 연출 타이머.
+        private IEnumerator CoAttackFlash()
+        {
+            _attackFlashing = true;
+            yield return _waitAttackFlash;
+            _attackFlashing = false;
+            _coAttackFlash  = null;
+        }
+
+        private void ApplyVisual()
+        {
+            if (_material == null)
+            {
+                return;
+            }
+            _material.color = (_attackFlashing) ? Color.white : _color;
+        }
+    }
+}

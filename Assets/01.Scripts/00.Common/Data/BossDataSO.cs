@@ -1,0 +1,180 @@
+// Unity
+using UnityEngine;
+
+namespace Minsung.Common.Data
+{
+    // 보스(Azathoth) 밸런싱 데이터 DB - 에셋: 08.Data/Boss/BossDB.asset (GameDB.Boss로 접근)
+    // GIMMICK_LASER_COLOR_COUNT처럼 enum 구조에 묶인 값은 Constants.Combat에 남는다
+    [CreateAssetMenu(fileName = "BossDB", menuName = "TheLastRewind/GameDB/BossDB")]
+    public class BossDataSO : ScriptableObject
+    {
+        /****************************************
+        *                Fields
+        ****************************************/
+
+        [Header("공통")]
+        [SerializeField] private float _totalHealth = 64000f; // 보스 총 피통
+        [SerializeField] private int   _phaseCount  = 4;      // 페이즈 수
+        [SerializeField] private float _timeLimit   = 600f;   // 보스전 제한시간(초) - 초과 시 플레이어 즉사, 리와인드/슬로우 무관 실시간
+
+        [SerializeField] private int _attackHalves      = 2; // 보스 공격 하트 차감(반칸 단위, 2 = 한 칸)
+        [SerializeField] private int _cloneAttackHalves = 1; // 보스 분신 공격 하트 차감(반칸 단위, 1 = 반 칸)
+        [SerializeField] private int _reflectHalves     = 2; // 감정 반사 시 공격자가 입는 피해(반칸 단위) TODO: 기획 확정
+
+        [Header("본체 근거리 (2페이즈부터 등장)")]
+        [SerializeField] private float _moveSpeed        = 2.5f;  // 본체 추격 이동 속도 TODO: 밸런싱
+        [SerializeField] private float _attackRange      = 2f;    // 본체 근거리 공격 사거리 TODO: 밸런싱
+        [SerializeField] private float _attackCooldown   = 2.5f;  // 본체 근거리 공격 간격(초) TODO: 밸런싱
+        [SerializeField] private float _attackActiveTime = 0.25f; // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
+
+        [Header("근접 유닛 공통 - 점프/회피 (본체·분신 공용, 개별 스탯 아님)")]
+        [SerializeField] private float _jumpCooldown       = 4f;   // 최소 재사용 대기시간(초) TODO: 밸런싱
+        [SerializeField] private float _jumpTriggerRange   = 6f;   // 이 거리보다 멀면 도약으로 접근 (각 유닛 AttackRange보다 커야 함)
+        [SerializeField] private float _jumpForce          = 8f;   // 도약 수직 임펄스
+        [SerializeField] private float _jumpForwardSpeed   = 7f;   // 도약 중 수평 속도
+        [SerializeField] private float _jumpLandActiveTime = 0.2f; // 착지 슬램 판정 유지 시간(초) - 각 유닛 AttackHalves 재사용
+
+        [SerializeField] private float _dodgeCooldown     = 5f;   // 최소 재사용 대기시간(초) TODO: 밸런싱
+        [SerializeField] private float _dodgeTriggerRange = 1.5f; // 이 거리보다 가까우면 후퇴 회피
+        [SerializeField] private float _dodgeBackDistance = 3f;   // 후퇴 거리(유닛)
+        [SerializeField] private float _dodgeDuration     = 0.3f; // 후퇴 이동 + 무적 지속시간(초)
+
+        [Header("분신 (1페이즈, 2체)")]
+        [SerializeField] private float _cloneHealth           = 8000f; // 분신 1체 피통 (2체 합 = 1페이즈 피통)
+        [SerializeField] private int   _cloneCount            = 2;
+        [SerializeField] private float _cloneAttackRange      = 1.5f;  // 근거리 공격 사거리 TODO: 밸런싱
+        [SerializeField] private float _cloneAttackCooldown   = 2f;    // 근거리 공격 간격(초) TODO: 밸런싱
+        [SerializeField] private float _cloneAttackActiveTime = 0.2f;  // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
+        [SerializeField] private float _cloneMoveSpeed        = 2.6f;  // 추격 이동 속도 - 플레이어 MoveSpeed(2)보다 느리게 잡아 도망 가능하게 함 // kjw 1.8 -> 2.6 수정
+
+        [Header("낙뢰 (전 페이즈 공통 패턴)")]
+        [SerializeField] private float _lightningInterval     = 4f;   // 기본 낙하 간격(초)
+        [SerializeField] private float _lightningStunDuration = 0.5f; // 피격 시 이동 불가 시간(초)
+        [SerializeField] private int   _lightningDamageHalves = 2;    // 피격 시 하트 차감(반칸 단위, 2 = 한 칸)
+        [SerializeField] private float _lightningFallSpeed    = 12f;  // 낙하 속도(유닛/초) TODO: 밸런싱
+        [SerializeField] private float _lightningSpawnHeight  = 8f;   // 낙하 시작 높이(지면 기준) TODO: 맵 크기에 맞게
+        [SerializeField] private float _lightningWidth        = 0.5f; // 판정 폭
+        [SerializeField] private float _lightningHeight       = 2f;   // 판정 높이
+        [SerializeField] private float _lightningRatePinkMult = 2f;   // 핑크 감정: 낙뢰 비율 x2
+        [SerializeField] private float _lightningRateBlueMult = 0.5f; // 파랑 감정: 낙뢰 비율 /2
+
+        [SerializeField] private Color _lightningColor = new Color(1f, 0.95f, 0.4f); // 낙뢰 표시색 (임시)
+
+        [Header("감정 - 화남(혼란) / 파랑(하트 픽업)")]
+        [SerializeField] private float _emotionInterval   = 8f;   // 감정 자동 전환 주기(초) - 화남/기본 제외 랜덤
+        [SerializeField] private float _confusionInterval = 10f;  // 키반전 발동 주기(초)
+        [SerializeField] private float _confusionDuration = 1f;   // 키반전 지속 시간(초)
+        [SerializeField] private float _heartPickupHeight = 0.5f; // 픽업 배치 높이(지면 기준)
+
+        [Header("1페이즈 즉사 기믹 (레이저 색 순서 암기)")]
+        [SerializeField] private int   _gimmickLaserCount      = 3;     // 발사 횟수(색 시퀀스 길이)
+        [SerializeField] private float _gimmickSafeZoneWidth   = 3f;    // 안전구역 폭
+        [SerializeField] private float _gimmickSafeZoneAlpha   = 0.35f; // 안전구역 표시 반투명도
+        [SerializeField] private float _gimmickTelegraphTime   = 3f;    // 안전구역 표시~레이저 발사까지(초)
+        [SerializeField] private float _gimmickLaserActiveTime = 0.5f;  // 레이저 연출 지속(초)
+        [SerializeField] private float _gimmickLaserHeight     = 6f;    // 전장 레이저/안전구역 세로 크기
+        [SerializeField] private float _gimmickRefireDelay     = 5f;    // 실전 레이저 사이 간격(초, 예고 종료~첫 발사도 동일 적용)
+        [SerializeField] private float _gimmickCameraOrthoSize = 5f;    // 기믹 진행 중 플레이어 카메라 줌 아웃 크기
+
+        [Header("2페이즈 장풍 (맵 아래에서 솟아오름)")]
+        [SerializeField] private float _phase2WaveInterval   = 3f; // 발사 간격(초)
+        [SerializeField] private float _phase2WaveRiseSpeed  = 6f; // 상승 속도(유닛/초)
+        [SerializeField] private float _phase2WaveWidth      = 1f; // 판정 폭
+        [SerializeField] private float _phase2WaveHeight     = 2f; // 판정 높이
+        [SerializeField] private float _phase2WaveMaxHeight  = 8f; // 소멸 높이(지면 기준)
+        [SerializeField] private float _phase2WaveSpawnDepth = 2f; // 지면 아래 시작 깊이(유닛)
+
+        [SerializeField] private Color _phase2WaveColor = new Color(0.4f, 0.7f, 1f); // 장풍 표시색 (임시)
+
+        [Header("3페이즈 가로지르는 레이저")]
+        [SerializeField] private float _phase3LaserInterval      = 5f;    // 발사 간격(초)
+        [SerializeField] private float _phase3LaserWarningTime   = 1.5f;  // 경고(빨간 깜빡임) 시간(초)
+        [SerializeField] private float _phase3LaserBlinkInterval = 0.25f; // 깜빡임 주기(초)
+        [SerializeField] private float _phase3LaserActiveTime    = 1f;    // 레이저 지속(초)
+        [SerializeField] private float _phase3LaserThickness     = 0.5f;  // 레이저 두께
+        [SerializeField] private float _phase3LaserMaxHeight     = 6f;    // 시작/도착 지점 y 랜덤 상한(지면 기준)
+
+        [SerializeField] private Color _phase3LaserWarningColor = new Color(1f, 0.2f, 0.2f, 0.5f); // 경고 깜빡임 색
+        [SerializeField] private Color _phase3LaserColor        = new Color(1f, 0.1f, 0.1f);       // 레이저 발사색 (임시)
+
+        /****************************************
+        *              Properties
+        ****************************************/
+
+        public float TotalHealth => _totalHealth;
+        public int   PhaseCount  => _phaseCount;
+        public float TimeLimit   => _timeLimit;
+
+        // 페이즈당 피통 (총 피통 / 페이즈 수)
+        public float PhaseHealth => _totalHealth / _phaseCount;
+
+        public int AttackHalves      => _attackHalves;
+        public int CloneAttackHalves => _cloneAttackHalves;
+        public int ReflectHalves     => _reflectHalves;
+
+        public float MoveSpeed        => _moveSpeed;
+        public float AttackRange      => _attackRange;
+        public float AttackCooldown   => _attackCooldown;
+        public float AttackActiveTime => _attackActiveTime;
+
+        public float JumpCooldown      => _jumpCooldown;
+        public float JumpTriggerRange  => _jumpTriggerRange;
+        public float JumpForce         => _jumpForce;
+        public float JumpForwardSpeed  => _jumpForwardSpeed;
+        public float JumpLandActiveTime => _jumpLandActiveTime;
+
+        public float DodgeCooldown     => _dodgeCooldown;
+        public float DodgeTriggerRange => _dodgeTriggerRange;
+        public float DodgeBackDistance => _dodgeBackDistance;
+        public float DodgeDuration     => _dodgeDuration;
+
+        public float CloneHealth           => _cloneHealth;
+        public int   CloneCount            => _cloneCount;
+        public float CloneAttackRange      => _cloneAttackRange;
+        public float CloneAttackCooldown   => _cloneAttackCooldown;
+        public float CloneAttackActiveTime => _cloneAttackActiveTime;
+        public float CloneMoveSpeed        => _cloneMoveSpeed;
+
+        public float LightningInterval     => _lightningInterval;
+        public float LightningStunDuration => _lightningStunDuration;
+        public int   LightningDamageHalves => _lightningDamageHalves;
+        public float LightningFallSpeed    => _lightningFallSpeed;
+        public float LightningSpawnHeight  => _lightningSpawnHeight;
+        public float LightningWidth        => _lightningWidth;
+        public float LightningHeight       => _lightningHeight;
+        public float LightningRatePinkMult => _lightningRatePinkMult;
+        public float LightningRateBlueMult => _lightningRateBlueMult;
+        public Color LightningColor        => _lightningColor;
+
+        public float EmotionInterval   => _emotionInterval;
+        public float ConfusionInterval => _confusionInterval;
+        public float ConfusionDuration => _confusionDuration;
+        public float HeartPickupHeight => _heartPickupHeight;
+
+        public int   GimmickLaserCount      => _gimmickLaserCount;
+        public float GimmickSafeZoneWidth   => _gimmickSafeZoneWidth;
+        public float GimmickSafeZoneAlpha   => _gimmickSafeZoneAlpha;
+        public float GimmickTelegraphTime   => _gimmickTelegraphTime;
+        public float GimmickLaserActiveTime => _gimmickLaserActiveTime;
+        public float GimmickLaserHeight     => _gimmickLaserHeight;
+        public float GimmickRefireDelay     => _gimmickRefireDelay;
+        public float GimmickCameraOrthoSize => _gimmickCameraOrthoSize;
+
+        public float Phase2WaveInterval   => _phase2WaveInterval;
+        public float Phase2WaveRiseSpeed  => _phase2WaveRiseSpeed;
+        public float Phase2WaveWidth      => _phase2WaveWidth;
+        public float Phase2WaveHeight     => _phase2WaveHeight;
+        public float Phase2WaveMaxHeight  => _phase2WaveMaxHeight;
+        public float Phase2WaveSpawnDepth => _phase2WaveSpawnDepth;
+        public Color Phase2WaveColor      => _phase2WaveColor;
+
+        public float Phase3LaserInterval      => _phase3LaserInterval;
+        public float Phase3LaserWarningTime   => _phase3LaserWarningTime;
+        public float Phase3LaserBlinkInterval => _phase3LaserBlinkInterval;
+        public float Phase3LaserActiveTime    => _phase3LaserActiveTime;
+        public float Phase3LaserThickness     => _phase3LaserThickness;
+        public float Phase3LaserMaxHeight     => _phase3LaserMaxHeight;
+        public Color Phase3LaserWarningColor  => _phase3LaserWarningColor;
+        public Color Phase3LaserColor         => _phase3LaserColor;
+    }
+}

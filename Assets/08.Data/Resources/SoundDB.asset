@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da8df093fdc00d143952bc8156b34586, type: 3}
+  m_Name: SoundDB
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Sound.SoundData
+  _bgmDatas:
+  - _clips: []
+  - _clips:
+    - {fileID: 8300000, guid: fd495982740c6e84a95cd5dc9026b792, type: 3}
+  - _clips: []
+  - _clips: []
+  - _clips: []
+  - _clips: []
+  - _clips:
+    - {fileID: 8300000, guid: 859c4f716ebfed54093eb8c62125a66d, type: 3}
+    - {fileID: 8300000, guid: 975842b385c77bd49b9ea61da94885f9, type: 3}
+  _sfxDatas:
+  - _sfxName: Player
+    _clips:
+    - {fileID: 0}
+  - _sfxName: Time
+    _clips: []
+  - _sfxName: Monster
+    _clips: []
+  - _sfxName: Boss
+    _clips: []
+  - _sfxName: Object
+    _clips:
+    - {fileID: 8300000, guid: 294cdd99656a2854bab430b53630848b, type: 3}
+    - {fileID: 0}
+  - _sfxName: UI
+    _clips: []

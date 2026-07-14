@@ -1,0 +1,520 @@
+fileFormatVersion: 2
+guid: 11eb1a40b0ddc8f40821a0d8386f2998
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7496153345417253526
+    second: astral_introfx-sheet0_0
+  - first:
+      213: 2855859279382543762
+    second: astral_introfx-sheet0_1
+  - first:
+      213: 4124146746358932614
+    second: astral_introfx-sheet0_2
+  - first:
+      213: 3590634746402537370
+    second: astral_introfx-sheet0_3
+  - first:
+      213: -5589372379180622333
+    second: astral_introfx-sheet0_4
+  - first:
+      213: 5187196363197809781
+    second: astral_introfx-sheet0_5
+  - first:
+      213: -8669849668680076500
+    second: astral_introfx-sheet0_6
+  - first:
+      213: -7138624124227404760
+    second: astral_introfx-sheet0_7
+  - first:
+      213: 1421654214208930217
+    second: astral_introfx-sheet0_8
+  - first:
+      213: 4213177032139002456
+    second: astral_introfx-sheet0_9
+  - first:
+      213: -3252268082805482988
+    second: astral_introfx-sheet0_10
+  - first:
+      213: 5134726060085606239
+    second: astral_introfx-sheet0_11
+  - first:
+      213: -8945618712557605626
+    second: astral_introfx-sheet0_12
+  - first:
+      213: -2428920648860072977
+    second: astral_introfx-sheet0_13
+  - first:
+      213: 6884829020387305325
+    second: astral_introfx-sheet0_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_0
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 830
+        width: 157
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6d6c88af3058f790800000000000000
+      internalID: -7496153345417253526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_1
+      rect:
+        serializedVersion: 2
+        x: 568
+        y: 822
+        width: 145
+        height: 152
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29d791432ec02a720800000000000000
+      internalID: 2855859279382543762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_2
+      rect:
+        serializedVersion: 2
+        x: 830
+        y: 842
+        width: 144
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 684ae4a7d99eb3930800000000000000
+      internalID: 4124146746358932614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_3
+      rect:
+        serializedVersion: 2
+        x: 60
+        y: 565
+        width: 112
+        height: 154
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9f7f71274f74d130800000000000000
+      internalID: 3590634746402537370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_4
+      rect:
+        serializedVersion: 2
+        x: 317
+        y: 584
+        width: 116
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30e1f855f6f8e62b0800000000000000
+      internalID: -5589372379180622333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_5
+      rect:
+        serializedVersion: 2
+        x: 572
+        y: 585
+        width: 117
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5748a900c9f9cf740800000000000000
+      internalID: 5187196363197809781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_6
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 564
+        width: 143
+        height: 154
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c23394249a18ea780800000000000000
+      internalID: -8669849668680076500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_7
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 330
+        width: 96
+        height: 113
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82c346a5e238eec90800000000000000
+      internalID: -7138624124227404760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_8
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 346
+        width: 94
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a14c5fb9fabab310800000000000000
+      internalID: 1421654214208930217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_9
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 346
+        width: 94
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 852da783036387a30800000000000000
+      internalID: 4213177032139002456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_10
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 329
+        width: 104
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41ad902f86f9dd2d0800000000000000
+      internalID: -3252268082805482988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_11
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 90
+        width: 94
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f57f75e8526324740800000000000000
+      internalID: 5134726060085606239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_12
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 90
+        width: 94
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60daae54d27cad380800000000000000
+      internalID: -8945618712557605626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_13
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 90
+        width: 94
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe38511f98dba4ed0800000000000000
+      internalID: -2428920648860072977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: astral_introfx-sheet0_14
+      rect:
+        serializedVersion: 2
+        x: 841
+        y: 90
+        width: 94
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d676c734483db8f50800000000000000
+      internalID: 6884829020387305325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      astral_introfx-sheet0_0: -7496153345417253526
+      astral_introfx-sheet0_1: 2855859279382543762
+      astral_introfx-sheet0_10: -3252268082805482988
+      astral_introfx-sheet0_11: 5134726060085606239
+      astral_introfx-sheet0_12: -8945618712557605626
+      astral_introfx-sheet0_13: -2428920648860072977
+      astral_introfx-sheet0_14: 6884829020387305325
+      astral_introfx-sheet0_2: 4124146746358932614
+      astral_introfx-sheet0_3: 3590634746402537370
+      astral_introfx-sheet0_4: -5589372379180622333
+      astral_introfx-sheet0_5: 5187196363197809781
+      astral_introfx-sheet0_6: -8669849668680076500
+      astral_introfx-sheet0_7: -7138624124227404760
+      astral_introfx-sheet0_8: 1421654214208930217
+      astral_introfx-sheet0_9: 4213177032139002456
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

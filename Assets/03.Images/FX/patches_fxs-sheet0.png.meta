@@ -1,0 +1,780 @@
+fileFormatVersion: 2
+guid: 7788422bbab72d64484ea4fadf5de3f8
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6230606262011843332
+    second: patches_fxs-sheet0_0
+  - first:
+      213: 9000299727115895586
+    second: patches_fxs-sheet0_1
+  - first:
+      213: 8690039353041962630
+    second: patches_fxs-sheet0_2
+  - first:
+      213: -4947528733062903774
+    second: patches_fxs-sheet0_3
+  - first:
+      213: -6603417232120619162
+    second: patches_fxs-sheet0_4
+  - first:
+      213: 513218709938306996
+    second: patches_fxs-sheet0_5
+  - first:
+      213: 3634417258318130773
+    second: patches_fxs-sheet0_6
+  - first:
+      213: 5272290156321114482
+    second: patches_fxs-sheet0_7
+  - first:
+      213: -3600441749972411800
+    second: patches_fxs-sheet0_8
+  - first:
+      213: -5745066301576448413
+    second: patches_fxs-sheet0_9
+  - first:
+      213: -3259080640216752154
+    second: patches_fxs-sheet0_10
+  - first:
+      213: 7502849655573777296
+    second: patches_fxs-sheet0_11
+  - first:
+      213: 8320348687002454854
+    second: patches_fxs-sheet0_12
+  - first:
+      213: -3951781114886762826
+    second: patches_fxs-sheet0_13
+  - first:
+      213: -8279268684684710731
+    second: patches_fxs-sheet0_14
+  - first:
+      213: 7902465299917330986
+    second: patches_fxs-sheet0_15
+  - first:
+      213: -7124536586539284124
+    second: patches_fxs-sheet0_16
+  - first:
+      213: 4249205065368088507
+    second: patches_fxs-sheet0_17
+  - first:
+      213: 8105217459307060907
+    second: patches_fxs-sheet0_18
+  - first:
+      213: 431793844157765650
+    second: patches_fxs-sheet0_19
+  - first:
+      213: 3099960412747704333
+    second: patches_fxs-sheet0_20
+  - first:
+      213: -3379719888824671104
+    second: patches_fxs-sheet0_21
+  - first:
+      213: -3770707729938747308
+    second: patches_fxs-sheet0_22
+  - first:
+      213: -222108730048476572
+    second: patches_fxs-sheet0_23
+  - first:
+      213: -6104366296643993839
+    second: patches_fxs-sheet0_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_0
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 811
+        width: 78
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfca579ad907889a0800000000000000
+      internalID: -6230606262011843332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_1
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 814
+        width: 69
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 223c9ca8aec77ec70800000000000000
+      internalID: 9000299727115895586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_2
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 810
+        width: 86
+        height: 126
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6864b32ffb8399870800000000000000
+      internalID: 8690039353041962630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_3
+      rect:
+        serializedVersion: 2
+        x: 602
+        y: 805
+        width: 95
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2284fb594d8d65bb0800000000000000
+      internalID: -4947528733062903774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_4
+      rect:
+        serializedVersion: 2
+        x: 801
+        y: 801
+        width: 102
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66fd1c78303fb54a0800000000000000
+      internalID: -6603417232120619162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_5
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 582
+        width: 115
+        height: 127
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bff4f192b15f1700800000000000000
+      internalID: 513218709938306996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_6
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 565
+        width: 139
+        height: 157
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55ee99f8d3b007230800000000000000
+      internalID: 3634417258318130773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_7
+      rect:
+        serializedVersion: 2
+        x: 406
+        y: 589
+        width: 105
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2790f40a6ffea2940800000000000000
+      internalID: 5272290156321114482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_8
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 591
+        width: 147
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86a986aed49a80ec0800000000000000
+      internalID: -3600441749972411800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_9
+      rect:
+        serializedVersion: 2
+        x: 807
+        y: 592
+        width: 180
+        height: 199
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 366f77b23ac6540b0800000000000000
+      internalID: -5745066301576448413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_10
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 359
+        width: 189
+        height: 206
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ef1781dc6b65c2d0800000000000000
+      internalID: -3259080640216752154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_11
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 353
+        width: 193
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09b03ab820a7f1860800000000000000
+      internalID: 7502849655573777296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_12
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 356
+        width: 196
+        height: 211
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64b4b283c01d77370800000000000000
+      internalID: 8320348687002454854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_13
+      rect:
+        serializedVersion: 2
+        x: 601
+        y: 352
+        width: 125
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bec31173047829c0800000000000000
+      internalID: -3951781114886762826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_14
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 428
+        width: 108
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bc2a592ff02a1d80800000000000000
+      internalID: -8279268684684710731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_15
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 199
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2a5c6b32523bad60800000000000000
+      internalID: 7902465299917330986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_16
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 198
+        width: 99
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4694d02d8bf802d90800000000000000
+      internalID: -7124536586539284124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_17
+      rect:
+        serializedVersion: 2
+        x: 599
+        y: 150
+        width: 186
+        height: 188
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbf2e036e7538fa30800000000000000
+      internalID: 4249205065368088507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_18
+      rect:
+        serializedVersion: 2
+        x: 781
+        y: 150
+        width: 188
+        height: 188
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bae9a4106548b7070800000000000000
+      internalID: 8105217459307060907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_19
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 32
+        width: 82
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2185939a63a0ef500800000000000000
+      internalID: 431793844157765650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_20
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 28
+        width: 75
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d08a9933295450b20800000000000000
+      internalID: 3099960412747704333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_21
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 35
+        width: 69
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 084684aeaa2d811d0800000000000000
+      internalID: -3379719888824671104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_22
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 35
+        width: 71
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4507e253c41cbabc0800000000000000
+      internalID: -3770707729938747308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_23
+      rect:
+        serializedVersion: 2
+        x: 658
+        y: 22
+        width: 204
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46a82fb6949eaecf0800000000000000
+      internalID: -222108730048476572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: patches_fxs-sheet0_24
+      rect:
+        serializedVersion: 2
+        x: 896
+        y: 19
+        width: 88
+        height: 126
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11ffaad023fe84ba0800000000000000
+      internalID: -6104366296643993839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      patches_fxs-sheet0_0: -6230606262011843332
+      patches_fxs-sheet0_1: 9000299727115895586
+      patches_fxs-sheet0_10: -3259080640216752154
+      patches_fxs-sheet0_11: 7502849655573777296
+      patches_fxs-sheet0_12: 8320348687002454854
+      patches_fxs-sheet0_13: -3951781114886762826
+      patches_fxs-sheet0_14: -8279268684684710731
+      patches_fxs-sheet0_15: 7902465299917330986
+      patches_fxs-sheet0_16: -7124536586539284124
+      patches_fxs-sheet0_17: 4249205065368088507
+      patches_fxs-sheet0_18: 8105217459307060907
+      patches_fxs-sheet0_19: 431793844157765650
+      patches_fxs-sheet0_2: 8690039353041962630
+      patches_fxs-sheet0_20: 3099960412747704333
+      patches_fxs-sheet0_21: -3379719888824671104
+      patches_fxs-sheet0_22: -3770707729938747308
+      patches_fxs-sheet0_23: -222108730048476572
+      patches_fxs-sheet0_24: -6104366296643993839
+      patches_fxs-sheet0_3: -4947528733062903774
+      patches_fxs-sheet0_4: -6603417232120619162
+      patches_fxs-sheet0_5: 513218709938306996
+      patches_fxs-sheet0_6: 3634417258318130773
+      patches_fxs-sheet0_7: 5272290156321114482
+      patches_fxs-sheet0_8: -3600441749972411800
+      patches_fxs-sheet0_9: -5745066301576448413
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

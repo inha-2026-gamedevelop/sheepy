@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cecac0579d4201428448f0a1ed527f1, type: 3}
+  m_Name: BossDB
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.BossDataSO
+  _totalHealth: 400
+  _phaseCount: 4
+  _timeLimit: 600
+  _attackHalves: 2
+  _cloneAttackHalves: 1
+  _reflectHalves: 2
+  _moveSpeed: 2.5
+  _attackRange: 2
+  _attackCooldown: 2.5
+  _attackActiveTime: 0.25
+  _jumpCooldown: 4
+  _jumpTriggerRange: 6
+  _jumpForce: 8
+  _jumpForwardSpeed: 7
+  _jumpLandActiveTime: 0.2
+  _dodgeCooldown: 5
+  _dodgeTriggerRange: 1.5
+  _dodgeBackDistance: 3
+  _dodgeDuration: 0.3
+  _cloneHealth: 500
+  _cloneCount: 2
+  _cloneAttackRange: 1.5
+  _cloneAttackCooldown: 2
+  _cloneAttackActiveTime: 0.2
+  _cloneMoveSpeed: 1.8
+  _lightningInterval: 4
+  _lightningStunDuration: 0.5
+  _lightningDamageHalves: 2
+  _lightningFallSpeed: 12
+  _lightningSpawnHeight: 8
+  _lightningWidth: 0.5
+  _lightningHeight: 2
+  _lightningRatePinkMult: 2
+  _lightningRateBlueMult: 0.5
+  _lightningColor: {r: 1, g: 0.95, b: 0.4, a: 1}
+  _emotionInterval: 8
+  _confusionInterval: 10
+  _confusionDuration: 1
+  _heartPickupHeight: 0.5
+  _gimmickLaserCount: 3
+  _gimmickSafeZoneWidth: 3
+  _gimmickSafeZoneAlpha: 0.35
+  _gimmickTelegraphTime: 3
+  _gimmickLaserActiveTime: 0.5
+  _gimmickLaserHeight: 6
+  _gimmickRefireDelay: 5
+  _gimmickCameraOrthoSize: 5
+  _phase2WaveInterval: 3
+  _phase2WaveRiseSpeed: 6
+  _phase2WaveWidth: 1
+  _phase2WaveHeight: 2
+  _phase2WaveMaxHeight: 8
+  _phase2WaveSpawnDepth: 2
+  _phase2WaveColor: {r: 0.4, g: 0.7, b: 1, a: 1}
+  _phase3LaserInterval: 5
+  _phase3LaserWarningTime: 1.5
+  _phase3LaserBlinkInterval: 0.25
+  _phase3LaserActiveTime: 1
+  _phase3LaserThickness: 0.5
+  _phase3LaserMaxHeight: 6
+  _phase3LaserWarningColor: {r: 1, g: 0.2, b: 0.2, a: 0.5}
+  _phase3LaserColor: {r: 1, g: 0.1, b: 0.1, a: 1}
