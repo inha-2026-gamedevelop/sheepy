@@ -77,12 +77,29 @@ MonoBehaviour:
   _gimmickLaserHeight: 6
   _gimmickRefireDelay: 5
   _phase2WaveInterval: 3
-  _phase2WaveRiseSpeed: 6
-  _phase2WaveWidth: 1
-  _phase2WaveHeight: 2
-  _phase2WaveMaxHeight: 8
-  _phase2WaveSpawnDepth: 2
-  _phase2WaveColor: {r: 0.4, g: 0.7, b: 1, a: 1}
+  _phase2WaveWidth: 2.5
+  _phase2WaveHeight: 2.5
+  _phase2WaveTelegraphTime: 1
+  _phase2WaveActiveTime: 0.3
+  _phase2WaveFrameInterval: 0.0333
+  _phase2WaveActiveFrameCount: 5
+  _phase2WaveColor: {r: 1, g: 1, b: 1, a: 1}
+  _phase2WaveStrikeSprites:
+  - {fileID: -7406319767457403300, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -6654237375344072925, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 6172060048188541369, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -4167454115604662804, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -3729304322876100191, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 8631984227614518045, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 887840995679485666, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 3894408046235524746, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -8365498243248456781, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  _phase2WaveParticleSize: 0.1
+  _phase2WaveParticleColors:
+  - {r: 0.88, g: 0.67, b: 1, a: 1}
+  - {r: 0.78, g: 0.49, b: 1, a: 1}
+  - {r: 0.61, g: 0.31, b: 0.87, a: 1}
+  - {r: 0.48, g: 0.17, b: 0.75, a: 1}
   _phase3LaserInterval: 5
   _phase3LaserWarningTime: 1.5
   _phase3LaserBlinkInterval: 0.25

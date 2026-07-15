@@ -90,15 +90,27 @@ namespace Minsung.Common.Data
         [SerializeField] private float _gimmickLaserHeight     = 6f;    // 전장 레이저/안전구역 세로 크기
         [SerializeField] private float _gimmickRefireDelay     = 5f;    // 예고 종료 후 실제 발사까지 대기(초)
 
-        [Header("2페이즈 장풍 (맵 아래에서 솟아오름)")]
-        [SerializeField] private float _phase2WaveInterval   = 3f; // 발사 간격(초)
-        [SerializeField] private float _phase2WaveRiseSpeed  = 6f; // 상승 속도(유닛/초)
-        [SerializeField] private float _phase2WaveWidth      = 1f; // 판정 폭
-        [SerializeField] private float _phase2WaveHeight     = 2f; // 판정 높이
-        [SerializeField] private float _phase2WaveMaxHeight  = 8f; // 소멸 높이(지면 기준)
-        [SerializeField] private float _phase2WaveSpawnDepth = 2f; // 지면 아래 시작 깊이(유닛)
+        [Header("2페이즈 장풍 (예고 파티클 후 즉발 폭발 강타 - 낙뢰와 동일 구조)")]
+        [SerializeField] private float _phase2WaveInterval      = 3f;    // 발사 간격(초)
+        [SerializeField] private float _phase2WaveWidth         = 2.5f;  // 강타/예고 공통 판정 폭 - 폭발 비주얼에 맞춰 확대
+        [SerializeField] private float _phase2WaveHeight        = 2.5f;  // 강타/예고 공통 판정 높이 - 폭발 비주얼에 맞춰 확대
+        [SerializeField] private float _phase2WaveTelegraphTime = 1f;    // 예고 파티클 표시 시간(초)
+        [SerializeField] private float _phase2WaveActiveTime    = 0.3f;  // 강타 연출 유지 시간(초) - 폭발 9프레임이 이 시간 안에 전부 순환
+        [SerializeField] private float _phase2WaveFrameInterval = 0.0333f; // 폭발 프레임 전환 간격(초) - 9프레임 x 이 값 = ActiveTime
+        [SerializeField] private int   _phase2WaveActiveFrameCount = 5;  // 앞 N프레임만 피해 판정 (나머지는 종료 연출, 무판정)
 
-        [SerializeField] private Color _phase2WaveColor = new Color(0.4f, 0.7f, 1f); // 장풍 표시색 (임시)
+        [SerializeField] private Color _phase2WaveColor = new Color(1f, 1f, 1f); // 강타 표시색 - 폭발 스프라이트 원색 유지를 위해 흰색 권장
+
+        [SerializeField] private Sprite[] _phase2WaveStrikeSprites; // 강타 중 순환할 폭발 프레임 (0~8, 비우면 단색 사각형 폴백)
+
+        [SerializeField] private float   _phase2WaveParticleSize = 0.1f; // 예고 파티클 크기
+        [SerializeField] private Color[] _phase2WaveParticleColors = new Color[] // 예고 파티클 색 - 보라 계열 4색 중 랜덤
+        {
+            new Color(0.88f, 0.67f, 1f),    // 연보라
+            new Color(0.78f, 0.49f, 1f),    // 밝은 보라
+            new Color(0.61f, 0.31f, 0.87f), // 중간 보라
+            new Color(0.48f, 0.17f, 0.75f), // 진보라
+        };
 
         [Header("3페이즈 가로지르는 레이저")]
         [SerializeField] private float _phase3LaserInterval      = 5f;    // 발사 간격(초)
@@ -182,13 +194,18 @@ namespace Minsung.Common.Data
         public float GimmickLaserHeight     => _gimmickLaserHeight;
         public float GimmickRefireDelay     => _gimmickRefireDelay;
 
-        public float Phase2WaveInterval   => _phase2WaveInterval;
-        public float Phase2WaveRiseSpeed  => _phase2WaveRiseSpeed;
-        public float Phase2WaveWidth      => _phase2WaveWidth;
-        public float Phase2WaveHeight     => _phase2WaveHeight;
-        public float Phase2WaveMaxHeight  => _phase2WaveMaxHeight;
-        public float Phase2WaveSpawnDepth => _phase2WaveSpawnDepth;
-        public Color Phase2WaveColor      => _phase2WaveColor;
+        public float Phase2WaveInterval         => _phase2WaveInterval;
+        public float Phase2WaveWidth            => _phase2WaveWidth;
+        public float Phase2WaveHeight           => _phase2WaveHeight;
+        public float Phase2WaveTelegraphTime    => _phase2WaveTelegraphTime;
+        public float Phase2WaveActiveTime       => _phase2WaveActiveTime;
+        public float Phase2WaveFrameInterval    => _phase2WaveFrameInterval;
+        public int   Phase2WaveActiveFrameCount => _phase2WaveActiveFrameCount;
+        public Color Phase2WaveColor            => _phase2WaveColor;
+
+        public Sprite[] Phase2WaveStrikeSprites   => _phase2WaveStrikeSprites;
+        public float     Phase2WaveParticleSize   => _phase2WaveParticleSize;
+        public Color[]   Phase2WaveParticleColors => _phase2WaveParticleColors;
 
         public float Phase3LaserInterval      => _phase3LaserInterval;
         public float Phase3LaserWarningTime   => _phase3LaserWarningTime;

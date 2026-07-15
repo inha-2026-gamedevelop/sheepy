@@ -5,9 +5,7 @@ using System.Collections.Generic;
 // Unity
 using UnityEngine;
 
-using Minsung.Common;
 using Minsung.Common.Data;
-using Minsung.TimeSystem;
 using Minsung.Visual;
 
 namespace Minsung.Boss
@@ -16,39 +14,24 @@ namespace Minsung.Boss
     public class Phase2State : BossState
     {
         /****************************************
-        *             Inner Types
-        ****************************************/
-
-        // 장풍 풀 4슬롯 고정 크기 스냅샷. 힙 할당 없음
-        private struct Phase2Frame
-        {
-            public BossHazardPool.HazardRecord W0, W1, W2, W3;
-            public int WaveCursor;
-        }
-
-        // 상승 중인 장풍 하나의 구동 상태 (이동은 코루틴 대신 FixedTick이 굴린다 -
-        // 스냅샷 역재생과 충돌하지 않고, 페이즈 전환 중에는 자동으로 멈추기 위함)
-        private struct WaveState
-        {
-            public int   Slot; // -1 = 비활성
-            public float X;
-            public float Y;
-        }
-
-        /****************************************
         *                Fields
         ****************************************/
 
-        private const int WAVE_POOL_SIZE = 4; // 동시 상승 최대 수 (간격 대비 상승 시간 여유분)
+        private const int WAVE_POOL_SIZE = 4; // 동시 진행 최대 수 (예고+강타 겹침 대비 여유분)
 
-        private readonly WaitForSeconds _waitWaveInterval = new WaitForSeconds(GameDB.Boss.Phase2WaveInterval);
+        private WaitForSeconds _waitWaveInterval;
+        private WaitForSeconds _waitTelegraph;
+        private WaitForSeconds _waitActive;
+        private WaitForSeconds _waitFrame;
 
         private BossHazardPool _wavePool;
         private Coroutine      _waveLoop;
-        private readonly WaveState[] _waves = new WaveState[WAVE_POOL_SIZE];
 
-        // 리와인드 기록
-        private RingBuffer<Phase2Frame> _rewindBuffer;
+        private BossDataSO _bossSo;
+        private Sprite[]   _strikeSprites;
+        private float      _frameInterval;
+        private int        _strikeSpritesCount;
+        private bool       _cycleFrames;
 
         // 결정 로그 - 장풍 x 랜덤을 보존해 리와인드 후 동일 순서를 재현한다
         private List<float> _waveXLog;
@@ -73,13 +56,23 @@ namespace Minsung.Boss
                 Boss.Body.Activate(); // 이미 등장해 있으면(3·4페이즈 재진입) 내부에서 무시된다
             }
 
-            _wavePool = new BossHazardPool(WAVE_POOL_SIZE, "Phase2_Wave");
-            ClearWaveStates();
+            _bossSo = GameDB.Boss;
 
-            // 버퍼 용량은 플레이어/몬스터와 동일한 기준(TickCapacity)을 써야 되감기 인덱스가 일치한다
-            _rewindBuffer = new RingBuffer<Phase2Frame>(RewindManager.TickCapacity);
-            _waveXLog     = new List<float>();
-            _waveCursor   = 0;
+            _strikeSprites      = _bossSo.Phase2WaveStrikeSprites;
+            _frameInterval      = _bossSo.Phase2WaveFrameInterval;
+            _strikeSpritesCount = (_strikeSprites != null) ? _strikeSprites.Length : 0;
+            _cycleFrames        = (_strikeSprites != null) && (_strikeSprites.Length > 1) && (_frameInterval > 0f);
+
+            _waitWaveInterval = new WaitForSeconds(_bossSo.Phase2WaveInterval);
+            _waitTelegraph    = new WaitForSeconds(_bossSo.Phase2WaveTelegraphTime);
+            _waitActive       = new WaitForSeconds(_bossSo.Phase2WaveActiveTime);
+            _waitFrame        = new WaitForSeconds(_frameInterval);
+
+            _wavePool = new BossHazardPool(WAVE_POOL_SIZE, "Phase2_Wave", null, null, true,
+                                           _bossSo.Phase2WaveParticleSize, _bossSo.Phase2WaveParticleColors);
+
+            _waveXLog   = new List<float>();
+            _waveCursor = 0;
 
             _waveLoop = Boss.StartCoroutine(CoWaveLoop());
         }
@@ -99,76 +92,20 @@ namespace Minsung.Boss
         }
 
         /****************************************
-        *              FixedTick
-        ****************************************/
-
-        // 장풍 상승. 페이즈 전환/되감기 중에는 BossController가 호출 자체를 막는다
-        public override void FixedTick()
-        {
-            float topY = Boss.ArenaGroundY + GameDB.Boss.Phase2WaveMaxHeight;
-
-            for (int i = 0; i < _waves.Length; ++i)
-            {
-                if (_waves[i].Slot < 0)
-                {
-                    continue;
-                }
-
-                _waves[i].Y += GameDB.Boss.Phase2WaveRiseSpeed * Time.fixedDeltaTime;
-                if (_waves[i].Y >= topY)
-                {
-                    _wavePool.Free(_waves[i].Slot);
-                    _waves[i].Slot = -1;
-                    continue;
-                }
-                _wavePool.SetPosition(_waves[i].Slot, new Vector2(_waves[i].X, _waves[i].Y));
-            }
-        }
-
-        /****************************************
         *           IRewindable 훅
         ****************************************/
 
-        // 매 물리 틱마다 장풍 풀 상태 + 결정 커서를 스냅샷으로 기록
-        public override void RecordTick()
-        {
-            Phase2Frame f = new Phase2Frame();
-            if (_wavePool != null)
-            {
-                f.W0 = _wavePool.Capture(0);
-                f.W1 = _wavePool.Capture(1);
-                f.W2 = _wavePool.Capture(2);
-                f.W3 = _wavePool.Capture(3);
-            }
-            f.WaveCursor = _waveCursor;
-            _rewindBuffer.Push(f);
-        }
-
+        // 되감기 시작 - 진행 중인 예고/강타를 정지하고 회수한다
+        // (지속시간이 짧아 낙뢰와 동일하게 정밀 스크럽 대신 정지+재시작으로 처리)
+        // TODO: 프레임 단위 스냅샷/복원이 필요해지면 BossHazardPool.Capture/Apply로 확장
         public override void OnRewindStart()
         {
             StopWaveLoop();
+            _wavePool.FreeAll();
         }
 
-        public override void ApplyRewindTick(int orderedIndex)
-        {
-            if (_rewindBuffer.TryGetOrdered(orderedIndex, out Phase2Frame f))
-            {
-                ApplyWaveFrame(f);
-            }
-        }
-
-        // 되감기 종료 - 결정 커서만 복원하고 떠 있던 장풍은 회수한다
-        // (구동 상태(WaveState)가 함께 되돌아갈 수 없으므로 루프가 같은 x 순서로 다시 쏜다)
         public override void OnRewindEnd(int orderedIndex)
         {
-            if (_rewindBuffer.TryGetOrdered(orderedIndex, out Phase2Frame f))
-            {
-                _waveCursor = f.WaveCursor;
-            }
-
-            _wavePool.FreeAll();
-            ClearWaveStates();
-            _rewindBuffer.Clear();
             _waveLoop = Boss.StartCoroutine(CoWaveLoop());
         }
 
@@ -179,10 +116,9 @@ namespace Minsung.Boss
         // 2페이즈 종료: 컷신(페이드) -> 3페이즈. 기믹 중에는 리와인드가 잠긴다(BossController.CoPhaseEnd)
         public override IEnumerator CoPhaseEndGimmick()
         {
-            // 컷신 시작 - 패턴 정지 + 떠 있는 장풍 정리
+            // 컷신 시작 - 패턴 정지 + 떠 있는 예고/강타 정리
             StopWaveLoop();
             _wavePool.FreeAll();
-            ClearWaveStates();
 
             // TODO: 컷신 연출(보스 대사/카메라) 기획 확정 후 교체
             // TODO: 씬 전환으로 맵 변경 - FadeOutIn의 onMidpoint에서 GameManager 씬 전환 호출
@@ -202,7 +138,7 @@ namespace Minsung.Boss
         *          Coroutine / 장풍
         ****************************************/
 
-        // 장풍 루프: 간격마다 결정 로그의 x(없으면 새 랜덤)에 장풍 하나를 쏘아 올린다
+        // 장풍 루프: 간격마다 결정 로그의 x(없으면 새 랜덤)에 예고+강타 한 세트를 실행한다
         private IEnumerator CoWaveLoop()
         {
             while (true)
@@ -213,7 +149,7 @@ namespace Minsung.Boss
                 {
                     continue; // 기믹/컷신 중에는 발사 정지
                 }
-                SpawnWave(GetOrMakeWaveX());
+                Boss.StartCoroutine(CoTelegraphAndStrike(GetOrMakeWaveX()));
             }
         }
 
@@ -231,29 +167,60 @@ namespace Minsung.Boss
             return x;
         }
 
-        private void SpawnWave(float x)
+        // 한 세트: 예고(파티클, 판정 없음) -> 강타(즉시 배치, 폭발 프레임 순환, 앞 N프레임만 판정)
+        private IEnumerator CoTelegraphAndStrike(float x)
         {
-            BossDataSO bossSo = GameDB.Boss;
+            Vector2 scale = new Vector2(_bossSo.Phase2WaveWidth, _bossSo.Phase2WaveHeight);
+            Vector2 pos   = new Vector2(x, Boss.ArenaGroundY + (_bossSo.Phase2WaveHeight * 0.5f));
 
-            float   startY = Boss.ArenaGroundY - bossSo.Phase2WaveSpawnDepth;
-            Vector2 scale  = new Vector2(bossSo.Phase2WaveWidth, bossSo.Phase2WaveHeight);
-
-            int slot = _wavePool.Alloc(new Vector2(x, startY), scale, bossSo.Phase2WaveColor, true,
-                                       bossSo.AttackHalves);
-            if (slot < 0)
+            // 예고 - 판정 없음. 스케일이 강타와 동일해 파티클 방출 영역이 폭발 크기만큼 넓어진다(scalingMode=Shape)
+            int telegraphSlot = _wavePool.Alloc(pos, scale, _bossSo.Phase2WaveColor, false);
+            if (telegraphSlot < 0)
             {
-                return; // 풀 고갈 - 이번 장풍은 생략
+                yield break; // 풀 고갈 - 이번 장풍은 생략
+            }
+            yield return _waitTelegraph;
+            _wavePool.Free(telegraphSlot);
+
+            if (Boss.IsTransitioning)
+            {
+                yield break; // 예고 중 컷신/기믹 진입 시 발사 취소
             }
             Boss.Body?.PlayCastTrigger();
 
-            for (int i = 0; i < _waves.Length; ++i)
+            // 강타 - 같은 위치에 즉시 배치, 폭발 프레임 순환
+            int strikeSlot = _wavePool.Alloc(pos, scale, _bossSo.Phase2WaveColor, true, _bossSo.AttackHalves);
+            if (strikeSlot < 0)
             {
-                if (_waves[i].Slot < 0)
+                yield break;
+            }
+
+            if (_cycleFrames)
+            {
+                float elapsed    = 0f;
+                int   frameIndex = 0;
+                while ((elapsed < _bossSo.Phase2WaveActiveTime) && (_wavePool.IsActive(strikeSlot)))
                 {
-                    _waves[i] = new WaveState { Slot = slot, X = x, Y = startY };
-                    return;
+                    if (frameIndex == _bossSo.Phase2WaveActiveFrameCount)
+                    {
+                        _wavePool.SetColliderActive(strikeSlot, false); // 종료 프레임 진입 - 판정 해제, 연출만 유지
+                    }
+                    _wavePool.SetSprite(strikeSlot, _strikeSprites[frameIndex]);
+                    yield return _waitFrame;
+                    elapsed += _frameInterval;
+
+                    ++frameIndex;
+                    if (frameIndex >= _strikeSpritesCount)
+                    {
+                        frameIndex = 0;
+                    }
                 }
             }
+            else if (_wavePool.IsActive(strikeSlot))
+            {
+                yield return _waitActive;
+            }
+            _wavePool.Free(strikeSlot);
         }
 
         private void StopWaveLoop()
@@ -263,23 +230,6 @@ namespace Minsung.Boss
                 Boss.StopCoroutine(_waveLoop);
                 _waveLoop = null;
             }
-        }
-
-        private void ClearWaveStates()
-        {
-            for (int i = 0; i < _waves.Length; ++i)
-            {
-                _waves[i].Slot = -1;
-            }
-        }
-
-        // 스냅샷 내용대로 장풍 풀 4슬롯을 복원
-        private void ApplyWaveFrame(Phase2Frame f)
-        {
-            _wavePool.Apply(0, f.W0);
-            _wavePool.Apply(1, f.W1);
-            _wavePool.Apply(2, f.W2);
-            _wavePool.Apply(3, f.W3);
         }
     }
 }

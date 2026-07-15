@@ -69,7 +69,7 @@ namespace Minsung.Boss
         // customMaterial: 기본 매테리얼이 아닌 특정 매테리얼(예: 왜곡 쉐이더)을 사용할 때 지정
         // prefab: 빈 게임 오브젝트 대신 미리 세팅된 프리팹(파티클 등 포함)을 기반으로 생성할 때 지정
         public BossHazardPool(int count, string namePrefix, Sprite customSprite = null, Material customMaterial = null,
-                              float particleSize = 0.2f, Color[] particleColors = null)
+                              bool attachParticle = false, float particleSize = 0.2f, Color[] particleColors = null)
         {
             _slots = new PoolSlot[count];
             for (int i = 0; i < count; i++)
@@ -96,8 +96,8 @@ namespace Minsung.Boss
                     sr.sharedMaterial = customMaterial;
                 }
 
-                // 텔레포트/번개 이펙트를 위해 특정 풀인 경우에만 컴포넌트 동적 추가
-                if (namePrefix == "LightningBolt")
+                // 타격 지점 표시가 필요한 풀만 파티클 컴포넌트 동적 추가
+                if (attachParticle)
                 {
                     ParticleSystem ps = go.AddComponent<ParticleSystem>();
                     var main = ps.main;
@@ -107,8 +107,8 @@ namespace Minsung.Boss
                     main.startLifetime = 0.5f;
                     main.startSpeed = 10f;
                     main.startSize = particleSize;
-                    main.startColor = ParticleColorOf(particleColors); // 보라 계열 4색 중 파티클마다 랜덤
-                    main.scalingMode = ParticleSystemScalingMode.Shape; // 부모 Y스케일 0.15 찌그러짐 방지
+                    main.startColor = ParticleColorOf(particleColors); // 지정 색 중 파티클마다 랜덤
+                    main.scalingMode = ParticleSystemScalingMode.Shape; // 방출 영역이 슬롯 스케일(가로/세로)을 그대로 따라가게 함
 
                     var shape = ps.shape;
                     shape.shapeType = ParticleSystemShapeType.Box;
@@ -176,6 +176,23 @@ namespace Minsung.Boss
             if (IsActive(i))
             {
                 _slots[i].Renderer.enabled = visible;
+            }
+        }
+
+        /// <summary> 콜라이더/피해 판정만 켜고 끈다 (시각 연출은 유지). 강타 후반 무판정 프레임 표현용 </summary>
+        public void SetColliderActive(int i, bool active)
+        {
+            if (!IsActive(i))
+            {
+                return;
+            }
+            if (_slots[i].Collider != null)
+            {
+                _slots[i].Collider.enabled = active;
+            }
+            if (_slots[i].Hazard != null)
+            {
+                _slots[i].Hazard.enabled = active;
             }
         }
 

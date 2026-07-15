@@ -56,7 +56,7 @@ namespace Minsung.Boss
             {
                 firstStrikeSprite = _strikeSprites[0];
             }
-            _pool = new BossHazardPool(POOL_SIZE, "LightningBolt", firstStrikeSprite, null,
+            _pool = new BossHazardPool(POOL_SIZE, "LightningBolt", firstStrikeSprite, null, true,
                                        _bossSo.LightningParticleSize, _bossSo.LightningParticleColors);
 
             _waitNormal    = new WaitForSeconds(_bossSo.LightningInterval);
