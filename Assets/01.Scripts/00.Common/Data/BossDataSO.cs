@@ -47,21 +47,26 @@ namespace Minsung.Common.Data
         [SerializeField] private float _cloneAttackActiveTime = 0.2f;  // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
         [SerializeField] private float _cloneMoveSpeed        = 2.6f;  // 추격 이동 속도 - 플레이어 MoveSpeed(2)보다 느리게 잡아 도망 가능하게 함 // kjw 1.8 -> 2.6 수정
 
-        [Header("낙뢰 (전 페이즈 공통 패턴)")]
-        [SerializeField] private float _lightningInterval     = 4f;   // 기본 낙하 간격(초)
-        [SerializeField] private float _lightningStunDuration = 0.5f; // 피격 시 이동 불가 시간(초)
-        [SerializeField] private int   _lightningDamageHalves = 2;    // 피격 시 하트 차감(반칸 단위, 2 = 한 칸)
-        [SerializeField] private float _lightningFallSpeed    = 12f;  // 낙하 속도(유닛/초) TODO: 밸런싱
-        [SerializeField] private float _lightningSpawnHeight  = 8f;   // 낙하 시작 높이(지면 기준) TODO: 맵 크기에 맞게
-        [SerializeField] private float _lightningWidth        = 0.5f; // 판정 폭
-        [SerializeField] private float _lightningHeight       = 2f;   // 판정 높이
-        [SerializeField] private float _lightningRatePinkMult = 2f;   // 핑크 감정: 낙뢰 비율 x2
-        [SerializeField] private float _lightningRateBlueMult = 0.5f; // 파랑 감정: 낙뢰 비율 /2
+        [Header("낙뢰 (전 페이즈 공통 패턴 - 예고 후 즉발 강타, 플레이어 주변 낙하)")]
+        [SerializeField] private float _lightningInterval        = 4f;    // 기본 발생 간격(초)
+        [SerializeField] private float _lightningTelegraphTime   = 0.8f;  // 예고 장판 노출 시간(초) TODO: 밸런싱/가독성 확정
+        [SerializeField] private float _lightningTelegraphHeight = 0.15f; // 예고 장판 세로 두께(지면 기준) - 얇은 판 형태 전용 필드
+        [SerializeField] private float _lightningActiveTime      = 0.15f; // 강타 판정 유지 시간(초) - 즉시 배치라 매우 짧게
+        [SerializeField] private float _lightningStunDuration    = 0.5f;  // 피격 시 이동 불가 시간(초)
+        [SerializeField] private int   _lightningDamageHalves    = 2;     // 피격 시 하트 차감(반칸 단위, 2 = 한 칸)
+        [SerializeField] private float _lightningWidth           = 0.5f;  // 강타/예고 공통 가로 폭 - 같은 x 열을 가리켜야 하므로 두 연출이 공유
+        [SerializeField] private float _lightningHeight          = 14f;   // 강타 세로 길이 - 카메라 orthoSize 5 기준 화면 상단을 넘어서도록 설정
+        [SerializeField] private float _lightningPlayerRadius    = 3f;    // 낙하 지점을 플레이어 x 위치 기준 이 반경 안에서 랜덤 결정 TODO: 밸런싱
+        [SerializeField] private float _lightningRatePinkMult    = 2f;    // 핑크 감정: 발생 비율 x2
+        [SerializeField] private float _lightningRateBlueMult    = 0.5f;  // 파랑 감정: 발생 비율 /2
 
-        [SerializeField] private Color _lightningColor = new Color(1f, 0.95f, 0.4f); // 낙뢰 표시색 (임시)
+        [SerializeField] private Color _lightningColor          = new Color(1f, 0.95f, 0.4f);      // 강타 표시색 - 폴백 사각형용 기본값. 실제 스프라이트 연결 시 흰색을 권장(원색 유지)
+        [SerializeField] private Color _lightningTelegraphColor = new Color(1f, 0.9f, 0.2f, 0.35f); // 예고 장판 색 (노란 반투명)
+
+        [SerializeField] private Sprite[] _lightningStrikeSprites;         // 강타 중 순환할 크랙클 프레임 (비우면 단색 사각형 폴백)
+        [SerializeField] private float    _lightningFrameInterval = 0.05f; // 크랙클 프레임 전환 간격(초)
 
         [Header("감정 - 화남(혼란) / 파랑(하트 픽업)")]
-        [SerializeField] private float _emotionInterval   = 8f;   // 감정 자동 전환 주기(초) - 화남/기본 제외 랜덤
         [SerializeField] private float _confusionInterval = 10f;  // 키반전 발동 주기(초)
         [SerializeField] private float _confusionDuration = 1f;   // 키반전 지속 시간(초)
         [SerializeField] private float _heartPickupHeight = 0.5f; // 픽업 배치 높이(지면 기준)
@@ -73,8 +78,7 @@ namespace Minsung.Common.Data
         [SerializeField] private float _gimmickTelegraphTime   = 3f;    // 안전구역 표시~레이저 발사까지(초)
         [SerializeField] private float _gimmickLaserActiveTime = 0.5f;  // 레이저 연출 지속(초)
         [SerializeField] private float _gimmickLaserHeight     = 6f;    // 전장 레이저/안전구역 세로 크기
-        [SerializeField] private float _gimmickRefireDelay     = 5f;    // 실전 레이저 사이 간격(초, 예고 종료~첫 발사도 동일 적용)
-        [SerializeField] private float _gimmickCameraOrthoSize = 5f;    // 기믹 진행 중 플레이어 카메라 줌 아웃 크기
+        [SerializeField] private float _gimmickRefireDelay     = 5f;    // 예고 종료 후 실제 발사까지 대기(초)
 
         [Header("2페이즈 장풍 (맵 아래에서 솟아오름)")]
         [SerializeField] private float _phase2WaveInterval   = 3f; // 발사 간격(초)
@@ -135,18 +139,23 @@ namespace Minsung.Common.Data
         public float CloneAttackActiveTime => _cloneAttackActiveTime;
         public float CloneMoveSpeed        => _cloneMoveSpeed;
 
-        public float LightningInterval     => _lightningInterval;
-        public float LightningStunDuration => _lightningStunDuration;
-        public int   LightningDamageHalves => _lightningDamageHalves;
-        public float LightningFallSpeed    => _lightningFallSpeed;
-        public float LightningSpawnHeight  => _lightningSpawnHeight;
-        public float LightningWidth        => _lightningWidth;
-        public float LightningHeight       => _lightningHeight;
-        public float LightningRatePinkMult => _lightningRatePinkMult;
-        public float LightningRateBlueMult => _lightningRateBlueMult;
-        public Color LightningColor        => _lightningColor;
+        public float LightningInterval        => _lightningInterval;
+        public float LightningTelegraphTime   => _lightningTelegraphTime;
+        public float LightningTelegraphHeight => _lightningTelegraphHeight;
+        public float LightningActiveTime      => _lightningActiveTime;
+        public float LightningStunDuration    => _lightningStunDuration;
+        public int   LightningDamageHalves    => _lightningDamageHalves;
+        public float LightningWidth           => _lightningWidth;
+        public float LightningHeight          => _lightningHeight;
+        public float LightningPlayerRadius    => _lightningPlayerRadius;
+        public float LightningRatePinkMult    => _lightningRatePinkMult;
+        public float LightningRateBlueMult    => _lightningRateBlueMult;
+        public Color LightningColor           => _lightningColor;
+        public Color LightningTelegraphColor  => _lightningTelegraphColor;
 
-        public float EmotionInterval   => _emotionInterval;
+        public Sprite[] LightningStrikeSprites => _lightningStrikeSprites;
+        public float    LightningFrameInterval => _lightningFrameInterval;
+
         public float ConfusionInterval => _confusionInterval;
         public float ConfusionDuration => _confusionDuration;
         public float HeartPickupHeight => _heartPickupHeight;
@@ -158,7 +167,6 @@ namespace Minsung.Common.Data
         public float GimmickLaserActiveTime => _gimmickLaserActiveTime;
         public float GimmickLaserHeight     => _gimmickLaserHeight;
         public float GimmickRefireDelay     => _gimmickRefireDelay;
-        public float GimmickCameraOrthoSize => _gimmickCameraOrthoSize;
 
         public float Phase2WaveInterval   => _phase2WaveInterval;
         public float Phase2WaveRiseSpeed  => _phase2WaveRiseSpeed;

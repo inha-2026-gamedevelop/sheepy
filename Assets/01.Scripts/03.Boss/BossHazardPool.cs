@@ -64,15 +64,62 @@ namespace Minsung.Boss
         *              Constructor
         ****************************************/
 
-        public BossHazardPool(int size, string namePrefix)
+        // customSprite: 기본 사각형이 아닌 특정 스프라이트를 사용할 때 지정
+        // customMaterial: 기본 매테리얼이 아닌 특정 매테리얼(예: 왜곡 쉐이더)을 사용할 때 지정
+        // prefab: 빈 게임 오브젝트 대신 미리 세팅된 프리팹(파티클 등 포함)을 기반으로 생성할 때 지정
+        public BossHazardPool(int count, string namePrefix, Sprite customSprite = null, Material customMaterial = null)
         {
-            _slots = new PoolSlot[size];
-            for (int i = 0; i < size; ++i)
+            _slots = new PoolSlot[count];
+            for (int i = 0; i < count; i++)
             {
                 GameObject go = new GameObject($"{namePrefix}_{i}");
-                go.SetActive(false);
+                go.SetActive(false); // 비활성 상태로 생성해야 ParticleSystem의 playOnAwake 자동 재생을 막을 수 있다 (재생 중 duration 변경 시 예외 발생)
+
                 SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = SquareSprite();
+                
+                if (customSprite != null)
+                {
+                    // Sliced + size (1,1)이 스프라이트를 로컬 1x1 크기로 강제해 기존 스케일/판정 공식이 그대로 유효하다
+                    sr.sprite   = customSprite;
+                    sr.drawMode = SpriteDrawMode.Sliced;
+                    sr.size     = Vector2.one;
+                }
+                else
+                {
+                    sr.sprite = SquareSprite();
+                }
+
+                if (customMaterial != null)
+                {
+                    sr.sharedMaterial = customMaterial;
+                }
+
+                // 텔레포트/번개 이펙트를 위해 특정 풀인 경우에만 컴포넌트 동적 추가
+                if (namePrefix == "LightningBolt")
+                {
+                    ParticleSystem ps = go.AddComponent<ParticleSystem>();
+                    var main = ps.main;
+                    main.playOnAwake = false;
+                    main.duration = 0.5f;
+                    main.loop = false;
+                    main.startLifetime = 0.5f;
+                    main.startSpeed = 10f;
+                    main.startSize = 0.2f;
+                    main.startColor = new Color(1f, 0.9f, 0.2f, 1f); // 노란색(번개색) 스파크
+                    main.scalingMode = ParticleSystemScalingMode.Shape; // 부모 Y스케일 0.15 찌그러짐 방지
+
+                    var shape = ps.shape;
+                    shape.shapeType = ParticleSystemShapeType.Box;
+                    shape.scale = new Vector3(1f, 1f, 1f);
+
+                    var emission = ps.emission;
+                    emission.rateOverTime = 30; // 바닥에서 스멀스멀 올라오며 튀는 연출
+
+                    var psr = go.GetComponent<ParticleSystemRenderer>();
+                    psr.material = new Material(Shader.Find("Sprites/Default")); // URP 에러(핑크색) 방지를 위해 2D 기본 쉐이더 사용
+                    psr.sortingOrder = 100; // 배경 위에 확실히 렌더링되게 보장
+                }
+
                 _slots[i] = new PoolSlot { Go = go, Renderer = sr };
             }
         }
@@ -126,6 +173,15 @@ namespace Minsung.Boss
             if (IsActive(i))
             {
                 _slots[i].Renderer.enabled = visible;
+            }
+        }
+
+        /// <summary> 활성 슬롯의 스프라이트를 바꾼다 (낙뢰 크랙클 프레임 순환 등 연출용) </summary>
+        public void SetSprite(int i, Sprite sprite)
+        {
+            if ((IsActive(i)) && (sprite != null))
+            {
+                _slots[i].Renderer.sprite = sprite;
             }
         }
 
@@ -227,12 +283,21 @@ namespace Minsung.Boss
             _slots[i].Renderer.enabled = true;
             _slots[i].Go.SetActive(true);
 
+            // 파티클 시스템이 있다면 풀에서 꺼낼 때마다 강제 재생
+            ParticleSystem ps = _slots[i].Go.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                ps.Play(true);
+            }
+
             if (hasCollider)
             {
                 if (_slots[i].Collider == null)
                 {
                     _slots[i].Collider           = _slots[i].Go.AddComponent<BoxCollider2D>();
                     _slots[i].Collider.isTrigger = true;
+                    _slots[i].Collider.size      = Vector2.one; // 판정 크기를 스프라이트 종류와 무관하게 로컬 1x1로 고정
                 }
                 _slots[i].Collider.enabled = true;
 

@@ -19,7 +19,7 @@ MonoBehaviour:
   _cloneAttackHalves: 1
   _reflectHalves: 2
   _moveSpeed: 2.5
-  _attackRange: 2
+  _attackRange: 0.7
   _attackCooldown: 2.5
   _attackActiveTime: 0.25
   _jumpCooldown: 4
@@ -31,34 +31,41 @@ MonoBehaviour:
   _dodgeTriggerRange: 1.5
   _dodgeBackDistance: 3
   _dodgeDuration: 0.3
-  _cloneHealth: 500
+  _cloneHealth: 5
   _cloneCount: 2
-  _cloneAttackRange: 1.5
+  _cloneAttackRange: 0.7
   _cloneAttackCooldown: 2
   _cloneAttackActiveTime: 0.2
   _cloneMoveSpeed: 1.8
   _lightningInterval: 4
+  _lightningTelegraphTime: 0.8
+  _lightningTelegraphHeight: 0.15
+  _lightningActiveTime: 0.15
   _lightningStunDuration: 0.5
   _lightningDamageHalves: 2
-  _lightningFallSpeed: 12
-  _lightningSpawnHeight: 8
   _lightningWidth: 0.5
-  _lightningHeight: 2
+  _lightningHeight: 14
+  _lightningPlayerRadius: 3
   _lightningRatePinkMult: 2
   _lightningRateBlueMult: 0.5
-  _lightningColor: {r: 1, g: 0.95, b: 0.4, a: 1}
-  _emotionInterval: 8
+  _lightningColor: {r: 1, g: 1, b: 1, a: 1}
+  _lightningTelegraphColor: {r: 1, g: 0.9, b: 0.2, a: 0.35}
+  _lightningStrikeSprites:
+  - {fileID: 3402156135608667222, guid: 89d723aaf22492a43b727d435c7a18c0, type: 3}
+  - {fileID: 7559705602877933973, guid: 89d723aaf22492a43b727d435c7a18c0, type: 3}
+  - {fileID: 6854087939297921297, guid: 89d723aaf22492a43b727d435c7a18c0, type: 3}
+  - {fileID: 7980869619337426929, guid: 89d723aaf22492a43b727d435c7a18c0, type: 3}
+  _lightningFrameInterval: 0.05
   _confusionInterval: 10
   _confusionDuration: 1
   _heartPickupHeight: 0.5
   _gimmickLaserCount: 3
   _gimmickSafeZoneWidth: 3
-  _gimmickSafeZoneAlpha: 0.35
+  _gimmickSafeZoneAlpha: 0.1
   _gimmickTelegraphTime: 3
   _gimmickLaserActiveTime: 0.5
   _gimmickLaserHeight: 6
   _gimmickRefireDelay: 5
-  _gimmickCameraOrthoSize: 5
   _phase2WaveInterval: 3
   _phase2WaveRiseSpeed: 6
   _phase2WaveWidth: 1

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 // Unity
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 using Minsung.Common;
 using Minsung.Common.Data;
@@ -177,7 +176,7 @@ namespace Minsung.Boss
         *            종료 기믹
         ****************************************/
 
-        // 2페이즈 종료: 컷신(페이드) -> 씬 전환으로 3페이즈 맵 로드. 기믹 중에는 리와인드가 잠긴다(BossController.CoPhaseEnd)
+        // 2페이즈 종료: 컷신(페이드) -> 3페이즈. 기믹 중에는 리와인드가 잠긴다(BossController.CoPhaseEnd)
         public override IEnumerator CoPhaseEndGimmick()
         {
             // 컷신 시작 - 패턴 정지 + 떠 있는 장풍 정리
@@ -185,24 +184,18 @@ namespace Minsung.Boss
             _wavePool.FreeAll();
             ClearWaveStates();
 
-            // 페이드 암전 시점에 보스 상태를 캐리어에 저장하고 3페이즈 맵 씬을 로드한다.
-            // 씬이 로드되면 이 상태/코루틴이 파괴되므로 뒤따르는 전환 로직(Exit/다음 Enter)은 옛 씬에서 돌지 않는다
-            // TODO: 컷신 연출(보스 대사/카메라)은 리소스 확정 후 onMidpoint 앞에 배치
-            if ((ScreenFade.Instance != null) && (!string.IsNullOrEmpty(Boss.Phase3SceneName)))
+            // TODO: 컷신 연출(보스 대사/카메라) 기획 확정 후 교체
+            // TODO: 씬 전환으로 맵 변경 - FadeOutIn의 onMidpoint에서 GameManager 씬 전환 호출
+            //       보스 상태(피통/페이즈/타이머) 이관 구조 설계 후 연결한다
+            if (ScreenFade.Instance != null)
             {
-                ScreenFade.Instance.FadeOutIn(() =>
+                bool midpointReached = false;
+                ScreenFade.Instance.FadeOutIn(() => midpointReached = true);
+                while (!midpointReached)
                 {
-                    Boss.SaveHandoffToNextPhase();
-                    SceneManager.LoadScene(Boss.Phase3SceneName);
-                });
-
-                while (true)
-                {
-                    yield return null; // 씬 로드로 파괴될 때까지 대기 (옛 씬 전환 로직 차단)
+                    yield return null;
                 }
             }
-
-            // 폴백: 씬 이름 미설정/페이드 부재 - 씬 전환 없이 같은 씬에서 다음 페이즈로 진행
         }
 
         /****************************************

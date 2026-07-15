@@ -4,7 +4,6 @@ using System.Collections;
 // Unity
 using UnityEngine;
 
-using Minsung.CameraSystem;
 using Minsung.Common;
 using Minsung.Common.Data;
 using Minsung.TimeSystem;
@@ -18,8 +17,7 @@ namespace Minsung.Boss
         *                Fields
         ****************************************/
 
-        // 동시 사용 최대: 전체 색 안전구역(GIMMICK_LASER_COLOR_COUNT) + 레이저 1
-        private const int POOL_SIZE = Constants.Combat.GIMMICK_LASER_COLOR_COUNT + 1;
+        private const int POOL_SIZE = 2; // 동시 사용 최대: 안전구역 1 + 레이저 1
 
         private readonly WaitForSeconds _waitRefireDelay = new WaitForSeconds(GameDB.Boss.GimmickRefireDelay);
         private readonly WaitForSeconds _waitLaserActive = new WaitForSeconds(GameDB.Boss.GimmickLaserActiveTime);
@@ -44,7 +42,8 @@ namespace Minsung.Boss
 
         public override void Enter()
         {
-            _pool = new BossHazardPool(POOL_SIZE, "Phase1_Gimmick");
+            Material wavyMat = Resources.Load<Material>("WavyGimmickMat");
+            _pool = new BossHazardPool(POOL_SIZE, "Phase1_Gimmick", null, wavyMat);
 
             // 분신 2체 등장. 전멸 감지는 각 분신의 OnCloneDied 이벤트로 직접 추적한다
             BossCloneController[] clones = Boss.Phase1Clones;
@@ -110,21 +109,20 @@ namespace Minsung.Boss
         {
             BuildSequence();
 
-            // 레이저가 나오기 시작하는 구간 - 아레나 전체가 보이도록 플레이어 카메라를 줌 아웃
-            CameraManager.Instance?.SetPlayerOrthographicSize(GameDB.Boss.GimmickCameraOrthoSize);
-
-            // 1) 예고: 전체 색 안전구역을 동시에 표시(슬로우 중에만)하며 색 순서대로 발사
-            yield return CoTelegraphSequence();
-
-            // 2) 실전: 같은 순서로 재발사. 레이저 사이 간격은 5초(GimmickRefireDelay). 색이 맞지 않는 위치면 즉사
+            // 1) 예고: 색 순서대로 발사. 안전구역은 슬로우 중에만 보인다
             for (int i = 0; i < _sequence.Length; ++i)
             {
-                yield return _waitRefireDelay;
+                yield return CoTelegraphLaser(_sequence[i]);
+            }
+
+            // 2) 5초 후 실전: 같은 순서로 재발사. 색이 맞지 않는 위치면 즉사
+            yield return _waitRefireDelay;
+            for (int i = 0; i < _sequence.Length; ++i)
+            {
                 yield return CoJudgeLaser(_sequence[i]);
             }
 
-            // 파훼 성공 - BossController가 2페이즈로 전환한다. 카메라 줌은 원래 크기로 복원
-            CameraManager.Instance?.ResetPlayerOrthographicSize();
+            // 파훼 성공 - BossController가 2페이즈로 전환한다
         }
 
         // 색 순서(랜덤 3회, 중복 허용)와 색별 안전구역 중심 x를 결정한다
@@ -146,41 +144,20 @@ namespace Minsung.Boss
             }
         }
 
-        // 예고 전체 구간: 색별 안전구역을 전부 동시에 켜 둔 채(슬로우 중에만 렌더) 색 순서대로 예고 레이저를 발사한다
-        private IEnumerator CoTelegraphSequence()
+        // 예고 1발: 안전구역 표시(슬로우 중에만 렌더) -> 전장 레이저 연출(판정 없음)
+        private IEnumerator CoTelegraphLaser(LaserColor color)
         {
-            int[] zoneSlots = new int[Constants.Combat.GIMMICK_LASER_COLOR_COUNT];
-            for (int c = 0; c < zoneSlots.Length; ++c)
-            {
-                zoneSlots[c] = AllocSafeZone((LaserColor)c);
-            }
+            int zoneSlot = AllocSafeZone(color);
 
-            for (int i = 0; i < _sequence.Length; ++i)
-            {
-                yield return CoTelegraphLaser(zoneSlots, _sequence[i]);
-            }
-
-            for (int c = 0; c < zoneSlots.Length; ++c)
-            {
-                _pool.Free(zoneSlots[c]);
-            }
-        }
-
-        // 예고 1발: 전체 안전구역 표시(슬로우 중에만 렌더) -> 전장 레이저 연출(판정 없음)
-        private IEnumerator CoTelegraphLaser(int[] zoneSlots, LaserColor color)
-        {
-            // 레이저를 쏠 때까지 매 프레임 슬로우 여부로 전체 안전구역 표시를 토글한다
+            // 레이저를 쏠 때까지만 안전구역 유지 - 매 프레임 슬로우 여부로 표시를 토글한다
             float elapsed = 0f;
             while (elapsed < GameDB.Boss.GimmickTelegraphTime)
             {
                 elapsed += Time.deltaTime;
-                bool visible = SlowMotionController.IsSlow;
-                for (int c = 0; c < zoneSlots.Length; ++c)
-                {
-                    _pool.SetVisible(zoneSlots[c], visible);
-                }
+                _pool.SetVisible(zoneSlot, SlowMotionController.IsSlow);
                 yield return null;
             }
+            _pool.Free(zoneSlot);
 
             yield return CoFireLaser(color);
         }

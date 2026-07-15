@@ -72,7 +72,6 @@ namespace Minsung.Boss
         {
             base.Enter(); // 본체 + 장풍 (2페이즈 패턴 유지)
 
-            Boss.SetAutoEmotionSuspended(true); // 3페이즈는 화남 고정 - 자동 랜덤 전환 정지
             Boss.SetEmotion(BossEmotion.Angry); // 3페이즈 고정 - 10초마다 1초 혼란(키반전)
 
             _laserPool         = new BossHazardPool(LASER_POOL_SIZE, "Phase3_Laser");
@@ -92,8 +91,7 @@ namespace Minsung.Boss
                 _laserPool = null;
             }
 
-            Boss.SetEmotion(BossEmotion.None);       // 혼란 해제
-            Boss.SetAutoEmotionSuspended(false);     // 자동 랜덤 전환 재개
+            Boss.SetEmotion(BossEmotion.None); // 혼란 해제
 
             base.Exit();
         }
