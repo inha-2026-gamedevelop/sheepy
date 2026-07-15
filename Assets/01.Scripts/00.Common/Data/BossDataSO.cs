@@ -55,7 +55,8 @@ namespace Minsung.Common.Data
         [SerializeField] private float _lightningStunDuration    = 0.5f;  // 피격 시 이동 불가 시간(초)
         [SerializeField] private int   _lightningDamageHalves    = 2;     // 피격 시 하트 차감(반칸 단위, 2 = 한 칸)
         [SerializeField] private float _lightningWidth           = 0.5f;  // 강타/예고 공통 가로 폭 - 같은 x 열을 가리켜야 하므로 두 연출이 공유
-        [SerializeField] private float _lightningHeight          = 14f;   // 강타 세로 길이 - 카메라 orthoSize 5 기준 화면 상단을 넘어서도록 설정
+        [SerializeField] private float _lightningHeight          = 9f;   // 강타 세로 길이 - 카메라 orthoSize 5 기준 화면 상단을 넘어서도록 설정
+        [SerializeField] private float _lightningGroundEmbed     = 0.4f;  // 강타 스프라이트 하단 여백/발광 감쇠를 가리기 위해 지면 아래로 밀어넣는 깊이(유닛)
         [SerializeField] private float _lightningPlayerRadius    = 3f;    // 낙하 지점을 플레이어 x 위치 기준 이 반경 안에서 랜덤 결정 TODO: 밸런싱
         [SerializeField] private float _lightningRatePinkMult    = 2f;    // 핑크 감정: 발생 비율 x2
         [SerializeField] private float _lightningRateBlueMult    = 0.5f;  // 파랑 감정: 발생 비율 /2
@@ -64,7 +65,16 @@ namespace Minsung.Common.Data
         [SerializeField] private Color _lightningTelegraphColor = new Color(1f, 0.9f, 0.2f, 0.35f); // 예고 장판 색 (노란 반투명)
 
         [SerializeField] private Sprite[] _lightningStrikeSprites;         // 강타 중 순환할 크랙클 프레임 (비우면 단색 사각형 폴백)
-        [SerializeField] private float    _lightningFrameInterval = 0.05f; // 크랙클 프레임 전환 간격(초)
+        [SerializeField] private float    _lightningFrameInterval = 0.02f; // 크랙클 프레임 전환 간격(초)
+
+        [SerializeField] private float _lightningParticleSize = 0.08f; // 낙뢰 지점 스파크 입자 크기
+        [SerializeField] private Color[] _lightningParticleColors = new Color[] // 스파크 입자 색 - 보라 계열 4색 중 랜덤
+        {
+            new Color(0.88f, 0.67f, 1f),    // 연보라
+            new Color(0.78f, 0.49f, 1f),    // 밝은 보라
+            new Color(0.61f, 0.31f, 0.87f), // 중간 보라
+            new Color(0.48f, 0.17f, 0.75f), // 진보라
+        };
 
         [Header("감정 - 화남(혼란) / 파랑(하트 픽업)")]
         [SerializeField] private float _confusionInterval = 10f;  // 키반전 발동 주기(초)
@@ -147,6 +157,7 @@ namespace Minsung.Common.Data
         public int   LightningDamageHalves    => _lightningDamageHalves;
         public float LightningWidth           => _lightningWidth;
         public float LightningHeight          => _lightningHeight;
+        public float LightningGroundEmbed     => _lightningGroundEmbed;
         public float LightningPlayerRadius    => _lightningPlayerRadius;
         public float LightningRatePinkMult    => _lightningRatePinkMult;
         public float LightningRateBlueMult    => _lightningRateBlueMult;
@@ -155,6 +166,9 @@ namespace Minsung.Common.Data
 
         public Sprite[] LightningStrikeSprites => _lightningStrikeSprites;
         public float    LightningFrameInterval => _lightningFrameInterval;
+
+        public float   LightningParticleSize   => _lightningParticleSize;
+        public Color[] LightningParticleColors => _lightningParticleColors;
 
         public float ConfusionInterval => _confusionInterval;
         public float ConfusionDuration => _confusionDuration;

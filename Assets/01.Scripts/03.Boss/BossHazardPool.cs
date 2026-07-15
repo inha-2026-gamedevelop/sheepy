@@ -54,7 +54,8 @@ namespace Minsung.Boss
         *                Fields
         ****************************************/
 
-        private static Sprite _squareSprite; // 공용 1x1 흰 사각 스프라이트 (지연 생성 후 재사용)
+        private static Sprite  _squareSprite;  // 공용 1x1 흰 사각 스프라이트 (지연 생성 후 재사용)
+        private static Texture2D _circleTexture; // 공용 원형 알파 텍스처 (파티클용, 지연 생성 후 재사용)
 
         private PoolSlot[] _slots;
 
@@ -67,7 +68,8 @@ namespace Minsung.Boss
         // customSprite: 기본 사각형이 아닌 특정 스프라이트를 사용할 때 지정
         // customMaterial: 기본 매테리얼이 아닌 특정 매테리얼(예: 왜곡 쉐이더)을 사용할 때 지정
         // prefab: 빈 게임 오브젝트 대신 미리 세팅된 프리팹(파티클 등 포함)을 기반으로 생성할 때 지정
-        public BossHazardPool(int count, string namePrefix, Sprite customSprite = null, Material customMaterial = null)
+        public BossHazardPool(int count, string namePrefix, Sprite customSprite = null, Material customMaterial = null,
+                              float particleSize = 0.2f, Color[] particleColors = null)
         {
             _slots = new PoolSlot[count];
             for (int i = 0; i < count; i++)
@@ -104,8 +106,8 @@ namespace Minsung.Boss
                     main.loop = false;
                     main.startLifetime = 0.5f;
                     main.startSpeed = 10f;
-                    main.startSize = 0.2f;
-                    main.startColor = new Color(1f, 0.9f, 0.2f, 1f); // 노란색(번개색) 스파크
+                    main.startSize = particleSize;
+                    main.startColor = ParticleColorOf(particleColors); // 보라 계열 4색 중 파티클마다 랜덤
                     main.scalingMode = ParticleSystemScalingMode.Shape; // 부모 Y스케일 0.15 찌그러짐 방지
 
                     var shape = ps.shape;
@@ -117,6 +119,7 @@ namespace Minsung.Boss
 
                     var psr = go.GetComponent<ParticleSystemRenderer>();
                     psr.material = new Material(Shader.Find("Sprites/Default")); // URP 에러(핑크색) 방지를 위해 2D 기본 쉐이더 사용
+                    psr.material.mainTexture = CircleTexture(); // 기본 사각 파티클 대신 원형으로 렌더링
                     psr.sortingOrder = 100; // 배경 위에 확실히 렌더링되게 보장
                 }
 
@@ -330,6 +333,60 @@ namespace Minsung.Boss
                 _squareSprite = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), tex.width);
             }
             return _squareSprite;
+        }
+
+        // 공용 원형 알파 텍스처 - 파티클이 기본 사각형 대신 동그랗게 보이도록 소프트 엣지로 1회 생성
+        private static Texture2D CircleTexture()
+        {
+            if (_circleTexture == null)
+            {
+                const int SIZE = 32; // 작은 파티클용이라 이 해상도로 충분
+
+                _circleTexture = new Texture2D(SIZE, SIZE, TextureFormat.RGBA32, false);
+                Vector2 center = new Vector2((SIZE - 1) * 0.5f, (SIZE - 1) * 0.5f);
+                float   radius = SIZE * 0.5f;
+
+                for (int y = 0; y < SIZE; ++y)
+                {
+                    for (int x = 0; x < SIZE; ++x)
+                    {
+                        float dist  = Vector2.Distance(new Vector2(x, y), center);
+                        float alpha = Mathf.Clamp01(1f - (dist / radius));
+                        _circleTexture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                    }
+                }
+                _circleTexture.Apply();
+            }
+            return _circleTexture;
+        }
+
+        // 파티클 시작 색 결정 - 색 사이를 블렌딩하지 않고 구간을 딱 나눠 4색 중 하나가 랜덤으로 뽑힌 것처럼 보이게 한다
+        private static ParticleSystem.MinMaxGradient ParticleColorOf(Color[] colors)
+        {
+            if ((colors == null) || (colors.Length == 0))
+            {
+                return new ParticleSystem.MinMaxGradient(Color.white);
+            }
+
+            const float EDGE_EPSILON = 0.001f; // 구간 경계에서 색이 섞이지 않게 하는 최소 간격
+
+            int colorCount = colors.Length;
+            GradientColorKey[] colorKeys = new GradientColorKey[colorCount * 2];
+            GradientAlphaKey[] alphaKeys = new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) };
+
+            for (int i = 0; i < colorCount; ++i)
+            {
+                float segmentStart = (float)i / colorCount;
+                float segmentEnd   = (float)(i + 1) / colorCount;
+
+                colorKeys[i * 2]       = new GradientColorKey(colors[i], (i == 0) ? segmentStart : segmentStart + EDGE_EPSILON);
+                colorKeys[(i * 2) + 1] = new GradientColorKey(colors[i], (i == colorCount - 1) ? segmentEnd : segmentEnd - EDGE_EPSILON);
+            }
+
+            Gradient gradient = new Gradient();
+            gradient.SetKeys(colorKeys, alphaKeys);
+
+            return new ParticleSystem.MinMaxGradient(gradient) { mode = ParticleSystemGradientMode.RandomColor };
         }
     }
 }

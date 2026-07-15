@@ -56,7 +56,8 @@ namespace Minsung.Boss
             {
                 firstStrikeSprite = _strikeSprites[0];
             }
-            _pool = new BossHazardPool(POOL_SIZE, "LightningBolt", firstStrikeSprite);
+            _pool = new BossHazardPool(POOL_SIZE, "LightningBolt", firstStrikeSprite, null,
+                                       _bossSo.LightningParticleSize, _bossSo.LightningParticleColors);
 
             _waitNormal    = new WaitForSeconds(_bossSo.LightningInterval);
             _waitPink      = new WaitForSeconds(_bossSo.LightningInterval / _bossSo.LightningRatePinkMult);
@@ -177,8 +178,9 @@ namespace Minsung.Boss
             }
 
             // 강타 - 같은 x에 즉시 배치(보간 없음), 짧게 유지하며 크랙클 프레임 순환
+            // 스프라이트 하단의 발광 감쇠(여백)를 가리기 위해 지면 아래로 살짝 밀어넣는다(LightningGroundEmbed)
             Vector2 strikeScale = new Vector2(_bossSo.LightningWidth, _bossSo.LightningHeight);
-            Vector2 strikePos   = new Vector2(x, _boss.ArenaGroundY + (_bossSo.LightningHeight * 0.5f));
+            Vector2 strikePos   = new Vector2(x, _boss.ArenaGroundY + (_bossSo.LightningHeight * 0.5f) - _bossSo.LightningGroundEmbed);
 
             int strikeSlot = _pool.Alloc(strikePos, strikeScale, _bossSo.LightningColor, true,
                                          _bossSo.LightningDamageHalves, _bossSo.LightningStunDuration);
