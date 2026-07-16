@@ -146,15 +146,20 @@ namespace Minsung.Boss
             }
         }
 
-        // 색별 안전구역 중심 x를 결정한다 - 아레나를 색 수만큼 균등 분할해 구역 겹침을 원천 차단하고, 색-구간 배정은 셔플한다 //26 07 16 kjw
-        // TODO: 레벨 디자인(고정 지점) 배치 여부 기획 확정
+        // 색별 안전구역 중심 x를 결정한다 - 아레나 중앙 구역 기준 좌우 밀착 배치(경계 맞닿음), 색 배정만 셔플한다 //26 07 16 kjw
         private void BuildSafeZoneCenters()
         {
             int   colorCount   = Constants.Combat.GIMMICK_LASER_COLOR_COUNT;
-            float halfWidth    = GameDB.Boss.GimmickSafeZoneWidth * 0.5f;
-            float segmentWidth = (Boss.ArenaMaxX - Boss.ArenaMinX) / colorCount;
+            float zoneWidth    = GameDB.Boss.GimmickSafeZoneWidth;
+            float arenaCenterX = (Boss.ArenaMinX + Boss.ArenaMaxX) * 0.5f;
 
-            // 색 -> 구간 배정 셔플 (특정 색이 항상 같은 쪽에 오지 않도록)
+            if ((zoneWidth * colorCount) > (Boss.ArenaMaxX - Boss.ArenaMinX))
+            {
+                // 세 구역 합산 폭이 아레나보다 넓으면 가장자리 구역이 아레나를 벗어난다 - 배치는 그대로 진행
+                Debug.LogWarning("Phase1 안전구역 합산 폭이 아레나보다 넓습니다 - 가장자리 구역이 벗어날 수 있음");
+            }
+
+            // 색 -> 지점 배정 셔플 (Fisher-Yates) - 어느 색이 어느 지점에 올지는 매번 달라진다
             int[] segmentOrder = new int[colorCount];
             for (int i = 0; i < colorCount; ++i)
             {
@@ -168,23 +173,11 @@ namespace Minsung.Boss
                 segmentOrder[j] = temp;
             }
 
+            // 지점 = 아레나 중앙 기준 좌/중/우 - 중심 간격을 구역 폭과 같게 잡아 경계가 딱 맞닿는다
             _safeZoneCenters = new float[colorCount];
             for (int i = 0; i < colorCount; ++i)
             {
-                float segMinX = Boss.ArenaMinX + (segmentOrder[i] * segmentWidth);
-                float minX    = segMinX + halfWidth;
-                float maxX    = (segMinX + segmentWidth) - halfWidth;
-
-                if (maxX < minX)
-                {
-                    // 아레나 폭 < 구역 폭 x 색 수 - 구간을 넘어 겹칠 수 있어 구간 중앙에 고정한다
-                    Debug.LogWarning("Phase1 안전구역 폭이 아레나에 비해 넓습니다 - 구간 중앙 고정 배치");
-                    _safeZoneCenters[i] = segMinX + (segmentWidth * 0.5f);
-                }
-                else
-                {
-                    _safeZoneCenters[i] = Random.Range(minX, maxX);
-                }
+                _safeZoneCenters[i] = arenaCenterX + ((segmentOrder[i] - ((colorCount - 1) * 0.5f)) * zoneWidth);
             }
         }
 

@@ -73,13 +73,13 @@ MonoBehaviour:
   _gimmickSafeZoneWidth: 3
   _gimmickSafeZoneAlpha: 0.1
   _gimmickTelegraphTime: 3
-  _gimmickLaserActiveTime: 0.5
+  _gimmickLaserActiveTime: 3
   _gimmickLaserHeight: 6
   _gimmickRefireDelay: 5
   _phase2WaveInterval: 3
   _phase2WaveWidth: 2.5
   _phase2WaveHeight: 2.5
-  _phase2WaveGroundEmbed: 0.64
+  _phase2WaveGroundEmbed: 0.75
   _phase2WaveTelegraphTime: 1
   _phase2WaveActiveTime: 0.3
   _phase2WaveFrameInterval: 0.0333
