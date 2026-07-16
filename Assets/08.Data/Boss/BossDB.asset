@@ -76,6 +76,7 @@ MonoBehaviour:
   _gimmickLaserActiveTime: 3
   _gimmickLaserHeight: 6
   _gimmickRefireDelay: 5
+  _gimmickJudgeInterval: 2
   _phase2WaveInterval: 3
   _phase2WaveWidth: 2.5
   _phase2WaveHeight: 2.5

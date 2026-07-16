@@ -89,6 +89,7 @@ namespace Minsung.Common.Data
         [SerializeField] private float _gimmickLaserActiveTime = 3f;  // 레이저 연출 지속(초)
         [SerializeField] private float _gimmickLaserHeight     = 6f;    // 전장 레이저/안전구역 세로 크기
         [SerializeField] private float _gimmickRefireDelay     = 5f;    // 예고 종료 후 실제 발사까지 대기(초)
+        [SerializeField] private float _gimmickJudgeInterval   = 2f;    // 실전 발사 사이 대기(초) - 다음 색 안전구역으로 이동할 시간
 
         [Header("2페이즈 장풍 (예고 파티클 후 즉발 폭발 강타 - 낙뢰와 동일 구조)")]
         [SerializeField] private float _phase2WaveInterval      = 3f;    // 발사 간격(초)
@@ -194,6 +195,7 @@ namespace Minsung.Common.Data
         public float GimmickLaserActiveTime => _gimmickLaserActiveTime;
         public float GimmickLaserHeight     => _gimmickLaserHeight;
         public float GimmickRefireDelay     => _gimmickRefireDelay;
+        public float GimmickJudgeInterval   => _gimmickJudgeInterval;
 
         public float Phase2WaveInterval         => _phase2WaveInterval;
         public float Phase2WaveWidth            => _phase2WaveWidth;

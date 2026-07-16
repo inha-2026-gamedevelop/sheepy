@@ -20,7 +20,8 @@ namespace Minsung.Boss
         private const int POOL_SIZE = 4;  // 동시 사용 최대: 안전구역 3(색별) + 레이저 1 //26 07 16 kjw
         private const int SLOT_NONE = -1; // 풀 미할당 슬롯 표시 (BossHazardPool.Alloc 실패 반환값과 동일) //26 07 16 kjw
 
-        private readonly WaitForSeconds _waitRefireDelay = new WaitForSeconds(GameDB.Boss.GimmickRefireDelay);
+        private readonly WaitForSeconds _waitRefireDelay   = new WaitForSeconds(GameDB.Boss.GimmickRefireDelay);
+        private readonly WaitForSeconds _waitJudgeInterval = new WaitForSeconds(GameDB.Boss.GimmickJudgeInterval); //26 07 16 kjw
 
         private BossHazardPool _pool;
         private LaserColor[] _sequence;   // 즉사 기믹 색 순서 (실전 발사 때 같은 순서 재사용)
@@ -122,6 +123,10 @@ namespace Minsung.Boss
             yield return _waitRefireDelay;
             for (int i = 0; i < _sequence.Length; ++i)
             {
+                if (i > 0)
+                {
+                    yield return _waitJudgeInterval; // 발사 사이 이동 시간 - 즉시 판정 연발로 인한 이동 중 즉사 방지 //26 07 16 kjw
+                }
                 yield return CoJudgeLaser(_sequence[i]);
             }
 
