@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9a45fa54ec145f94792b0148197dcee9
+guid: f8404687b12a0a448b484775e6a5b8b8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -203653216450980126
-    second: Crystal_fog_0
+      213: -7282643303805019767
+    second: Cave_Background_Crane3_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Crystal_fog_0
+      name: Cave_Background_Crane3_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 640
-        height: 360
+        width: 405
+        height: 70
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2e6d2188a7a7c2df0800000000000000
-      internalID: -203653216450980126
+      spriteID: 98913d2108adeea90800000000000000
+      internalID: -7282643303805019767
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Crystal_fog_0: -203653216450980126
+      Cave_Background_Crane3_0: -7282643303805019767
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

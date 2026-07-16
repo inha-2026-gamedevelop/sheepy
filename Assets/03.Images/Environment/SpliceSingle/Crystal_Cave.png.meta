@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9a45fa54ec145f94792b0148197dcee9
+guid: 47267427d9d07514dbc3cbe25ed230e5
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -203653216450980126
-    second: Crystal_fog_0
+      213: 7617025830673640590
+    second: Crystal_Cave_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Crystal_fog_0
+      name: Crystal_Cave_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2e6d2188a7a7c2df0800000000000000
-      internalID: -203653216450980126
+      spriteID: e8ce642e2ac15b960800000000000000
+      internalID: 7617025830673640590
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Crystal_fog_0: -203653216450980126
+      Crystal_Cave_0: 7617025830673640590
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
