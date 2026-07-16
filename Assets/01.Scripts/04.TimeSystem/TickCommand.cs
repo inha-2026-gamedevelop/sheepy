@@ -9,8 +9,9 @@ namespace Minsung.TimeSystem
         public readonly bool            HasInteract;
         public readonly InteractCommand Interact;
         public readonly int             Hearts; // 이 틱 종료 시점의 하트 수 - 되감기 시 체력까지 복원한다
+        public readonly AnimCommand     Anim;   // 이 틱의 애니메이터 스냅샷 - 되감기 모션 역재생용 (분신도 재사용)
 
-        public TickCommand(MoveCommand move, bool hasAttack, AttackCommand attack, bool hasInteract, InteractCommand interact, int hearts)
+        public TickCommand(MoveCommand move, bool hasAttack, AttackCommand attack, bool hasInteract, InteractCommand interact, int hearts, AnimCommand anim)
         {
             Move        = move;
             HasAttack   = hasAttack;
@@ -18,6 +19,7 @@ namespace Minsung.TimeSystem
             HasInteract = hasInteract;
             Interact    = interact;
             Hearts      = hearts;
+            Anim        = anim;
         }
     }
 }

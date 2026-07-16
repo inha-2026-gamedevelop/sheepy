@@ -434,10 +434,10 @@ namespace Minsung.Boss
             _transitioning = false;
         }
 
-        // 트리거 파라미터 재생. Animator 미연결 시 무시
+        // 트리거 파라미터 재생. Animator 미연결/비활성/컨트롤러 미할당 시 무시
         private void PlayAnimTrigger(string trigger)
         {
-            if (_animator != null)
+            if ((_animator != null) && _animator.isActiveAndEnabled && (_animator.runtimeAnimatorController != null))
             {
                 _animator.SetTrigger(trigger);
             }

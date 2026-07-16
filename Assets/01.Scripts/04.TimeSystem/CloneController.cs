@@ -150,6 +150,11 @@ namespace Minsung.TimeSystem
             _deadTicks   = 0;
             _isRewinding = false;
 
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetScrubbing(false); // 되감기 중 회수된 개체 재사용 시 speed=0 잔류 방지
+            }
+
             _rewindManager = RewindManager.Instance;
             _rewindManager?.Register(this);
         }
@@ -188,6 +193,11 @@ namespace Minsung.TimeSystem
         public void OnRewindStart()
         {
             _isRewinding = true;
+
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetScrubbing(true); // 되감기 동안 분신도 프레임을 직접 스크럽한다
+            }
         }
 
         public void ApplyRewindTick(int orderedIndex)
@@ -203,6 +213,11 @@ namespace Minsung.TimeSystem
             if (_rewindBuffer.TryGetOrdered(orderedIndex, out CloneTick tick))
             {
                 ApplyTick(tick);
+            }
+
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetScrubbing(false); // 풀 반환 전에 반드시 복구 - 재사용 개체가 얼지 않게
             }
 
             _isRewinding = false;
@@ -238,6 +253,11 @@ namespace Minsung.TimeSystem
             if (_clip.Count > 0)
             {
                 _rb.position = _clip[poseIndex].Move.Position;
+
+                if (_playerAnimator != null)
+                {
+                    _playerAnimator.ApplyAnimState(_clip[poseIndex].Anim); // 클립의 스냅샷 재사용 - 분신용 추가 기록 불필요
+                }
             }
         }
 

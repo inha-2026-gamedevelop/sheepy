@@ -27,6 +27,9 @@ namespace Minsung.Common
             // 애니메이션 재생 방향 (Animator의 State Speed를 AnimSpeedMultiplier 파라미터에 묶어서 사용)
             public const float ANIM_DIR_FORWARD = 1f;
             public const float ANIM_DIR_REVERSE = -1f;
+
+            // 애니메이터 구조 상수
+            public const int ANIM_LAYER_BASE = 0; // 기본 레이어 인덱스 - 되감기 스냅샷(캡처/스크럽) 대상 레이어
         }
     }
 }
