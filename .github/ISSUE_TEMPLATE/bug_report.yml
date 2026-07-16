@@ -47,6 +47,6 @@ body:
     id: environment
     attributes:
       label: 환경 정보
-      description: 사용 중인 유니티 버전(예: 2022.3.10f1), 기기 모델, OS 버전 등을 입력해 주세요.
+      description: "사용 중인 유니티 버전(예: 2022.3.10f1), 기기 모델, OS 버전 등을 입력해 주세요."
     validations:
       required: true
