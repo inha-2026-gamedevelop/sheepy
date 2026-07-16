@@ -59,6 +59,8 @@ namespace Minsung.Boss
 
         private PoolSlot[] _slots;
 
+        private bool _particleOnHitOnly; // true면 hasCollider(실제 판정)로 Alloc될 때만 파티클 재생 - 예고 단계는 재생 안 함
+
         public int Size => (_slots != null) ? _slots.Length : 0;
 
         /****************************************
@@ -69,11 +71,15 @@ namespace Minsung.Boss
         // customMaterial: 기본 매테리얼이 아닌 특정 매테리얼(예: 왜곡 쉐이더)을 사용할 때 지정
         // sliceToScale: true면 Sliced + size(1,1)로 강제해 스프라이트 원본 크기와 무관하게 localScale만으로 렌더 크기가 정해진다(낙뢰처럼 긴 형태를 히트박스 비율에 맞출 때).
         //               false면 Simple 모드를 유지해 프레임마다 원본 픽셀 크기 그대로 그려진다(장풍 폭발처럼 프레임별 크기 차이를 그대로 보여주고 싶을 때).
+        // particleOnHitOnly: true면 판정 있는(hasCollider) Alloc에서만 파티클을 재생한다(예고 단계 파티클 없음)
+        // particleFlowAlongX: true면 파티클이 로컬 +X(가로/진행) 방향으로 지속적으로 흐른다(레이저처럼 방향성 있는 궤적용). false면 기존 임팩트 버스트(0.5초 1회)
         // prefab: 빈 게임 오브젝트 대신 미리 세팅된 프리팹(파티클 등 포함)을 기반으로 생성할 때 지정
         public BossHazardPool(int count, string namePrefix, Sprite customSprite = null, Material customMaterial = null,
                               bool attachParticle = false, float particleSize = 0.2f, Color[] particleColors = null,
-                              bool sliceToScale = true)
+                              bool sliceToScale = true, bool particleOnHitOnly = false, bool particleFlowAlongX = false,
+                              float particleFlowSpeed = 3f, float particleRate = 30f)
         {
+            _particleOnHitOnly = particleOnHitOnly;
             _slots = new PoolSlot[count];
             for (int i = 0; i < count; i++)
             {
@@ -108,20 +114,40 @@ namespace Minsung.Boss
                     ParticleSystem ps = go.AddComponent<ParticleSystem>();
                     var main = ps.main;
                     main.playOnAwake = false;
-                    main.duration = 0.5f;
-                    main.loop = false;
-                    main.startLifetime = 0.5f;
-                    main.startSpeed = 10f;
                     main.startSize = particleSize;
                     main.startColor = ParticleColorOf(particleColors); // 지정 색 중 파티클마다 랜덤
                     main.scalingMode = ParticleSystemScalingMode.Shape; // 방출 영역이 슬롯 스케일(가로/세로)을 그대로 따라가게 함
+
+                    if (particleFlowAlongX)
+                    {
+                        // 레이저처럼 활성 구간 내내 진행 방향(로컬 +X)으로 흐르는 스트림 - Free() 시 비활성화로 정지
+                        main.duration = 1f;
+                        main.loop = true;
+                        main.startLifetime = 1f;
+                        main.startSpeed = 0f; // 이동은 velocityOverLifetime이 전담
+                    }
+                    else
+                    {
+                        main.duration = 0.5f;
+                        main.loop = false;
+                        main.startLifetime = 0.5f;
+                        main.startSpeed = 10f;
+                    }
 
                     var shape = ps.shape;
                     shape.shapeType = ParticleSystemShapeType.Box;
                     shape.scale = new Vector3(1f, 1f, 1f);
 
+                    if (particleFlowAlongX)
+                    {
+                        var velocityOverLifetime = ps.velocityOverLifetime;
+                        velocityOverLifetime.enabled = true;
+                        velocityOverLifetime.space   = ParticleSystemSimulationSpace.Local;
+                        velocityOverLifetime.x       = new ParticleSystem.MinMaxCurve(particleFlowSpeed);
+                    }
+
                     var emission = ps.emission;
-                    emission.rateOverTime = 30; // 바닥에서 스멀스멀 올라오며 튀는 연출
+                    emission.rateOverTime = particleRate; // 바닥에서 스멀스멀 올라오며 튀는 연출 (흐름 모드는 밀도를 별도 지정 가능)
 
                     var psr = go.GetComponent<ParticleSystemRenderer>();
                     psr.material = new Material(Shader.Find("Sprites/Default")); // URP 에러(핑크색) 방지를 위해 2D 기본 쉐이더 사용
@@ -173,6 +199,15 @@ namespace Minsung.Boss
             if (IsActive(i))
             {
                 _slots[i].Go.transform.position = pos;
+            }
+        }
+
+        /// <summary> 활성 슬롯 스케일 갱신 (레이저 회수처럼 점점 좁아지는 연출용). 콜라이더 크기도 함께 변한다 </summary>
+        public void SetScale(int i, Vector2 scale)
+        {
+            if (IsActive(i))
+            {
+                _slots[i].Go.transform.localScale = new Vector3(scale.x, scale.y, 1f);
             }
         }
 
@@ -309,12 +344,15 @@ namespace Minsung.Boss
             _slots[i].Renderer.enabled = true;
             _slots[i].Go.SetActive(true);
 
-            // 파티클 시스템이 있다면 풀에서 꺼낼 때마다 강제 재생
+            // 파티클 시스템이 있다면 풀에서 꺼낼 때마다 강제 재생 (단, particleOnHitOnly면 판정 없는 예고 단계는 재생 안 함)
             ParticleSystem ps = _slots[i].Go.GetComponent<ParticleSystem>();
             if (ps != null)
             {
                 ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                ps.Play(true);
+                if ((!_particleOnHitOnly) || hasCollider)
+                {
+                    ps.Play(true);
+                }
             }
 
             if (hasCollider)

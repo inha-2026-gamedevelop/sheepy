@@ -74,7 +74,15 @@ namespace Minsung.Boss
 
             Boss.SetEmotion(BossEmotion.Angry); // 3페이즈 고정 - 10초마다 1초 혼란(키반전)
 
-            _laserPool         = new BossHazardPool(LASER_POOL_SIZE, "Phase3_Laser");
+            Material laserMat  = Resources.Load<Material>("Phase3LaserBeamMat");
+            _laserPool         = new BossHazardPool(LASER_POOL_SIZE, "Phase3_Laser", customMaterial: laserMat,
+                                                     attachParticle: true,
+                                                     particleSize: GameDB.Boss.Phase3LaserFlowParticleSize,
+                                                     particleColors: GameDB.Boss.Phase3LaserFlowColors,
+                                                     particleOnHitOnly: true,
+                                                     particleFlowAlongX: true,
+                                                     particleFlowSpeed: GameDB.Boss.Phase3LaserFlowSpeed,
+                                                     particleRate: GameDB.Boss.Phase3LaserFlowRate);
             _laserRewindBuffer = new RingBuffer<Phase3Frame>(RewindManager.TickCapacity);
             _laserLog          = new List<LaserDecision>();
             _laserCursor       = 0;
@@ -223,6 +231,17 @@ namespace Minsung.Boss
                                              GameDB.Boss.AttackHalves, rotationDeg: angle);
             Boss.Body?.PlayCastTrigger();
             yield return _waitLaserActive;
+
+            // 회수: 판정부터 끄고 두께를 서서히 0으로 줄여 점점 좁아지며 사라지는 연출
+            _laserPool.SetColliderActive(laserSlot, false);
+            float retractElapsed = 0f;
+            while (retractElapsed < GameDB.Boss.Phase3LaserRetractTime)
+            {
+                yield return null;
+                retractElapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(retractElapsed / GameDB.Boss.Phase3LaserRetractTime);
+                _laserPool.SetScale(laserSlot, new Vector2(scale.x, Mathf.Lerp(scale.y, 0f, t)));
+            }
             _laserPool.Free(laserSlot);
         }
 

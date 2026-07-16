@@ -117,13 +117,25 @@ namespace Minsung.Common.Data
         [Header("3페이즈 가로지르는 레이저")]
         [SerializeField] private float _phase3LaserInterval      = 5f;    // 발사 간격(초)
         [SerializeField] private float _phase3LaserWarningTime   = 1.5f;  // 경고(빨간 깜빡임) 시간(초)
-        [SerializeField] private float _phase3LaserBlinkInterval = 0.25f; // 깜빡임 주기(초)
+        [SerializeField] private float _phase3LaserBlinkInterval = 0.1f;  // 깜빡임 주기(초)
         [SerializeField] private float _phase3LaserActiveTime    = 1f;    // 레이저 지속(초)
+        [SerializeField] private float _phase3LaserRetractTime   = 0.25f; // 회수 연출 시간(초) - 두께가 이 시간 동안 0으로 좁아진다
         [SerializeField] private float _phase3LaserThickness     = 0.5f;  // 레이저 두께
         [SerializeField] private float _phase3LaserMaxHeight     = 6f;    // 시작/도착 지점 y 랜덤 상한(지면 기준)
 
-        [SerializeField] private Color _phase3LaserWarningColor = new Color(1f, 0.2f, 0.2f, 0.5f); // 경고 깜빡임 색
-        [SerializeField] private Color _phase3LaserColor        = new Color(1f, 0.1f, 0.1f);       // 레이저 발사색 (임시)
+        [SerializeField] private Color _phase3LaserWarningColor = new Color(1f, 0.2f, 0.2f, 0.5f);  // 경고 깜빡임 색
+        [SerializeField] private Color _phase3LaserColor        = new Color(0.85f, 0f, 0.05f);      // 레이저 발사색 - 진한 빨강
+
+        [SerializeField] private float   _phase3LaserFlowParticleSize = 0.12f; // 진행방향으로 흐르는 파티클 크기
+        [SerializeField] private float   _phase3LaserFlowSpeed        = 14f;   // 파티클 흐름 속도(로컬 X, 유닛/초)
+        [SerializeField] private float   _phase3LaserFlowRate         = 80f;   // 초당 방출 개수(밀도)
+        [SerializeField] private Color[] _phase3LaserFlowColors = new Color[] // 흐르는 파티클 색 - 레이저 발사색과 같은 빨강 계열 4색
+        {
+            new Color(1f, 0.15f, 0.15f),  // 밝은 빨강
+            new Color(0.85f, 0f, 0.05f),  // 진한 빨강
+            new Color(1f, 0.35f, 0.05f),  // 주황 빛 빨강
+            new Color(0.55f, 0f, 0.12f),  // 어두운 크림슨
+        };
 
         /****************************************
         *              Properties
@@ -215,9 +227,15 @@ namespace Minsung.Common.Data
         public float Phase3LaserWarningTime   => _phase3LaserWarningTime;
         public float Phase3LaserBlinkInterval => _phase3LaserBlinkInterval;
         public float Phase3LaserActiveTime    => _phase3LaserActiveTime;
+        public float Phase3LaserRetractTime   => _phase3LaserRetractTime;
         public float Phase3LaserThickness     => _phase3LaserThickness;
         public float Phase3LaserMaxHeight     => _phase3LaserMaxHeight;
         public Color Phase3LaserWarningColor  => _phase3LaserWarningColor;
         public Color Phase3LaserColor         => _phase3LaserColor;
+
+        public float   Phase3LaserFlowParticleSize => _phase3LaserFlowParticleSize;
+        public float   Phase3LaserFlowSpeed        => _phase3LaserFlowSpeed;
+        public float   Phase3LaserFlowRate         => _phase3LaserFlowRate;
+        public Color[] Phase3LaserFlowColors       => _phase3LaserFlowColors;
     }
 }
