@@ -9867,6 +9867,8 @@ GameObject:
   m_Component:
   - component: {fileID: 150661672}
   - component: {fileID: 150661673}
+  - component: {fileID: 150661674}
+  - component: {fileID: 150661675}
   m_Layer: 0
   m_Name: neon_on_1559
   m_TagString: Untagged
@@ -9936,7 +9938,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 6494410028890208210, guid: 13ecc6bff149b774da9f2f3da8122a2a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -9948,6 +9950,45 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &150661674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 150661671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4436e7615b8c038429ff9c07c31a8630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.CharaGlow
+  _glowSprite: {fileID: 3265905822700522449, guid: 12c3e94ce409957489c5cd4f9a3c90bf, type: 3}
+  _glowColor: {r: 0.8, g: 0.72, b: 1, a: 0.42}
+  _glowScale: {x: 0.72, y: 0.4}
+  _sortingOrderOffset: -1
+  _pulse: 0
+  _pulseSpeed: 1.2
+  _pulseAmplitude: 0.08
+--- !u!114 &150661675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 150661671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a536b26e5e61ff04bbc8eb856522cc4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.NeonFlicker
+  _shimmerSpeed: 3
+  _shimmerAmount: 0.12
+  _stutterChancePerSecond: 0.6
+  _stutterMinDuration: 0.08
+  _stutterMaxDuration: 0.35
+  _stutterBlinkFrequency: 18
+  _stutterMinBrightness: 0.08
+  _tubeOnColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &152906923
 GameObject:
   m_ObjectHideFlags: 0
@@ -30960,7 +31001,7 @@ Transform:
   m_GameObject: {fileID: 521318181}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 30.16, y: -5.96, z: -6}
+  m_LocalPosition: {x: 50.57, y: -6.46, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -41044,11 +41085,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3062819898327440988, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 30.16
+      value: 50.57
       objectReference: {fileID: 0}
     - target: {fileID: 3062819898327440988, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5.96
+      value: -6.46
       objectReference: {fileID: 0}
     - target: {fileID: 3062819898327440988, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
       propertyPath: m_LocalPosition.z
@@ -75518,6 +75559,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1260810453}
   - component: {fileID: 1260810454}
+  - component: {fileID: 1260810455}
+  - component: {fileID: 1260810456}
   m_Layer: 0
   m_Name: neon_on_1571
   m_TagString: Untagged
@@ -75587,7 +75630,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 6494410028890208210, guid: 13ecc6bff149b774da9f2f3da8122a2a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -75599,6 +75642,45 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1260810455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260810452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4436e7615b8c038429ff9c07c31a8630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.CharaGlow
+  _glowSprite: {fileID: 3265905822700522449, guid: 12c3e94ce409957489c5cd4f9a3c90bf, type: 3}
+  _glowColor: {r: 0.8, g: 0.72, b: 1, a: 0.42}
+  _glowScale: {x: 0.72, y: 0.4}
+  _sortingOrderOffset: -1
+  _pulse: 0
+  _pulseSpeed: 1.2
+  _pulseAmplitude: 0.08
+--- !u!114 &1260810456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260810452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a536b26e5e61ff04bbc8eb856522cc4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.NeonFlicker
+  _shimmerSpeed: 3
+  _shimmerAmount: 0.12
+  _stutterChancePerSecond: 0.6
+  _stutterMinDuration: 0.08
+  _stutterMaxDuration: 0.35
+  _stutterBlinkFrequency: 18
+  _stutterMinBrightness: 0.08
+  _tubeOnColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1263433398
 GameObject:
   m_ObjectHideFlags: 0
@@ -78908,6 +78990,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1314753422}
   - component: {fileID: 1314753423}
+  - component: {fileID: 1314753424}
+  - component: {fileID: 1314753425}
   m_Layer: 0
   m_Name: neon_on_1548
   m_TagString: Untagged
@@ -78977,7 +79061,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 6494410028890208210, guid: 13ecc6bff149b774da9f2f3da8122a2a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -78989,6 +79073,45 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1314753424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1314753421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4436e7615b8c038429ff9c07c31a8630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.CharaGlow
+  _glowSprite: {fileID: 3265905822700522449, guid: 12c3e94ce409957489c5cd4f9a3c90bf, type: 3}
+  _glowColor: {r: 0.8, g: 0.72, b: 1, a: 0.42}
+  _glowScale: {x: 0.72, y: 0.4}
+  _sortingOrderOffset: -1
+  _pulse: 0
+  _pulseSpeed: 1.2
+  _pulseAmplitude: 0.08
+--- !u!114 &1314753425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1314753421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a536b26e5e61ff04bbc8eb856522cc4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.NeonFlicker
+  _shimmerSpeed: 3
+  _shimmerAmount: 0.12
+  _stutterChancePerSecond: 0.6
+  _stutterMinDuration: 0.08
+  _stutterMaxDuration: 0.35
+  _stutterBlinkFrequency: 18
+  _stutterMinBrightness: 0.08
+  _tubeOnColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1319401643
 GameObject:
   m_ObjectHideFlags: 0
@@ -88294,7 +88417,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1463765253
 Transform:
   m_ObjectHideFlags: 0
@@ -88304,7 +88427,7 @@ Transform:
   m_GameObject: {fileID: 1463765252}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.516, y: -5.946, z: 0}
+  m_LocalPosition: {x: -4.516, y: -5.946, z: 35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -97473,6 +97596,65 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &1615426562
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1615426564}
+  - component: {fileID: 1615426563}
+  m_Layer: 0
+  m_Name: --------PostProcess--------
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1615426563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1615426562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95cb99bf505056c42ad88a7a6c53da08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.SheepyVisualSetup
+  _globalVolume: {fileID: 0}
+  _useBloom: 1
+  _useColorGrading: 1
+  _useVignette: 1
+  _useFilmGrain: 1
+  _bloomThreshold: 0.65
+  _bloomIntensity: 0.65
+  _bloomScatter: 0.8
+  _saturation: -0.15
+  _contrast: 0.15
+  _colorFilter: {r: 0.55, g: 0.65, b: 0.95, a: 1}
+  _vignetteIntensity: 0.45
+  _vignetteSmoothness: 0.3
+  _grainIntensity: 0.13
+  _grainResponse: 0.8
+--- !u!4 &1615426564
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1615426562}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1619282788
 GameObject:
   m_ObjectHideFlags: 0
@@ -97756,6 +97938,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1621473551}
   - component: {fileID: 1621473552}
+  - component: {fileID: 1621473553}
+  - component: {fileID: 1621473554}
   m_Layer: 0
   m_Name: neon_on_1549
   m_TagString: Untagged
@@ -97825,7 +98009,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 6494410028890208210, guid: 13ecc6bff149b774da9f2f3da8122a2a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -97837,6 +98021,45 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1621473553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1621473550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4436e7615b8c038429ff9c07c31a8630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.CharaGlow
+  _glowSprite: {fileID: 3265905822700522449, guid: 12c3e94ce409957489c5cd4f9a3c90bf, type: 3}
+  _glowColor: {r: 0.8, g: 0.72, b: 1, a: 0.42}
+  _glowScale: {x: 0.72, y: 0.4}
+  _sortingOrderOffset: -1
+  _pulse: 0
+  _pulseSpeed: 1.2
+  _pulseAmplitude: 0.08
+--- !u!114 &1621473554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1621473550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a536b26e5e61ff04bbc8eb856522cc4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.NeonFlicker
+  _shimmerSpeed: 3
+  _shimmerAmount: 0.12
+  _stutterChancePerSecond: 0.6
+  _stutterMinDuration: 0.08
+  _stutterMaxDuration: 0.35
+  _stutterBlinkFrequency: 18
+  _stutterMinBrightness: 0.08
+  _tubeOnColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1624036038
 GameObject:
   m_ObjectHideFlags: 0
@@ -99381,6 +99604,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1639884566}
   - component: {fileID: 1639884567}
+  - component: {fileID: 1639884568}
+  - component: {fileID: 1639884569}
   m_Layer: 0
   m_Name: neon_on_1572
   m_TagString: Untagged
@@ -99450,7 +99675,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 6494410028890208210, guid: 13ecc6bff149b774da9f2f3da8122a2a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -99462,6 +99687,45 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1639884568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639884565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4436e7615b8c038429ff9c07c31a8630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.CharaGlow
+  _glowSprite: {fileID: 3265905822700522449, guid: 12c3e94ce409957489c5cd4f9a3c90bf, type: 3}
+  _glowColor: {r: 0.8, g: 0.72, b: 1, a: 0.42}
+  _glowScale: {x: 0.72, y: 0.4}
+  _sortingOrderOffset: -1
+  _pulse: 0
+  _pulseSpeed: 1.2
+  _pulseAmplitude: 0.08
+--- !u!114 &1639884569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639884565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a536b26e5e61ff04bbc8eb856522cc4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.NeonFlicker
+  _shimmerSpeed: 3
+  _shimmerAmount: 0.12
+  _stutterChancePerSecond: 0.6
+  _stutterMinDuration: 0.08
+  _stutterMaxDuration: 0.35
+  _stutterBlinkFrequency: 18
+  _stutterMinBrightness: 0.08
+  _tubeOnColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1640625445
 GameObject:
   m_ObjectHideFlags: 0
@@ -116530,6 +116794,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1948473344}
   - component: {fileID: 1948473345}
+  - component: {fileID: 1948473346}
+  - component: {fileID: 1948473347}
   m_Layer: 0
   m_Name: neon_on_1573
   m_TagString: Untagged
@@ -116599,7 +116865,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 6494410028890208210, guid: 13ecc6bff149b774da9f2f3da8122a2a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -116611,6 +116877,45 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1948473346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1948473343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4436e7615b8c038429ff9c07c31a8630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.CharaGlow
+  _glowSprite: {fileID: 3265905822700522449, guid: 12c3e94ce409957489c5cd4f9a3c90bf, type: 3}
+  _glowColor: {r: 0.8, g: 0.72, b: 1, a: 0.42}
+  _glowScale: {x: 0.72, y: 0.4}
+  _sortingOrderOffset: -1
+  _pulse: 0
+  _pulseSpeed: 1.2
+  _pulseAmplitude: 0.08
+--- !u!114 &1948473347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1948473343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a536b26e5e61ff04bbc8eb856522cc4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.NeonFlicker
+  _shimmerSpeed: 3
+  _shimmerAmount: 0.12
+  _stutterChancePerSecond: 0.6
+  _stutterMinDuration: 0.08
+  _stutterMaxDuration: 0.35
+  _stutterBlinkFrequency: 18
+  _stutterMinBrightness: 0.08
+  _tubeOnColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1949976138
 GameObject:
   m_ObjectHideFlags: 0
@@ -116736,7 +117041,7 @@ Transform:
   m_GameObject: {fileID: 1953200970}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 30.16, y: -5.96, z: -6}
+  m_LocalPosition: {x: 50.57, y: -6.46, z: -6}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -116797,7 +117102,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -117298,6 +117603,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1957438669}
   - component: {fileID: 1957438670}
+  - component: {fileID: 1957438671}
+  - component: {fileID: 1957438672}
   m_Layer: 0
   m_Name: neon_on_1547
   m_TagString: Untagged
@@ -117367,7 +117674,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 6494410028890208210, guid: 13ecc6bff149b774da9f2f3da8122a2a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -117379,6 +117686,45 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &1957438671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1957438668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4436e7615b8c038429ff9c07c31a8630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.CharaGlow
+  _glowSprite: {fileID: 3265905822700522449, guid: 12c3e94ce409957489c5cd4f9a3c90bf, type: 3}
+  _glowColor: {r: 0.8, g: 0.72, b: 1, a: 0.42}
+  _glowScale: {x: 0.72, y: 0.4}
+  _sortingOrderOffset: -1
+  _pulse: 0
+  _pulseSpeed: 1.2
+  _pulseAmplitude: 0.08
+--- !u!114 &1957438672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1957438668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a536b26e5e61ff04bbc8eb856522cc4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.NeonFlicker
+  _shimmerSpeed: 3
+  _shimmerAmount: 0.12
+  _stutterChancePerSecond: 0.6
+  _stutterMinDuration: 0.08
+  _stutterMaxDuration: 0.35
+  _stutterBlinkFrequency: 18
+  _stutterMinBrightness: 0.08
+  _tubeOnColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1958686512
 GameObject:
   m_ObjectHideFlags: 0
@@ -124785,7 +125131,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2101054125
 Transform:
   m_ObjectHideFlags: 0
@@ -128022,3 +128368,4 @@ SceneRoots:
   - {fileID: 2100161535}
   - {fileID: 546994183}
   - {fileID: 1730572410}
+  - {fileID: 1615426564}
