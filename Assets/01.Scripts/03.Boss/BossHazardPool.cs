@@ -65,11 +65,14 @@ namespace Minsung.Boss
         *              Constructor
         ****************************************/
 
-        // customSprite: 기본 사각형이 아닌 특정 스프라이트를 사용할 때 지정
+        // customSprite: 기본 사각형이 아닌 특정 스프라이트를 사용할 때 지정 (미사용 슬롯의 초기 표시용으로도 쓰인다)
         // customMaterial: 기본 매테리얼이 아닌 특정 매테리얼(예: 왜곡 쉐이더)을 사용할 때 지정
+        // sliceToScale: true면 Sliced + size(1,1)로 강제해 스프라이트 원본 크기와 무관하게 localScale만으로 렌더 크기가 정해진다(낙뢰처럼 긴 형태를 히트박스 비율에 맞출 때).
+        //               false면 Simple 모드를 유지해 프레임마다 원본 픽셀 크기 그대로 그려진다(장풍 폭발처럼 프레임별 크기 차이를 그대로 보여주고 싶을 때).
         // prefab: 빈 게임 오브젝트 대신 미리 세팅된 프리팹(파티클 등 포함)을 기반으로 생성할 때 지정
         public BossHazardPool(int count, string namePrefix, Sprite customSprite = null, Material customMaterial = null,
-                              bool attachParticle = false, float particleSize = 0.2f, Color[] particleColors = null)
+                              bool attachParticle = false, float particleSize = 0.2f, Color[] particleColors = null,
+                              bool sliceToScale = true)
         {
             _slots = new PoolSlot[count];
             for (int i = 0; i < count; i++)
@@ -78,13 +81,16 @@ namespace Minsung.Boss
                 go.SetActive(false); // 비활성 상태로 생성해야 ParticleSystem의 playOnAwake 자동 재생을 막을 수 있다 (재생 중 duration 변경 시 예외 발생)
 
                 SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-                
+
                 if (customSprite != null)
                 {
-                    // Sliced + size (1,1)이 스프라이트를 로컬 1x1 크기로 강제해 기존 스케일/판정 공식이 그대로 유효하다
-                    sr.sprite   = customSprite;
-                    sr.drawMode = SpriteDrawMode.Sliced;
-                    sr.size     = Vector2.one;
+                    sr.sprite = customSprite;
+                    if (sliceToScale)
+                    {
+                        // Sliced + size (1,1)이 스프라이트를 로컬 1x1 크기로 강제해 기존 스케일/판정 공식이 그대로 유효하다
+                        sr.drawMode = SpriteDrawMode.Sliced;
+                        sr.size     = Vector2.one;
+                    }
                 }
                 else
                 {

@@ -68,8 +68,10 @@ namespace Minsung.Boss
             _waitActive       = new WaitForSeconds(_bossSo.Phase2WaveActiveTime);
             _waitFrame        = new WaitForSeconds(_frameInterval);
 
-            _wavePool = new BossHazardPool(WAVE_POOL_SIZE, "Phase2_Wave", null, null, true,
-                                           _bossSo.Phase2WaveParticleSize, _bossSo.Phase2WaveParticleColors);
+            // 초기 슬롯 표시용 스프라이트만 지정하고, 낙뢰와 달리 프레임별 원본 크기를 그대로 쓰도록 Sliced 정규화는 끈다(sliceToScale: false)
+            Sprite firstStrikeSprite = (_strikeSpritesCount > 0) ? _strikeSprites[0] : null;
+            _wavePool = new BossHazardPool(WAVE_POOL_SIZE, "Phase2_Wave", firstStrikeSprite, null, true,
+                                           _bossSo.Phase2WaveParticleSize, _bossSo.Phase2WaveParticleColors, false);
 
             _waveXLog   = new List<float>();
             _waveCursor = 0;
@@ -171,7 +173,8 @@ namespace Minsung.Boss
         private IEnumerator CoTelegraphAndStrike(float x)
         {
             Vector2 scale = new Vector2(_bossSo.Phase2WaveWidth, _bossSo.Phase2WaveHeight);
-            Vector2 pos   = new Vector2(x, Boss.ArenaGroundY + (_bossSo.Phase2WaveHeight * 0.5f));
+            // 스프라이트 하단의 발광 감쇠(여백)를 가리기 위해 지면 아래로 살짝 밀어넣는다(Phase2WaveGroundEmbed)
+            Vector2 pos   = new Vector2(x, Boss.ArenaGroundY + (_bossSo.Phase2WaveHeight * 0.5f) - _bossSo.Phase2WaveGroundEmbed);
 
             // 예고 - 판정 없음. 스케일이 강타와 동일해 파티클 방출 영역이 폭발 크기만큼 넓어진다(scalingMode=Shape)
             int telegraphSlot = _wavePool.Alloc(pos, scale, _bossSo.Phase2WaveColor, false);

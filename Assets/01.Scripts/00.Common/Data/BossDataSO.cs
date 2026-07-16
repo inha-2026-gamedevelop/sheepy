@@ -94,6 +94,7 @@ namespace Minsung.Common.Data
         [SerializeField] private float _phase2WaveInterval      = 3f;    // 발사 간격(초)
         [SerializeField] private float _phase2WaveWidth         = 2.5f;  // 강타/예고 공통 판정 폭 - 폭발 비주얼에 맞춰 확대
         [SerializeField] private float _phase2WaveHeight        = 2.5f;  // 강타/예고 공통 판정 높이 - 폭발 비주얼에 맞춰 확대
+        [SerializeField] private float _phase2WaveGroundEmbed   = 0.67f;  // 폭발 스프라이트 발광 여백 보정 - 강타 y좌표를 지면 아래로 밀어넣는 값 (낙뢰의 LightningGroundEmbed와 동일 용도)
         [SerializeField] private float _phase2WaveTelegraphTime = 1f;    // 예고 파티클 표시 시간(초)
         [SerializeField] private float _phase2WaveActiveTime    = 0.3f;  // 강타 연출 유지 시간(초) - 폭발 9프레임이 이 시간 안에 전부 순환
         [SerializeField] private float _phase2WaveFrameInterval = 0.0333f; // 폭발 프레임 전환 간격(초) - 9프레임 x 이 값 = ActiveTime
@@ -197,6 +198,7 @@ namespace Minsung.Common.Data
         public float Phase2WaveInterval         => _phase2WaveInterval;
         public float Phase2WaveWidth            => _phase2WaveWidth;
         public float Phase2WaveHeight           => _phase2WaveHeight;
+        public float Phase2WaveGroundEmbed      => _phase2WaveGroundEmbed;
         public float Phase2WaveTelegraphTime    => _phase2WaveTelegraphTime;
         public float Phase2WaveActiveTime       => _phase2WaveActiveTime;
         public float Phase2WaveFrameInterval    => _phase2WaveFrameInterval;
