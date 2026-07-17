@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 // Unity
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 using Minsung.Achievement;
 using Minsung.CameraSystem;
@@ -183,13 +184,23 @@ namespace Minsung.Boss
             pattern.Play();
         }
 
-        /// <summary> 플레이어 즉사 (즉사 기믹 실패 / 제한시간 초과) </summary>
+        /// <summary> 플레이어 즉사 (제한시간 초과 등 - 그 자리 체크포인트 리스폰) </summary>
         public void KillPlayer()
         {
             if (_playerHealth != null)
             {
                 _playerHealth.Kill();
             }
+        }
+
+        /// <summary>
+        /// 1페이즈 즉사 기믹 실패 등 보스전을 처음부터 다시 시작해야 할 때 호출.
+        /// 지금은 현재 씬을 그대로 재로드해 보스전을 전체 리셋한다.
+        /// TODO: 특정 씬/위치로 보내는 기획이 확정되면 이 메서드 내부만 교체
+        /// </summary>
+        public void RestartBossFight()
+        {
+            GameManager.Instance?.LoadScene(SceneManager.GetActiveScene().name);
         }
 
         /// <summary> 화면 중앙 패턴 경고 배너 표시. 특정 패턴을 시작하는 상태/코루틴이 호출한다 (배너 미연결 시 무시) </summary>

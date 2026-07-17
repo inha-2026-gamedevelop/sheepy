@@ -27,6 +27,7 @@ namespace Minsung.Boss
         private LaserColor[] _sequence;   // 즉사 기믹 색 순서 (실전 발사 때 같은 순서 재사용)
         private float[] _safeZoneCenters; // 색(enum 인덱스)별 안전구역 중심 x
         private int[]   _safeZoneSlots;   // 색(enum 인덱스)별 안전구역 풀 슬롯 (예고 단계에서만 할당) //26 07 16 kjw
+        private bool _gimmickFailed;      // 판정 실패로 보스전 재시작이 이미 트리거됐는지 - 남은 판정 스킵 + 중복 트리거 방지
 
         /****************************************
         *              Constructor
@@ -110,6 +111,7 @@ namespace Minsung.Boss
         public override IEnumerator CoPhaseEndGimmick()
         {
             BuildSequence();
+            _gimmickFailed = false;
 
             // 1) 예고: 색별 안전구역 3개를 전부 켜둔 채 색 순서대로 발사. 안전구역은 슬로우 중에만 보인다
             AllocAllSafeZones(); //26 07 16 kjw
@@ -119,7 +121,7 @@ namespace Minsung.Boss
             }
             FreeAllSafeZones(); //26 07 16 kjw
 
-            // 2) 5초 후 실전: 같은 순서로 재발사. 색이 맞지 않는 위치면 즉사
+            // 2) 5초 후 실전: 같은 순서로 재발사. 색이 맞지 않는 위치면 보스전 재시작
             yield return _waitRefireDelay;
             for (int i = 0; i < _sequence.Length; ++i)
             {
@@ -128,6 +130,10 @@ namespace Minsung.Boss
                     yield return _waitJudgeInterval; // 발사 사이 이동 시간 - 즉시 판정 연발로 인한 이동 중 즉사 방지 //26 07 16 kjw
                 }
                 yield return CoJudgeLaser(_sequence[i]);
+                if (_gimmickFailed)
+                {
+                    yield break; // 재시작이 이미 트리거됨 - 남은 판정/연출은 진행하지 않는다
+                }
             }
 
             // 파훼 성공 - BossController가 2페이즈로 전환한다
@@ -200,13 +206,14 @@ namespace Minsung.Boss
             yield return CoFireLaser(color);
         }
 
-        // 실전 1발: 발사 순간 해당 색 안전구역 밖이면 즉사 -> 전장 레이저 연출
+        // 실전 1발: 발사 순간 해당 색 안전구역 밖이면 보스전 재시작 -> 아니면 전장 레이저 연출
         private IEnumerator CoJudgeLaser(LaserColor color)
         {
             if (!IsPlayerInSafeZone(color))
             {
-                // TODO: 기획 확정 시 즉사 대신 1페이즈 처음으로 되돌리는 페이즈 리셋으로 교체 //26 07 16 kjw
-                Boss.KillPlayer();
+                _gimmickFailed = true;
+                Boss.RestartBossFight(); // 특정 씬/위치 리스폰은 기획 확정 후 RestartBossFight 내부만 교체하면 됨
+                yield break;
             }
             yield return CoFireLaser(color);
         }
