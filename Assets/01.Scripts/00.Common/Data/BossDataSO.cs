@@ -80,6 +80,7 @@ namespace Minsung.Common.Data
         [SerializeField] private float _confusionInterval = 10f;  // 키반전 발동 주기(초)
         [SerializeField] private float _confusionDuration = 1f;   // 키반전 지속 시간(초)
         [SerializeField] private float _heartPickupHeight = 0.5f; // 픽업 배치 높이(지면 기준)
+        [SerializeField] private float _emotionInterval = 8f;     // 자동 감정 전환 주기(초) - 2페이즈부터, 3페이즈는 화남 고정으로 정지
 
         [Header("1페이즈 즉사 기믹 (레이저 색 순서 암기)")]
         [SerializeField] private int   _gimmickLaserCount      = 3;     // 발사 횟수(색 시퀀스 길이)
@@ -199,6 +200,7 @@ namespace Minsung.Common.Data
         public float ConfusionInterval => _confusionInterval;
         public float ConfusionDuration => _confusionDuration;
         public float HeartPickupHeight => _heartPickupHeight;
+        public float EmotionInterval   => _emotionInterval;
 
         public int   GimmickLaserCount      => _gimmickLaserCount;
         public float GimmickSafeZoneWidth   => _gimmickSafeZoneWidth;

@@ -72,6 +72,7 @@ namespace Minsung.Boss
         {
             base.Enter(); // 본체 + 장풍 (2페이즈 패턴 유지)
 
+            Boss.SetAutoEmotionSuspended(true); // 자동 전환 정지 - 3페이즈는 화남 고정
             Boss.SetEmotion(BossEmotion.Angry); // 3페이즈 고정 - 10초마다 1초 혼란(키반전)
 
             Material laserMat  = Resources.Load<Material>("Phase3LaserBeamMat");
@@ -100,6 +101,7 @@ namespace Minsung.Boss
             }
 
             Boss.SetEmotion(BossEmotion.None); // 혼란 해제
+            Boss.SetAutoEmotionSuspended(false); // 4페이즈부터 자동 전환 재개
 
             base.Exit();
         }
