@@ -39,6 +39,7 @@ namespace Minsung.Boss
         [Header("참조")]
         [SerializeField] private PlayerController _player;
         [SerializeField] private Animator _animator;                  // 페이즈 전환/사망 연출 트리거 (Roar/Death). 미연결 시 무시
+        [SerializeField] private GameObject _deathLightFx;            // 사망 시 몸 뒤에 겹쳐 재생되는 빛 이펙트 (씬 배치, 비활성 시작). 미연결 시 무시
         [SerializeField] private BossCloneController[] _phase1Clones; // 1페이즈 분신 2체 (씬 배치, 비활성 시작)
         [SerializeField] private BossBodyController _body;            // 보스 본체 (2페이즈~ 등장, 씬 배치, 비활성 시작)
         [SerializeField] private HeartPickup _heartPickup;            // 파랑 감정 하트 픽업 (씬 배치, 비활성 시작)
@@ -59,6 +60,7 @@ namespace Minsung.Boss
         private bool _healthFrozen;        // 페이즈 하한 도달 ~ 기믹 완료까지 피해 무시
         private bool _transitioning;       // 페이즈 종료 기믹/전환 진행 중
         private bool _isGlobalRewinding;   // 전역 되감기 중 여부 (패턴 Tick 정지용)
+        private Coroutine _deathLightFxCoroutine; // QaForceDeath 반복 호출 시 이전 대기를 취소하기 위한 참조
         private BossEmotion _emotion = BossEmotion.None;
 
         private float _battleElapsed;      // 보스전 경과(초, 실시간)
@@ -458,6 +460,24 @@ namespace Minsung.Boss
             _states[_phaseIndex].Enter();
             OnPhaseChanged?.Invoke(_phaseIndex);
         }
+
+        // QA 전용 - 전투 진행 없이 사망 연출(DeathBody+DeathLightFx)만 즉시 재생 (BossPhaseQaDebug 전용, 빌드 미포함)
+        // 이미 DeathBody 상태인 채로 재호출하면 SetTrigger만으로는 같은 상태를 재진입하지 않아 애니메이션이 다시 재생되지 않는다 - Play로 강제 재시작
+        public void QaForceDeath()
+        {
+            if (_animator != null)
+            {
+                _animator.gameObject.SetActive(true); // 1페이즈처럼 본체(Visual)가 아직 비활성인 상태에서도 확인 가능하게
+                _animator.Play(Constants.Combat.BOSS_ANIM_STATE_DEATH_BODY, 0, 0f);
+            }
+
+            if (_deathLightFxCoroutine != null)
+            {
+                StopCoroutine(_deathLightFxCoroutine);
+            }
+            _deathLightFx?.SetActive(false); // 이미 켜져 있으면 껐다 켜야 Animator가 DeathLight를 처음부터 재생한다
+            _deathLightFxCoroutine = StartCoroutine(CoActivateDeathLightFx());
+        }
 #endif
 
         // 페이즈 종료: 피통 동결 -> 종료 기믹(즉사 레이저/컷신 등) -> 다음 페이즈
@@ -483,6 +503,7 @@ namespace Minsung.Boss
             {
                 AchievementManager.Instance?.Unlock(AchievementIds.BOSS_DEFEATED);
                 PlayAnimTrigger(Constants.Combat.BOSS_ANIM_DEATH);
+                StartCoroutine(CoActivateDeathLightFx());
                 CameraManager.Instance?.ResetPlayerZoom();
                 StopEmotionLoop();
                 OnBossDefeated?.Invoke();
@@ -522,6 +543,13 @@ namespace Minsung.Boss
             {
                 _animator.SetTrigger(trigger);
             }
+        }
+
+        // DeathBody.anim의 patches_sprites-sheet0_21 프레임 등장 시점(DeathLightDelay초)에 맞춰 DeathLightFx를 지연 활성화
+        private IEnumerator CoActivateDeathLightFx()
+        {
+            yield return new WaitForSeconds(GameDB.Boss.DeathLightDelay);
+            _deathLightFx?.SetActive(true);
         }
 
         /****************************************

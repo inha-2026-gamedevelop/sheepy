@@ -76,6 +76,9 @@ namespace Minsung.Common.Data
             new Color(0.48f, 0.17f, 0.75f), // 진보라
         };
 
+        [Header("사망 연출 (DeathBody+DeathLightFx 동시 재생)")]
+        [SerializeField] private float _deathLightDelay = 0.4f; // DeathBody 트리거 후 DeathLightFx를 켜기까지 대기(초) - DeathBody.anim의 patches_sprites-sheet0_21 프레임 등장 시점(0.4초)과 맞춤
+
         [Header("감정 - 화남(혼란) / 파랑(하트 픽업)")]
         [SerializeField] private float _confusionInterval = 10f;  // 키반전 발동 주기(초)
         [SerializeField] private float _confusionDuration = 1f;   // 키반전 지속 시간(초)
@@ -197,6 +200,8 @@ namespace Minsung.Common.Data
 
         public float   LightningParticleSize   => _lightningParticleSize;
         public Color[] LightningParticleColors => _lightningParticleColors;
+
+        public float DeathLightDelay => _deathLightDelay;
 
         public float ConfusionInterval => _confusionInterval;
         public float ConfusionDuration => _confusionDuration;

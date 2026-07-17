@@ -35,6 +35,9 @@ namespace Minsung.Common
             public const string BOSS_ANIM_JUMP   = "Jump";
             public const string BOSS_ANIM_DODGE  = "Dodge";
 
+            // 보스 애니메이터 상태명 (트리거 파라미터명과 별개) - Boss.controller의 상태명과 반드시 일치해야 한다
+            public const string BOSS_ANIM_STATE_DEATH_BODY = "DeathBody";
+
             // 근접 유닛 착지 판정 - Player.GROUND_CHECK_EXTRA와 같은 값이지만 계약 대상이 달라 독립 유지
             public const float GROUND_CHECK_EXTRA = 0.05f;
 

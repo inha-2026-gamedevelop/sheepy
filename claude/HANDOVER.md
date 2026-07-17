@@ -1,6 +1,21 @@
-# 인수인계 문서 (2026-07-16 갱신)
+# 인수인계 문서 (2026-07-17 갱신)
 
 > 브랜치: `develop` (`feature/boss-batch` + `feature/boss-emotion-scene-handoff` + `feature/player` 병합)
+
+## 2026-07-17 추가 - 보스 사망 연출(DeathBody+DeathLight) 결합
+
+1. **DeathBody/DeathLight 동시 재생 구조** (`Boss.controller`, `DeathLightFx.controller` 신설, `Bossbody/Visual` 형제로 `DeathLightFx` 오브젝트 신설, `Boss.unity`) - 두 클립 모두 자기 자신의 `SpriteRenderer.m_Sprite`(경로 `""`)를 갈아끼우는 방식이라 같은 오브젝트/같은 Animator 레이어에서는 동시 재생이 불가능함(하나가 다른 하나를 덮어씀). `Visual`의 형제로 `DeathLightFx`(전용 `SpriteRenderer`+`Animator`, Sorting Order -1로 본체보다 뒤에 그려짐) 오브젝트를 만들고, 파라미터 없이 기본 상태로 `DeathLight.anim`만 재생하는 전용 컨트롤러(`DeathLightFx.controller`)를 연결해 별도 `SpriteRenderer`로 분리하는 방식으로 해결. 씬 시작 시 비활성 배치.
+2. **`Boss.controller` Death 트리거 재배선** - 기존에는 `Death` 트리거(AnyState)가 옛날 단일 클립 `Death` 상태를 가리켰음. 목적지를 `DeathBody` 상태로 변경(`DeathBody`/`DeathLight`/`DeathCircle` 상태는 원래 존재했지만 아무 전이도 연결 안 된 고아 상태였음 - `DeathCircle`은 이번 세션에서 다루지 않음, 여전히 미연결).
+3. **`BossController.cs`** - `_deathLightFx`(GameObject) 필드 추가, 보스 처치 처리부(`CoPhaseEnd`, 마지막 페이즈 종료 분기)에서 `PlayAnimTrigger(BOSS_ANIM_DEATH)` 직후 `_deathLightFx?.SetActive(true)` 호출해 본체 Death 트리거와 동시에 켜지도록 함. QA 전용 `QaForceDeath()`(`#if UNITY_EDITOR`) 신설 - 전투 진행 없이 사망 연출만 즉시 재생, 1페이즈처럼 본체(Visual)가 비활성이어도 강제로 켜서 확인 가능.
+4. **QA 테스트 단축키 추가** (`BossPhaseQaDebug.cs`) - 기존 2/3/4(페이즈 즉시 이동)에 `5`번 키를 추가해 `QaForceDeath()` 연결. `Boss.unity` Play 모드 진입 후 `5`를 누르면 바로 확인 가능.
+5. **검증** - Play 모드에서 실제 QA 경로(컴포넌트 참조 그대로) 호출로 Scene View 캡처해 확인. Play 모드 종료 시 `SetActive` 등 런타임 변경은 자동으로 편집 모드 상태로 복구됨(단, 별도 실행한 `EditorUtility.InstanceIDToObject` 기반 강제 조작은 예외적으로 복구가 안 된 사례 있었음 - 아래 주의사항 참고).
+
+6. **`DeathLightFx` 위치/크기 튜닝** - 몸통 중심(`Visual` sprite bounds center y=0.215)에 맞춰 `localPosition (0, 0.2, 0)`, `localScale 1.4배`로 조정. 본인 확인 완료.
+
+### 해야 할 것 (추가)
+
+- [ ] `DeathCircle.anim`은 여전히 `Boss.controller`에서 고아 상태 - 3연출을 다 쓸지, Body+Light 둘만 쓸지 기획 확인 필요
+- [ ] `Boss.unity`를 단독으로 Play(정상 부트스트랩 없이)하면 `BossController.cs:159/167`(Update/FixedUpdate), `LpManager.cs:129`에서 NullReferenceException 발생 - 이번 세션 변경과 무관한 기존 이슈로 추정, 원인 미확인
 
 ## 2026-07-16 추가 - 1페이즈 즉사 기믹 겹침 방지 / 낙뢰 비주얼 전면 교체 / 2페이즈 장풍 재설계
 
@@ -80,3 +95,4 @@
 - **Boss 씬에서 리와인드(`PlayerRewind.OnRewindStart/OnRewindEnd` → `PlayerAnimator.SetReversed`)가 발동하면 콘솔에 `Parameter 'Hash -1564865577' does not exist` 에러가 반복 출력됨.** 이 씬의 Player Animator Controller에 리와인드 역재생용 파라미터가 없거나 다른 것으로 추정되는 기존 이슈 (발견만 하고 미수정 - Animator Controller 담당자 확인 필요).
 - **Unity 에디터가 포커스를 잃은 상태(백그라운드)에서는 MCP로 Play 모드를 구동해도 물리 틱(FixedUpdate)이 실시간으로 진행되지 않는 것으로 관찰됨.** 자동화 테스트에서 `sleep` 후 상태 확인하는 방식이 신뢰할 수 없었음 - 프레임 진행이 필요한 검증은 `IRewindable` 메서드를 리플렉션으로 직접 호출하는 결정론적 방식을 쓰거나, 에디터에 포커스를 준 상태에서 확인할 것.
 - **`Boss.unity`는 이번 병합에서 `Assets/00.Scenes/Minsung/Boss.unity`로 이동함** (경로 변경, 내용은 동일 + 이번 병합 반영분).
+- **Play 모드 중 `EditorUtility.InstanceIDToObject`로 직접 얻은 오브젝트에 `SetActive` 등을 걸면, Stop 후에도 그 변경이 편집 모드로 새어나오는 사례를 관찰함**(정상 경로인 `GameObject.Find` -> 컴포넌트 참조로 호출한 `SetActive`는 Stop 시 정상적으로 되돌아감). MCP로 Play 모드 중 임시 상태를 만들어 확인할 때는 가능하면 정식 컴포넌트 참조 경로로 호출하고, Stop 후에는 항상 대상 오브젝트의 `activeSelf`를 다시 확인할 것.
