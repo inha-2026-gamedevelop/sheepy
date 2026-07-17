@@ -69,6 +69,7 @@ MonoBehaviour:
   _confusionInterval: 10
   _confusionDuration: 1
   _heartPickupHeight: 0.5
+  _emotionInterval: 8
   _gimmickLaserCount: 3
   _gimmickSafeZoneWidth: 3
   _gimmickSafeZoneAlpha: 0.1
@@ -104,9 +105,19 @@ MonoBehaviour:
   - {r: 0.48, g: 0.17, b: 0.75, a: 1}
   _phase3LaserInterval: 5
   _phase3LaserWarningTime: 1.5
-  _phase3LaserBlinkInterval: 0.25
+  _phase3LaserBlinkInterval: 0.125
   _phase3LaserActiveTime: 1
+  _phase3LaserRetractTime: 0.25
   _phase3LaserThickness: 0.5
+  _phase3LaserWarningThickness: 0.05
   _phase3LaserMaxHeight: 6
-  _phase3LaserWarningColor: {r: 1, g: 0.2, b: 0.2, a: 0.5}
-  _phase3LaserColor: {r: 1, g: 0.1, b: 0.1, a: 1}
+  _phase3LaserWarningColor: {r: 1, g: 0.05, b: 0.05, a: 0.6}
+  _phase3LaserColor: {r: 0.95, g: 0, b: 0.02, a: 1}
+  _phase3LaserFlowParticleSize: 0.12
+  _phase3LaserFlowSpeed: 14
+  _phase3LaserFlowRate: 80
+  _phase3LaserFlowColors:
+  - {r: 1, g: 0.15, b: 0.15, a: 1}
+  - {r: 0.85, g: 0, b: 0.05, a: 1}
+  - {r: 1, g: 0.35, b: 0.05, a: 1}
+  - {r: 0.55, g: 0, b: 0.12, a: 1}

@@ -204,7 +204,7 @@ namespace Minsung.Boss
             return d;
         }
 
-        // 한 발: 경고(빨간 깜빡임, 판정 없음) -> 발사(회전 사각 판정, 한 칸)
+        // 한 발: 경고(빨간 깜빡임 얇은 실선, 판정 없음) -> 발사(회전 사각 판정, 한 칸)
         private IEnumerator CoFireCrossLaser(LaserDecision d)
         {
             Vector2 start  = new Vector2(Boss.ArenaMinX, Boss.ArenaGroundY + d.StartY);
@@ -214,8 +214,9 @@ namespace Minsung.Boss
             float   angle  = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
             Vector2 scale  = new Vector2(delta.magnitude, GameDB.Boss.Phase3LaserThickness);
 
-            // 경고: 깜빡임 주기마다 표시를 토글
-            int warnSlot = _laserPool.Alloc(center, scale, GameDB.Boss.Phase3LaserWarningColor, false,
+            // 경고: 본 레이저보다 얇은 실선으로 깜빡임 주기마다 표시를 토글 //26 07 17 kjw
+            Vector2 warnScale = new Vector2(delta.magnitude, GameDB.Boss.Phase3LaserWarningThickness);
+            int warnSlot = _laserPool.Alloc(center, warnScale, GameDB.Boss.Phase3LaserWarningColor, false,
                                             rotationDeg: angle);
             bool  visible = true;
             float elapsed = 0f;
