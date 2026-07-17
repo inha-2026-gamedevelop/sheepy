@@ -458,6 +458,44 @@ namespace Minsung.Boss
             StartCoroutine(CoPhaseEnd());
         }
 
+#if UNITY_EDITOR
+        /// <summary>
+        /// QA 전용 - 보스 페이즈를 기믹/전환 연출 없이 즉시 지정 인덱스로 이동시킨다.
+        /// 에디터 전용 컴포넌트(BossPhaseQaDebug)에서만 호출 - 빌드에는 포함되지 않는다
+        /// </summary>
+        public void QaJumpToPhase(int targetPhaseIndex)
+        {
+            if (_transitioning || (targetPhaseIndex == _phaseIndex)
+                || (targetPhaseIndex < 0) || (targetPhaseIndex >= _states.Length))
+            {
+                return;
+            }
+
+            _states[_phaseIndex].Exit();
+
+            _phaseIndex    = targetPhaseIndex;
+            _healthFrozen  = false;
+            _currentHealth = PhaseCeilHealth;
+            OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
+
+            SetBodyPresence(_phaseIndex >= 1);
+
+            SetAutoEmotionSuspended(false);
+            SetEmotion(BossEmotion.None);
+            if (_phaseIndex >= 1)
+            {
+                StartEmotionLoop();
+            }
+            else
+            {
+                StopEmotionLoop();
+            }
+
+            _states[_phaseIndex].Enter();
+            OnPhaseChanged?.Invoke(_phaseIndex);
+        }
+#endif
+
         // 페이즈 종료: 피통 동결 -> 종료 기믹(즉사 레이저/컷신 등) -> 다음 페이즈
         // 기믹 중에는 리와인드를 잠가 동결된 피통/기믹 진행이 되감기와 엉키지 않게 한다
         private IEnumerator CoPhaseEnd()
