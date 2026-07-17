@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 5871acc0f558aa24b99e08a0a04af48d
+guid: c48c20ef6b96b034aa8c3815f59ae02f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2763842697443337952
-    second: elevator_light-sheet0_0
+      213: 6470106221898810212
+    second: record5_2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -97,7 +97,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: WebGL
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -113,23 +113,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: elevator_light-sheet0_0
+      name: record5_2_0
       rect:
         serializedVersion: 2
-        x: 1
-        y: 46
-        width: 17
-        height: 17
+        x: 0
+        y: 0
+        width: 45
+        height: 27
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 02915dbc5bbd4a9d0800000000000000
-      internalID: -2763842697443337952
+      spriteID: 463c257245f6ac950800000000000000
+      internalID: 6470106221898810212
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: f74acf3dc2f47e74593be415d7ebffdf
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      elevator_light-sheet0_0: -2763842697443337952
+      record5_2_0: 6470106221898810212
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
