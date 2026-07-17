@@ -106,8 +106,6 @@ namespace Minsung.Boss
                 return false; // 감정 반사 - 분신 피통 유지
             }
 
-            PlayAnimTrigger(Constants.Combat.BOSS_ANIM_HIT);
-
             _health -= dmg;
             OnHealthChanged?.Invoke(Mathf.Max(0f, _health), GameDB.Boss.CloneHealth);
             if (_health <= 0f)

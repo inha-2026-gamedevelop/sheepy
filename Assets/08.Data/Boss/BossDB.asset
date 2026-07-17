@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cecac0579d4201428448f0a1ed527f1, type: 3}
   m_Name: BossDB
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.BossDataSO
-  _totalHealth: 400
+  _totalHealth: 32000
   _phaseCount: 4
   _timeLimit: 600
   _attackHalves: 2
@@ -31,7 +31,7 @@ MonoBehaviour:
   _dodgeTriggerRange: 1.5
   _dodgeBackDistance: 3
   _dodgeDuration: 0.3
-  _cloneHealth: 5
+  _cloneHealth: 4000
   _cloneCount: 2
   _cloneAttackRange: 0.7
   _cloneAttackCooldown: 2

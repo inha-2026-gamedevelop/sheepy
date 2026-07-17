@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01301253fe06dd54893ef9d847f9b940, type: 3}
   m_Name: PlayerDB
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.PlayerDataSO
-  _moveSpeed: 0.7
+  _moveSpeed: 1.5
   _jumpForce: 2.5
   _maxJumps: 2
   _gravityScale: 0.9
