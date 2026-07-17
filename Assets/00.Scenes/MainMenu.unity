@@ -1584,7 +1584,7 @@ GameObject:
   - component: {fileID: 723287028}
   - component: {fileID: 723287027}
   m_Layer: 0
-  m_Name: SettingsPanel
+  m_Name: SettingsPanel[OFF]
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
