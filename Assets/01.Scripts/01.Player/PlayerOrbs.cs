@@ -42,17 +42,20 @@ namespace Minsung.Player
                 ? DamageSource.PlayerClone
                 : DamageSource.Player;
 
-            Vector2[] offsets = GameDB.Player.OrbOffsets;
-            _orbs = new OrbController[offsets.Length];
+            int orbCount = GameDB.Player.OrbCount;
+            _orbs = new OrbController[orbCount];
 
-            for (int i = 0; i < offsets.Length; ++i)
+            for (int i = 0; i < orbCount; ++i)
             {
                 OrbController orb = (_orbPrefab != null)
                     ? Instantiate(_orbPrefab)
                     : CreateDefaultOrb(i);
 
+                // 오브 개수만큼 가로로 나란히 벌려놓는 슬롯 오프셋 (중앙 정렬)
+                Vector2 slotOffset = Vector2.right * ((i - ((orbCount - 1) / 2f)) * GameDB.Player.OrbSpacing);
+
                 orb.transform.SetParent(null);
-                orb.Init(transform, offsets[i], (Mathf.PI * 2f / offsets.Length) * i);
+                orb.Init(transform, i * 53.7f, slotOffset); // 오브마다 다른 노이즈 시드 - 겹치지 않는 자유로운 움직임
 
                 // 분신 오브는 반투명화
                 if (orb.TryGetComponent(out SpriteRenderer orbRenderer))

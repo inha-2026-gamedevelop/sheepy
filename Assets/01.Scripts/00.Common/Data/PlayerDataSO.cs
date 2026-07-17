@@ -13,10 +13,10 @@ namespace Minsung.Common.Data
         ****************************************/
 
         [Header("이동")]
-        [SerializeField] private float _moveSpeed    = 2f; // 이동 속도(유닛/초)
-        [SerializeField] private float _jumpForce    = 6f; // 점프 힘(임펄스)
-        [SerializeField] private int   _maxJumps     = 2;  // 지상 점프 1회 + 공중(더블) 점프 1회
-        [SerializeField] private float _gravityScale = 2f; // 중력 배율
+        [SerializeField] private float _moveSpeed    = 1.3f; // 이동 속도(유닛/초)
+        [SerializeField] private float _jumpForce    = 4.5f; // 점프 힘(임펄스)
+        [SerializeField] private int   _maxJumps     = 2;    // 지상 점프 1회 + 공중(더블) 점프 1회
+        [SerializeField] private float _gravityScale = 1.4f; // 중력 배율
 
         [Header("공격")]
         [SerializeField] private float _attackDamage      = 20f;
@@ -44,19 +44,15 @@ namespace Minsung.Common.Data
         [Header("오브")]
         [SerializeField] private float _orbAttackRange  = 2.5f;  // 공격 대상 탐지 반경
         [SerializeField] private float _orbFollowSmooth = 0.15f; // 따라다니기 스무딩 시간(초)
-        [SerializeField] private float _orbBobAmplitude = 0.12f; // 둥실거림 진폭
-        [SerializeField] private float _orbBobSpeed     = 2.5f;  // 둥실거림 속도(라디안/초 배율)
+        [SerializeField] private Vector2 _orbAnchorOffset = new Vector2(-0.05f, 0.15f); // 몸통 기준 대기 지점(왼쪽 위)
+        [SerializeField] private float _orbWanderRadius = 0.06f; // 대기 지점 주변을 떠다니는 반경(유닛)
+        [SerializeField] private float _orbWanderSpeed  = 0.5f;  // 떠다니는 펄린 노이즈 샘플링 속도
+        [SerializeField] private float _orbSpacing      = 0.12f; // 오브끼리 벌려놓는 간격(유닛)
+        [SerializeField] private int   _orbCount        = 2;     // 오브 개수
         [SerializeField] private float _orbDashSpeed    = 16f;   // 공격 돌진 속도
         [SerializeField] private float _orbHitDistance  = 0.25f; // 대상 도달 판정 거리
         [SerializeField] private float _orbDashTimeout  = 0.6f;  // 돌진 최대 시간(초) - 대상 소실 대비
-        [SerializeField] private float _orbSize         = 0.25f; // 기본 오브 크기(스케일)
-
-        // 오브 대기 위치 (플레이어 기준 오프셋) - 개수 = 오브 개수
-        [SerializeField] private Vector2[] _orbOffsets =
-        {
-            new Vector2(-0.7f, 1.1f),
-            new Vector2(-0.7f, 0.4f),
-        };
+        [SerializeField] private float _orbSize         = 0.05f; // 기본 오브 크기(스케일)
 
         [SerializeField] private Color _orbColor = new Color(1f, 0.9f, 0.5f, 0.9f); // 기본 오브 색
 
@@ -95,17 +91,19 @@ namespace Minsung.Common.Data
         public float HitFlashDuration  => _hitFlashDuration;
         public Color HitFlashColor     => _hitFlashColor;
 
-        public float OrbAttackRange  => _orbAttackRange;
-        public float OrbFollowSmooth => _orbFollowSmooth;
-        public float OrbBobAmplitude => _orbBobAmplitude;
-        public float OrbBobSpeed     => _orbBobSpeed;
+        public float   OrbAttackRange   => _orbAttackRange;
+        public float   OrbFollowSmooth  => _orbFollowSmooth;
+        public Vector2 OrbAnchorOffset  => _orbAnchorOffset;
+        public float   OrbWanderRadius  => _orbWanderRadius;
+        public float   OrbWanderSpeed   => _orbWanderSpeed;
+        public float   OrbSpacing       => _orbSpacing;
+        public int     OrbCount         => _orbCount;
         public float OrbDashSpeed    => _orbDashSpeed;
         public float OrbHitDistance  => _orbHitDistance;
         public float OrbDashTimeout  => _orbDashTimeout;
         public float OrbSize         => _orbSize;
 
-        public Vector2[] OrbOffsets => _orbOffsets;
-        public Color     OrbColor   => _orbColor;
+        public Color OrbColor => _orbColor;
 
         public Color RewindTintColor  => _rewindTintColor;
         public Color ChargingColor    => _chargingColor;
