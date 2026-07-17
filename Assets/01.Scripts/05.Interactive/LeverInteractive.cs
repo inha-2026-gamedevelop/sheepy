@@ -17,6 +17,23 @@ namespace Minsung.Interactive
     public class LeverInteractive : BaseInteractive, IRewindable
     {
         /****************************************
+        *             Inner Types
+        ****************************************/
+
+        // 한 틱의 레버 기록 - 당김 상태와 렌더러 표시 여부(당김 연출 중 실제 레버 숨김을 스크럽에 재현)
+        private readonly struct LeverTick
+        {
+            public readonly bool Pulled;
+            public readonly bool Visible;
+
+            public LeverTick(bool pulled, bool visible)
+            {
+                Pulled  = pulled;
+                Visible = visible;
+            }
+        }
+
+        /****************************************
         *                Fields
         ****************************************/
 
@@ -32,7 +49,7 @@ namespace Minsung.Interactive
         [SerializeField] private UnityEvent _onLeverReset;   // 되감기로 당기기 전 상태로 되돌아갔을 때 (문 닫기 등)
 
         private bool _isPulled;
-        private RingBuffer<bool> _rewindBuffer; // 틱마다 _isPulled 기록 - 되감기 시 당김 상태를 복원한다
+        private RingBuffer<LeverTick> _rewindBuffer; // 틱마다 당김/표시 상태 기록 - 되감기 시 그대로 복원한다
 
         private Coroutine _coUnlockInteraction;
         private WaitForSeconds _waitInteractionLock;
@@ -56,7 +73,7 @@ namespace Minsung.Interactive
         private void Start()
         {
             // 버퍼 용량은 다른 리와인드 참여자와 동일한 기준(TickCapacity)을 써야 인덱스가 일치한다.
-            _rewindBuffer = new RingBuffer<bool>(RewindManager.TickCapacity);
+            _rewindBuffer = new RingBuffer<LeverTick>(RewindManager.TickCapacity);
             RewindManager.Instance?.Register(this);
         }
 
@@ -134,37 +151,42 @@ namespace Minsung.Interactive
 
         public void RecordTick()
         {
-            _rewindBuffer.Push(_isPulled);
+            bool visible = (_renderer == null) || _renderer.enabled;
+            _rewindBuffer.Push(new LeverTick(_isPulled, visible));
         }
 
-        public void OnRewindStart() { }
+        public void OnRewindStart()
+        {
+            // 정방향 연출 도중 되감기가 시작되면 예약된 재표시/잠금해제 코루틴을 취소한다
+            // (입력 잠금 해제는 PlayerInteraction.ForceStop 담당, 레버 재표시는 OnRewindEnd 담당)
+            UtilCoroutine.CheckStopCoroutine(ref _coUnlockInteraction, this);
+        }
 
         public void ApplyRewindTick(int orderedIndex)
         {
-            if (_rewindBuffer.TryGetOrdered(orderedIndex, out bool wasPulled))
+            if (_rewindBuffer.TryGetOrdered(orderedIndex, out LeverTick tick))
             {
-                ApplyPulledState(wasPulled);
+                ApplyPulledState(tick.Pulled);
+                SetRendererVisible(tick.Visible);
             }
         }
 
         public void OnRewindEnd(int orderedIndex)
         {
-            if (_rewindBuffer.TryGetOrdered(orderedIndex, out bool wasPulled))
+            if (_rewindBuffer.TryGetOrdered(orderedIndex, out LeverTick tick))
             {
-                ApplyPulledState(wasPulled);
+                ApplyPulledState(tick.Pulled);
             }
+            // 연출 도중 틱에 착지하면 기록상 숨김이지만, 재표시 코루틴이 더는 없으므로 항상 표시로 복구한다
+            SetRendererVisible(true);
             _rewindBuffer.Clear();
         }
 
         // 기록된 당김 상태로 복원. true -> false로 되돌아간 순간에만 리셋 이벤트를 발생시킨다.
+        // 되감기는 원샷 여부와 무관하게 당김을 되돌린다 - 원샷은 "당겨진 동안 재입력 무시"(OnInteract 가드)만
+        // 담당하므로, 되감기로 풀린 뒤에는 플레이어도 분신 재연도 다시 당길 수 있다.
         private void ApplyPulledState(bool wasPulled)
         {
-            // 원샷 레버(스토리 진행용)는 한 번 당기면 되감기로도 되돌리지 않는다.
-            // 당긴 이미지가 유지되고, 분신 재연(OnInteract)도 위의 원샷 가드에 막혀 다시 돌아가지 않는다.
-            if (_isOneShot && _isPulled)
-            {
-                return;
-            }
             if (_isPulled == wasPulled)
             {
                 return;

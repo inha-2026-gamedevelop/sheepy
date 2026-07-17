@@ -72,10 +72,18 @@ namespace Minsung.Boss
         {
             base.Enter(); // 본체 + 장풍 (2페이즈 패턴 유지)
 
-            Boss.SetAutoEmotionSuspended(true); // 3페이즈는 화남 고정 - 자동 랜덤 전환 정지
+            Boss.SetAutoEmotionSuspended(true); // 자동 전환 정지 - 3페이즈는 화남 고정
             Boss.SetEmotion(BossEmotion.Angry); // 3페이즈 고정 - 10초마다 1초 혼란(키반전)
 
-            _laserPool         = new BossHazardPool(LASER_POOL_SIZE, "Phase3_Laser");
+            Material laserMat  = Resources.Load<Material>("Phase3LaserBeamMat");
+            _laserPool         = new BossHazardPool(LASER_POOL_SIZE, "Phase3_Laser", customMaterial: laserMat,
+                                                     attachParticle: true,
+                                                     particleSize: GameDB.Boss.Phase3LaserFlowParticleSize,
+                                                     particleColors: GameDB.Boss.Phase3LaserFlowColors,
+                                                     particleOnHitOnly: true,
+                                                     particleFlowAlongX: true,
+                                                     particleFlowSpeed: GameDB.Boss.Phase3LaserFlowSpeed,
+                                                     particleRate: GameDB.Boss.Phase3LaserFlowRate);
             _laserRewindBuffer = new RingBuffer<Phase3Frame>(RewindManager.TickCapacity);
             _laserLog          = new List<LaserDecision>();
             _laserCursor       = 0;
@@ -92,8 +100,8 @@ namespace Minsung.Boss
                 _laserPool = null;
             }
 
-            Boss.SetEmotion(BossEmotion.None);       // 혼란 해제
-            Boss.SetAutoEmotionSuspended(false);     // 자동 랜덤 전환 재개
+            Boss.SetEmotion(BossEmotion.None); // 혼란 해제
+            Boss.SetAutoEmotionSuspended(false); // 4페이즈부터 자동 전환 재개
 
             base.Exit();
         }
@@ -196,7 +204,7 @@ namespace Minsung.Boss
             return d;
         }
 
-        // 한 발: 경고(빨간 깜빡임, 판정 없음) -> 발사(회전 사각 판정, 한 칸)
+        // 한 발: 경고(빨간 깜빡임 얇은 실선, 판정 없음) -> 발사(회전 사각 판정, 한 칸)
         private IEnumerator CoFireCrossLaser(LaserDecision d)
         {
             Vector2 start  = new Vector2(Boss.ArenaMinX, Boss.ArenaGroundY + d.StartY);
@@ -206,8 +214,9 @@ namespace Minsung.Boss
             float   angle  = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
             Vector2 scale  = new Vector2(delta.magnitude, GameDB.Boss.Phase3LaserThickness);
 
-            // 경고: 깜빡임 주기마다 표시를 토글
-            int warnSlot = _laserPool.Alloc(center, scale, GameDB.Boss.Phase3LaserWarningColor, false,
+            // 경고: 본 레이저보다 얇은 실선으로 깜빡임 주기마다 표시를 토글 //26 07 17 kjw
+            Vector2 warnScale = new Vector2(delta.magnitude, GameDB.Boss.Phase3LaserWarningThickness);
+            int warnSlot = _laserPool.Alloc(center, warnScale, GameDB.Boss.Phase3LaserWarningColor, false,
                                             rotationDeg: angle);
             bool  visible = true;
             float elapsed = 0f;
@@ -225,6 +234,17 @@ namespace Minsung.Boss
                                              GameDB.Boss.AttackHalves, rotationDeg: angle);
             Boss.Body?.PlayCastTrigger();
             yield return _waitLaserActive;
+
+            // 회수: 판정부터 끄고 두께를 서서히 0으로 줄여 점점 좁아지며 사라지는 연출
+            _laserPool.SetColliderActive(laserSlot, false);
+            float retractElapsed = 0f;
+            while (retractElapsed < GameDB.Boss.Phase3LaserRetractTime)
+            {
+                yield return null;
+                retractElapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(retractElapsed / GameDB.Boss.Phase3LaserRetractTime);
+                _laserPool.SetScale(laserSlot, new Vector2(scale.x, Mathf.Lerp(scale.y, 0f, t)));
+            }
             _laserPool.Free(laserSlot);
         }
 

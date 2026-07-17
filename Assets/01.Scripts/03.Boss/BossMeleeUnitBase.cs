@@ -24,6 +24,8 @@ namespace Minsung.Boss
         [SerializeField] protected BossController _boss;
         [SerializeField] private Animator _animator;         // 이동/공격/피격 모션 (미연결 시 판정만 동작)
         [SerializeField] private DamageHazard _attackHitbox; // 공격/도약 슬램 판정 (자식 오브젝트, 평소 비활성)
+
+        [SerializeField] private BoxCollider2D _attackHitboxCollider;
         [SerializeField] private LayerMask _groundLayer;     // 도약 착지 판정용 지면 레이어
 
         protected Rigidbody2D _rb;
@@ -78,6 +80,15 @@ namespace Minsung.Boss
             _waitJumpLandActive = new WaitForSeconds(GameDB.Boss.JumpLandActiveTime);
             _waitDodgeCooldown  = new WaitForSeconds(GameDB.Boss.DodgeCooldown);
             _waitDodgeDuration  = new WaitForSeconds(GameDB.Boss.DodgeDuration);
+
+            if (_attackHitbox != null)
+            {
+                if (!_attackHitbox.TryGetComponent(out _attackHitboxCollider))
+                {
+                    // 콜라이더 타입이 바뀌는 등의 이유로 캐싱에 실패하면, 판정 사거리 자동 보정이 조용히 무효화되므로 경고로 남긴다
+                    Debug.LogWarning("AttackHitbox에 BoxCollider2D가 없어 공격 판정 사거리를 자동으로 맞출 수 없다", this);
+                }
+            }
         }
 
         protected virtual void OnDestroy()
@@ -126,6 +137,7 @@ namespace Minsung.Boss
             if (_attackHitbox != null)
             {
                 _attackHitbox.Configure(AttackHalves);
+                ConfigureAttackHitboxRange();
                 _attackHitbox.gameObject.SetActive(false);
             }
 
@@ -133,6 +145,28 @@ namespace Minsung.Boss
             _jumpLoop   = StartCoroutine(CoJumpLoop());
             _dodgeLoop  = StartCoroutine(CoDodgeLoop());
         }
+
+        private void ConfigureAttackHitboxRange()
+        {
+            if (_attackHitboxCollider == null)
+            {
+                return;
+            }
+
+            ApplyRangeToHitboxCollider(_attackHitboxCollider, AttackRange);
+        }
+
+        private void ApplyRangeToHitboxCollider(BoxCollider2D hitboxCollider, float range)
+        {
+            Vector2 colliderSize = hitboxCollider.size;
+            colliderSize.x = range;
+            hitboxCollider.size = colliderSize;
+
+            Vector2 colliderOffset = hitboxCollider.offset;
+            colliderOffset.x = (colliderSize.x * 0.5f) * Constants.Combat.BOSS_ART_FACING_SIGN;
+            hitboxCollider.offset = colliderOffset;
+        }
+
 
         /// <summary> 공격/도약/회피 루프 전부 정지 + 켜져 있던 히트박스 정리. 사망/퇴장/되감기에서 호출한다 </summary>
         protected void StopCombatLoops()
