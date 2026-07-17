@@ -66,8 +66,6 @@ namespace Minsung.Boss
         private bool _timeOverKilled;      // 제한시간 즉사 1회 처리 플래그
 
         private PlayerHealth _playerHealth;          // 즉사/반사 대상 (본체)
-        private SpriteRenderer _bodyRenderer;        // 본체(Boss 오브젝트) 스프라이트 - 1페이즈엔 숨김(분신만 등장)
-        private Collider2D _bodyCollider;            // 본체 피격 콜라이더 - 1페이즈엔 비활성(분신만 피격)
         private readonly List<IBossPattern> _patterns = new List<IBossPattern>(); // 전 페이즈 공통 패턴 (낙뢰 등)
         private Coroutine _confusionRoutine;         // 화남 감정 혼란(키반전) 루프
         private WaitForSeconds _waitConfusionInterval;
@@ -119,9 +117,6 @@ namespace Minsung.Boss
             _waitConfusionInterval = new WaitForSeconds(GameDB.Boss.ConfusionInterval);
             _waitConfusionDuration = new WaitForSeconds(GameDB.Boss.ConfusionDuration);
             _waitEmotionInterval   = new WaitForSeconds(GameDB.Boss.EmotionInterval);
-
-            TryGetComponent(out _bodyRenderer);
-            TryGetComponent(out _bodyCollider);
         }
 
         private void Start()
@@ -139,8 +134,6 @@ namespace Minsung.Boss
 
             _states[_phaseIndex].Enter();
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
-
-            SetBodyPresence(false); // 1페이즈는 분신만 등장 - 본체는 숨김
 
             BeginBattle(); // TODO: 보스 입장 연출 완성 후, 연출이 끝나는 시점 호출로 이동
             RewindManager.Instance?.Register(this);
@@ -216,19 +209,6 @@ namespace Minsung.Boss
         public void ShowBanner(string message)
         {
             _patternBanner?.Show(message, _bannerDuration);
-        }
-
-        // 본체(Boss 오브젝트) 등장 여부. 1페이즈는 분신만 싸우므로 숨기고, 2페이즈부터 본체가 등장한다
-        private void SetBodyPresence(bool present)
-        {
-            if (_bodyRenderer != null)
-            {
-                _bodyRenderer.enabled = present;
-            }
-            if (_bodyCollider != null)
-            {
-                _bodyCollider.enabled = present;
-            }
         }
 
         // 리와인드/슬로우 배율과 무관하게 실시간으로 누적한다 - "되감아도 시간은 계속 지나간다"
@@ -478,8 +458,6 @@ namespace Minsung.Boss
             _currentHealth = PhaseCeilHealth;
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
 
-            SetBodyPresence(_phaseIndex >= 1);
-
             SetAutoEmotionSuspended(false);
             SetEmotion(BossEmotion.None);
             if (_phaseIndex >= 1)
@@ -538,9 +516,7 @@ namespace Minsung.Boss
             _currentHealth = PhaseCeilHealth;
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
 
-            SetBodyPresence(true); // 1페이즈 종료 - 2페이즈부터 본체 등장
-
-            _states[_phaseIndex].Enter();
+            _states[_phaseIndex].Enter(); // 1페이즈 종료 - 2페이즈부터 Phase2State.Enter가 본체(Body)를 등장시킨다
             OnPhaseChanged?.Invoke(_phaseIndex);
             PlayAnimTrigger(Constants.Combat.BOSS_ANIM_ROAR); // 페이즈 넘어갈 시
 
