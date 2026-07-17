@@ -243,11 +243,7 @@ namespace Minsung.Sound
             }
         }
 
-        /// <summary>
-        /// 지금 재생 중인 BGM을 스냅샷으로 저장한 뒤 다른 BGM으로 교체
-        /// 라디오처럼 잠시 다른 곡을 틀었다가 StopBGMOverride(또는 자연 종료)로 원래 곡에 이어서 돌아올 때 사용
-        /// 이미 오버레이 중이면(중첩 호출) 최초 스냅샷을 덮어쓰지 않는다
-        /// </summary>
+        /// <summary> 현재 BGM을 스냅샷으로 저장한 뒤 다른 BGM으로 교체 (라디오처럼 잠시 다른 곡을 틀었다가 StopBGMOverride로 복귀할 때 사용, 중첩 호출 시 최초 스냅샷 유지) </summary>
         public void PlayBGMOverride(EBgm bgm, int clipIndex = -1, bool isLoop = true, float pitch = 1f)
         {
             if ((_pausedBgm == null) && _bgmSource.isPlaying && (_bgmSource.clip != null))
@@ -320,11 +316,7 @@ namespace Minsung.Sound
             source.Play();
         }
 
-        /// <summary>
-        /// 지속형 SFX 재생 (리와인드 루프, 레버 회전음 등)
-        /// 같은 키로 StopSFX_Duration을 호출해 수동 정지한다
-        /// identity는 같은 사운드를 여러 주체가 쓸 때 구분용 (예: GetInstanceID)
-        /// </summary>
+        /// <summary> 지속형 SFX 재생 (리와인드 루프, 레버 회전음 등). 같은 키로 StopSFX_Duration을 호출해 수동 정지하며, identity는 같은 사운드를 여러 주체가 쓸 때 구분용(예: GetInstanceID) </summary>
         public void PlaySFX_Duration(ESfxState state, int index, int identity = -1, float pitch = 1f, bool isLoop = false)
         {
             AudioClip clip = _soundDB != null ? _soundDB.GetSfxClip(state, index) : null;
@@ -354,10 +346,7 @@ namespace Minsung.Sound
         *           Pause / Resume
         ****************************************/
 
-        /// <summary>
-        /// 재생 중인 모든 SFX를 일시 정지
-        /// 스냅샷(클립/피치/볼륨/재생 위치)을 저장한 뒤 정지하므로 ResumeAllSFX로 이어서 재생 가능
-        /// </summary>
+        /// <summary> 재생 중인 모든 SFX를 스냅샷(클립/피치/볼륨/재생 위치) 저장 후 일시 정지 - ResumeAllSFX로 이어서 재생 가능 </summary>
         public void PauseAllSFX()
         {
             if (_isSfxPaused)

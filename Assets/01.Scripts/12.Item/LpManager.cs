@@ -10,8 +10,7 @@ using Minsung.TimeSystem;
 
 namespace Minsung.Item
 {
-    // LP(수집 재화) 전역 매니저 - 씬에 하나만 존재(없으면 자동 생성). RewindManager와 동일한 자동 생성 패턴.
-    // 드랍/자석 픽업/카운트를 소유하고, 개수와 풀 슬롯 상태를 모두 리와인드에 태운다.
+    // LP(수집 재화) 전역 매니저 - 씬에 하나만 존재(없으면 자동 생성, RewindManager와 동일한 패턴). 드랍/자석 픽업/카운트를 소유하고 풀 슬롯 상태를 모두 리와인드에 태운다.
     [DefaultExecutionOrder(-90)] // RewindManager(-100) 다음으로 이르게 - Register가 같은 프레임에 걸리게
     public class LpManager : MonoBehaviour, IRewindable
     {

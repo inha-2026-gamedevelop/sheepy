@@ -13,8 +13,7 @@ namespace Minsung.Player
         RewindSeal,
     }
 
-    // 플레이어에게 적용되는 지속시간형 디버프를 한 곳에서 관리한다.
-    // 상태이상 시간은 리와인드 스냅샷에 포함하지 않고 현재 게임 시간 기준으로 계속 흐른다.
+    // 플레이어에게 적용되는 지속시간형 디버프를 한 곳에서 관리 - 상태이상 시간은 리와인드 스냅샷에 포함하지 않고 현재 게임 시간 기준으로 계속 흐른다.
     public class PlayerStatusEffectController : MonoBehaviour
     {
         private PlayerController _playerController;

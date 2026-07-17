@@ -75,13 +75,13 @@ namespace Minsung.Boss
         // particleFlowAlongX: true면 파티클이 로컬 +X(가로/진행) 방향으로 지속적으로 흐른다(레이저처럼 방향성 있는 궤적용). false면 기존 임팩트 버스트(0.5초 1회)
         // prefab: 빈 게임 오브젝트 대신 미리 세팅된 프리팹(파티클 등 포함)을 기반으로 생성할 때 지정
         public BossHazardPool(int count, string namePrefix, Sprite customSprite = null, Material customMaterial = null,
-                              bool attachParticle = false, float particleSize = 0.2f, Color[] particleColors = null,
-                              bool sliceToScale = true, bool particleOnHitOnly = false, bool particleFlowAlongX = false,
-                              float particleFlowSpeed = 3f, float particleRate = 30f)
+                                bool attachParticle = false, float particleSize = 0.2f, Color[] particleColors = null,
+                                bool sliceToScale = true, bool particleOnHitOnly = false, bool particleFlowAlongX = false,
+                                float particleFlowSpeed = 3f, float particleRate = 30f)
         {
             _particleOnHitOnly = particleOnHitOnly;
             _slots = new PoolSlot[count];
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; ++i)
             {
                 GameObject go = new GameObject($"{namePrefix}_{i}");
                 go.SetActive(false); // 비활성 상태로 생성해야 ParticleSystem의 playOnAwake 자동 재생을 막을 수 있다 (재생 중 duration 변경 시 예외 발생)
@@ -165,8 +165,8 @@ namespace Minsung.Boss
 
         /// <summary> 비활성 슬롯 하나를 지정 상태로 활성화. 전부 사용 중이면 -1 </summary>
         public int Alloc(Vector2 pos, Vector2 scale, Color color, bool hasCollider,
-                         int damageHalves = Constants.Player.HALVES_PER_HEART,
-                         float stunDuration = 0f, bool instantKill = false, float rotationDeg = 0f)
+                        int damageHalves = Constants.Player.HALVES_PER_HEART,
+                        float stunDuration = 0f, bool instantKill = false, float rotationDeg = 0f)
         {
             if (_slots == null)
             {
@@ -323,7 +323,7 @@ namespace Minsung.Boss
             if (rec.Active)
             {
                 Configure(i, rec.Position, rec.Scale, rec.RotationDeg, rec.Color,
-                          rec.HasCollider, rec.DamageHalves, rec.StunDuration, rec.InstantKill);
+                        rec.HasCollider, rec.DamageHalves, rec.StunDuration, rec.InstantKill);
             }
             else
             {
@@ -333,7 +333,7 @@ namespace Minsung.Boss
 
         // 슬롯을 지정 상태로 활성화. 콜라이더/해저드는 처음 필요할 때 1회만 추가(지연 생성)
         private void Configure(int i, Vector2 pos, Vector2 scale, float rotationDeg, Color color,
-                               bool hasCollider, int damageHalves, float stunDuration, bool instantKill)
+                                bool hasCollider, int damageHalves, float stunDuration, bool instantKill)
         {
             Transform tr = _slots[i].Go.transform;
             tr.position   = pos;

@@ -55,13 +55,13 @@ namespace Minsung.Sound
                 }
             }
 
-            EditorGUI.indentLevel++;
+            ++EditorGUI.indentLevel;
             for (int i = 0; i < bgmDatas.arraySize; ++i)
             {
                 string label = (i < names.Length) ? names[i] : $"Element {i}";
                 EditorGUILayout.PropertyField(bgmDatas.GetArrayElementAtIndex(i), new GUIContent(label), true);
             }
-            EditorGUI.indentLevel--;
+            --EditorGUI.indentLevel;
         }
     }
 }

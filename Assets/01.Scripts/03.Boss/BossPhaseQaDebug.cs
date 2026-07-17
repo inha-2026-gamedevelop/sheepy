@@ -4,8 +4,7 @@ using UnityEngine;
 
 namespace Minsung.Boss
 {
-    // QA 전용 - 에디터에서 숫자 키로 보스 페이즈를 즉시 이동한다 (테스트 편의용, 빌드에는 포함되지 않음)
-    // 2 -> 2페이즈, 3 -> 3페이즈, 4 -> 4페이즈
+    // QA 전용 - 에디터에서 숫자 키(2/3/4)로 해당 페이즈로 즉시 이동한다 (테스트 편의용, 빌드 미포함)
     [AddComponentMenu("Minsung/QA/Boss Phase QA Debug")]
     public class BossPhaseQaDebug : MonoBehaviour
     {

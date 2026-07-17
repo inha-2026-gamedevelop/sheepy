@@ -82,7 +82,6 @@ namespace Minsung.Visual
             onComplete?.Invoke();
         }
 
-        // 페이드 이미지의 알파만 갱신.
         private void SetAlpha(float alpha)
         {
             Color c = _fadeColor;
@@ -92,7 +91,6 @@ namespace Minsung.Visual
 
         private void CreateFadeImage()
         {
-            // Canvas 없으면 자동 생성
             Canvas canvas = GetComponentInChildren<Canvas>();
             if (canvas == null)
             {
@@ -105,7 +103,6 @@ namespace Minsung.Visual
                 cgo.AddComponent<GraphicRaycaster>();
             }
 
-            // 전체화면 Image 생성
             GameObject igo = new GameObject("FadeImage");
             igo.transform.SetParent(canvas.transform, false);
 

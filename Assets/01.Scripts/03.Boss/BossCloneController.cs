@@ -94,10 +94,7 @@ namespace Minsung.Boss
         *                피해
         ****************************************/
 
-        /// <summary>
-        /// 분신 피격 (IDamageable). 보스 본체 총 피통과 무관한 자기 독립 피통을 깎는다.
-        /// 감정 반사 규칙만 보스와 공유한다(ReflectIfNeeded)
-        /// </summary>
+        /// <summary> 분신 피격(IDamageable) - 보스 본체 피통과 무관한 독립 피통을 깎고, 감정 반사 규칙만 보스와 공유한다 </summary>
         public override bool TakeDamage(float dmg, DamageSource source = DamageSource.Player, PlayerHealth attacker = null)
         {
             if ((!_isAlive) || (_boss == null) || (IsInvulnerable)) // IsInvulnerable = 무적 백스텝 중

@@ -71,7 +71,7 @@ namespace Minsung.Boss
             // 초기 슬롯 표시용 스프라이트만 지정하고, 낙뢰와 달리 프레임별 원본 크기를 그대로 쓰도록 Sliced 정규화는 끈다(sliceToScale: false)
             Sprite firstStrikeSprite = (_strikeSpritesCount > 0) ? _strikeSprites[0] : null;
             _wavePool = new BossHazardPool(WAVE_POOL_SIZE, "Phase2_Wave", firstStrikeSprite, null, true,
-                                           _bossSo.Phase2WaveParticleSize, _bossSo.Phase2WaveParticleColors, false);
+                                            _bossSo.Phase2WaveParticleSize, _bossSo.Phase2WaveParticleColors, false);
 
             _waveXLog   = new List<float>();
             _waveCursor = 0;
@@ -160,7 +160,9 @@ namespace Minsung.Boss
         {
             if (_waveCursor < _waveXLog.Count)
             {
-                return _waveXLog[_waveCursor++];
+                float logged = _waveXLog[_waveCursor];
+                ++_waveCursor;
+                return logged;
             }
 
             float x = Random.Range(Boss.ArenaMinX, Boss.ArenaMaxX);

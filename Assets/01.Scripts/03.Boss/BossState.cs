@@ -35,10 +35,7 @@ namespace Minsung.Boss
         // 자체 트리거 조건(예: Phase1State의 분신 전멸)을 쓰는 페이즈는 false로 오버라이드한다
         public virtual bool UsesHealthFloorTrigger => true;
 
-        /// <summary>
-        /// 페이즈 피통 하한 도달 시 진행되는 종료 기믹 (1페이즈: 즉사 레이저, 2페이즈: 컷신/씬 전환)
-        /// 코루틴이 끝나면 BossController가 다음 페이즈로 넘어간다. 기믹 중에는 리와인드가 잠긴다
-        /// </summary>
+        /// <summary> 페이즈 피통 하한 도달 시 진행되는 종료 기믹(1페이즈: 즉사 레이저, 2페이즈: 컷신/씬 전환) - 끝나면 BossController가 다음 페이즈로 전환, 그동안 리와인드 잠김 </summary>
         public virtual IEnumerator CoPhaseEndGimmick()
         {
             yield break;

@@ -9,8 +9,7 @@ using Minsung.Visual;
 
 namespace Minsung.Player
 {
-    // 플레이어 되감기 담당 - 틱 기록(RingBuffer), 되감기 재생, 종료 시 분신 소환.
-    // RewindManager에 IRewindable로 등록되어 매 물리 틱 RecordTick / 되감기 중 ApplyRewindTick을 받는다.
+    // 플레이어 되감기 담당 - 틱 기록(RingBuffer), 되감기 재생, 종료 시 분신 소환. RewindManager에 IRewindable로 등록되어 매 물리 틱 RecordTick / 되감기 중 ApplyRewindTick을 받는다.
     public class PlayerRewind : MonoBehaviour, IRewindable
     {
         /****************************************
@@ -48,8 +47,8 @@ namespace Minsung.Player
         }
 
         public void Init(PlayerController coordinator, PlayerMovement movement, PlayerCombat combat,
-                         PlayerInteraction interaction, PlayerAnimator animator, PlayerHealth health,
-                         PlayerStatusEffectController statusEffects)
+                        PlayerInteraction interaction, PlayerAnimator animator, PlayerHealth health,
+                        PlayerStatusEffectController statusEffects)
         {
             _coordinator = coordinator;
             _movement    = movement;
@@ -87,7 +86,7 @@ namespace Minsung.Player
             {
                 return;
             }
-            if ((_clonePool == null) || !_clonePool.CanSpawn()) // 분신이 최대치 → 무시
+            if ((_clonePool == null) || !_clonePool.CanSpawn()) // 분신이 최대치 -> 무시
             {
                 return;
             }
@@ -140,14 +139,14 @@ namespace Minsung.Player
         {
             if (_buffer.TryGetOrdered(orderedIndex, out TickCommand tick))
             {
-                tick.Move.Apply(_coordinator); // ICommandActor → PlayerMovement.SetPose
+                tick.Move.Apply(_coordinator); // ICommandActor -> PlayerMovement.SetPose
                 _health?.RestoreHalves(tick.Hearts);
                 _animator?.ApplyAnimState(tick.Anim); // 기록 프레임 스크럽 - 레버 포함 모든 모션이 실제 역재생된다
             }
 
             if (WasAttackedBetween(orderedIndex, _rewindPrevIndex, out AttackCommand attack))
             {
-                attack.Undo(_coordinator); // ICommandActor → PlayerCombat.PlayAttack(reversed)
+                attack.Undo(_coordinator); // ICommandActor -> PlayerCombat.PlayAttack(reversed)
             }
 
             _rewindPrevIndex = orderedIndex;

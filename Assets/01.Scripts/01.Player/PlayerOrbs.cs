@@ -149,7 +149,7 @@ namespace Minsung.Player
         // 확정된 대상 하나에 대해서만 타격 콜백을 만든다.
         // 본체와 분신이 같은 조준 규칙을 공유하도록 하기 위해 static이다.
         private static bool FindNearestTarget(Vector2 origin, float damage, DamageSource source, PlayerHealth attacker,
-                                              out Transform target, out Action onHit)
+                                                out Transform target, out Action onHit)
         {
             target = null;
             onHit  = null;
@@ -209,7 +209,6 @@ namespace Minsung.Player
         }
 
         // 프리팹이 없을 때 쓰는 기본 오브
-        // ! 프리팹 갖고오면 이건 X
         private OrbController CreateDefaultOrb(int index)
         {
             GameObject go = new GameObject($"PlayerOrb_{index}");

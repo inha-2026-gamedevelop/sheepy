@@ -11,7 +11,7 @@ namespace Minsung.TimeSystem
         ****************************************/
 
         private readonly T[] _items;
-        private int _head; // 다음에 쓸 위치
+        private int _head;
         private int _count;
 
         public int Count    => _count;

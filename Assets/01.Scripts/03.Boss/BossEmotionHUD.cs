@@ -7,9 +7,7 @@ using UnityEngine.UI;
 
 namespace Minsung.Boss
 {
-    // 보스 감정 상태를 두 곳에 표시한다
-    // - 감정 아이콘(_emotionIcon): 체력바 좌하단, 현재 감정을 항상 표시
-    // - 반사 아이콘(_reflectIcon): 보스 머리 위, 반사 감정(Black/White/Navy)일 때만 표시
+    // 보스 감정을 두 곳에 표시 - 감정 아이콘(체력바 좌하단, 항상 표시) / 반사 아이콘(머리 위, 반사 감정일 때만)
     public class BossEmotionHUD : MonoBehaviour
     {
         [Serializable]

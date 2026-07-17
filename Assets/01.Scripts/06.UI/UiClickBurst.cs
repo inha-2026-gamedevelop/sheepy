@@ -28,11 +28,7 @@ namespace Minsung.UI
         *                Methods
         ****************************************/
 
-        /// <summary>
-        /// 지정한 RectTransform(선택된 메뉴 항목)의 화면 위치에서 파티클을 흩뿌린다.
-        /// origin은 자신과 다른 부모 아래 있어도 되도록 화면 좌표를 거쳐 변환한다
-        /// (버튼의 anchoredPosition을 그대로 쓰면 서로 다른 부모 기준이라 위치가 어긋난다)
-        /// </summary>
+        /// <summary> 지정한 RectTransform의 화면 위치에서 파티클을 흩뿌린다 (화면 좌표 경유 변환으로 다른 부모 하위여도 위치가 어긋나지 않는다) </summary>
         public void Burst(RectTransform origin)
         {
             if (origin == null)

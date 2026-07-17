@@ -14,8 +14,8 @@ namespace Minsung.Common
             public const float DEFAULT_BLEND_TIME = 0.5f; // 포커스 전환 기본 블렌드 시간(초)
 
             // Lens Orthographic Size (카메라 줌 정도)
-            public const float PLAYER_ORTHOGRAPHIC_SIZE = 1.3f;   // 플레이어 카메라 줌
-            public const float FOCUS_ORTHOGRAPHIC_SIZE  = 1.0f; // 포커스 카메라 기본 줌
+            public const float PLAYER_ORTHOGRAPHIC_SIZE = 1.3f;
+            public const float FOCUS_ORTHOGRAPHIC_SIZE  = 1.0f;
             public const float BOSS_ORTHOGRAPHIC_SIZE   = 5.2f; // 보스전 줌아웃 - 아레나가 한 화면에 들어오는 값
         }
     }

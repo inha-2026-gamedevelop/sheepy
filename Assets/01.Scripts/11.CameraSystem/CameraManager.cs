@@ -68,13 +68,11 @@ namespace Minsung.CameraSystem
             SetOrthographicSize(_playerCamera, size);
         }
 
-        // 플레이어 카메라 렌즈를 기본값(PLAYER_ORTHOGRAPHIC_SIZE)으로 되돌린다
         public void ResetPlayerOrthographicSize()
         {
             SetOrthographicSize(_playerCamera, Constants.Camera.PLAYER_ORTHOGRAPHIC_SIZE);
         }
 
-        // 카메라 우선순위 설정
         private static void SetPriority(CinemachineCamera camera, int priority)
         {
             if (camera == null)
@@ -88,7 +86,6 @@ namespace Minsung.CameraSystem
             camera.Priority  = settings;
         }
 
-        // 카메라 렌즈 설정
         private static void SetOrthographicSize(CinemachineCamera camera, float size)
         {
             if (camera == null)
@@ -103,7 +100,6 @@ namespace Minsung.CameraSystem
             Debug.Log($"[{nameof(CameraManager)}] SetOrthographicSize: {camera.name} = {size}");
         }
     
-        // 카메라 블렌드 시간 설정
         private void SetBlendTime(float blendTime)
         {
             if (_brain == null)

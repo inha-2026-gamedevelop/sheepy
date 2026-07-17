@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace Minsung.Interactive
 {
-    // 레버 당김 상태에 따라 지정된 오브젝트들을 켜고 끈다 (예: 엘리베이터 LED 표시등)
-    // LeverInteractive의 onLeverPulled / onLeverReset 이벤트에 OnLeverPulled / OnLeverReset을 연결해서 사용
+    // 레버 당김 상태에 따라 지정된 오브젝트들을 켜고 끈다 (LeverInteractive의 onLeverPulled/onLeverReset에 연결해서 사용)
     [AddComponentMenu("Minsung/Lever Light Switch")]
     public class LeverLightSwitch : MonoBehaviour
     {

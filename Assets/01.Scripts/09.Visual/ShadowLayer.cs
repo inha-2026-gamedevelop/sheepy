@@ -55,14 +55,20 @@ namespace Minsung
         /// <summary> 점프 중 그림자 크기 줄이기 등 런타임 스케일 변경 </summary>
         public void SetScale(Vector2 scale)
         {
-            if (_shadowRenderer == null) return;
+            if (_shadowRenderer == null)
+            {
+                return;
+            }
             _shadowRenderer.transform.localScale = new Vector3(scale.x, scale.y, 1f);
         }
 
         /// <summary> 그림자 켜기/끄기 </summary>
         public void SetActive(bool active)
         {
-            if (_shadowRenderer != null) _shadowRenderer.enabled = active;
+            if (_shadowRenderer != null)
+            {
+                _shadowRenderer.enabled = active;
+            }
         }
     }
 }

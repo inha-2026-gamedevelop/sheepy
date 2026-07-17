@@ -18,11 +18,11 @@ namespace Minsung.Common
         *                Fields
         ****************************************/
 
-        private Vector3 _checkpointPosition; // 마지막으로 저장된 체크포인트 위치
-        private bool    _hasCheckpoint;      // 체크포인트를 한 번이라도 지났는지
+        private Vector3 _checkpointPosition;
+        private bool    _hasCheckpoint;
 
         private float _runStartTime;   // 클리어 타임 측정 시작 시각 (Time.time)
-        private bool  _runTimerActive; // 측정 진행 중 여부
+        private bool  _runTimerActive;
 
         private static string _pendingSceneName; // 로딩씬이 진입 시 소비할 다음 씬 이름
 
@@ -94,11 +94,7 @@ namespace Minsung.Common
             _hasCheckpoint       = true;
         }
 
-        /// <summary>
-        /// 사망 처리에서 호출 -> 페이드 아웃 후 체크포인트로 복귀, 페이드 인.
-        /// onRespawn은 위치 복귀 직후(화면이 어두운 시점)에 호출된다 - 체력 리셋 등 상태 복원용.
-        /// 체크포인트가 없으면 아무것도 하지 않고 false를 반환한다.
-        /// </summary>
+        /// <summary> 사망 처리 시 호출 - 페이드 아웃 후 체크포인트로 복귀, 페이드 인. onRespawn은 위치 복귀 직후(화면이 어두운 시점)에 호출된다. 체크포인트가 없으면 false 반환. </summary>
         public bool RequestCheckpointRespawn(Transform target, Action onRespawn = null)
         {
             if (!_hasCheckpoint)

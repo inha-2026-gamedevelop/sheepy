@@ -17,16 +17,16 @@ namespace Minsung.Boss
         *                Fields
         ****************************************/
 
-        private const int POOL_SIZE = 4;  // 동시 사용 최대: 안전구역 3(색별) + 레이저 1 //26 07 16 kjw
-        private const int SLOT_NONE = -1; // 풀 미할당 슬롯 표시 (BossHazardPool.Alloc 실패 반환값과 동일) //26 07 16 kjw
+        private const int POOL_SIZE = 4;  // 동시 사용 최대: 안전구역 3(색별) + 레이저 1
+        private const int SLOT_NONE = -1; // 풀 미할당 슬롯 표시 (BossHazardPool.Alloc 실패 반환값과 동일)
 
         private readonly WaitForSeconds _waitRefireDelay   = new WaitForSeconds(GameDB.Boss.GimmickRefireDelay);
-        private readonly WaitForSeconds _waitJudgeInterval = new WaitForSeconds(GameDB.Boss.GimmickJudgeInterval); //26 07 16 kjw
+        private readonly WaitForSeconds _waitJudgeInterval = new WaitForSeconds(GameDB.Boss.GimmickJudgeInterval);
 
         private BossHazardPool _pool;
         private LaserColor[] _sequence;   // 즉사 기믹 색 순서 (실전 발사 때 같은 순서 재사용)
         private float[] _safeZoneCenters; // 색(enum 인덱스)별 안전구역 중심 x
-        private int[]   _safeZoneSlots;   // 색(enum 인덱스)별 안전구역 풀 슬롯 (예고 단계에서만 할당) //26 07 16 kjw
+        private int[]   _safeZoneSlots;   // 색(enum 인덱스)별 안전구역 풀 슬롯 (예고 단계에서만 할당)
         private bool _gimmickFailed;      // 판정 실패로 보스전 재시작이 이미 트리거됐는지 - 남은 판정 스킵 + 중복 트리거 방지
 
         /****************************************
@@ -97,7 +97,7 @@ namespace Minsung.Boss
             {
                 if ((clone != null) && (clone.IsAlive))
                 {
-                    return; // 아직 생존한 분신이 있음
+                    return;
                 }
             }
             Boss.TriggerPhaseEnd();
@@ -114,12 +114,12 @@ namespace Minsung.Boss
             _gimmickFailed = false;
 
             // 1) 예고: 색별 안전구역 3개를 전부 켜둔 채 색 순서대로 발사. 안전구역은 슬로우 중에만 보인다
-            AllocAllSafeZones(); //26 07 16 kjw
+            AllocAllSafeZones();
             for (int i = 0; i < _sequence.Length; ++i)
             {
                 yield return CoTelegraphLaser(_sequence[i]);
             }
-            FreeAllSafeZones(); //26 07 16 kjw
+            FreeAllSafeZones();
 
             // 2) 5초 후 실전: 같은 순서로 재발사. 색이 맞지 않는 위치면 보스전 재시작
             yield return _waitRefireDelay;
@@ -127,7 +127,7 @@ namespace Minsung.Boss
             {
                 if (i > 0)
                 {
-                    yield return _waitJudgeInterval; // 발사 사이 이동 시간 - 즉시 판정 연발로 인한 이동 중 즉사 방지 //26 07 16 kjw
+                    yield return _waitJudgeInterval; // 발사 사이 이동 시간 - 즉시 판정 연발로 인한 이동 중 즉사 방지
                 }
                 yield return CoJudgeLaser(_sequence[i]);
                 if (_gimmickFailed)
@@ -148,16 +148,16 @@ namespace Minsung.Boss
                 _sequence[i] = (LaserColor)Random.Range(0, Constants.Combat.GIMMICK_LASER_COLOR_COUNT);
             }
 
-            BuildSafeZoneCenters(); //26 07 16 kjw
+            BuildSafeZoneCenters();
 
-            _safeZoneSlots = new int[Constants.Combat.GIMMICK_LASER_COLOR_COUNT]; //26 07 16 kjw
+            _safeZoneSlots = new int[Constants.Combat.GIMMICK_LASER_COLOR_COUNT];
             for (int i = 0; i < _safeZoneSlots.Length; ++i)
             {
-                _safeZoneSlots[i] = SLOT_NONE; //26 07 16 kjw
+                _safeZoneSlots[i] = SLOT_NONE;
             }
         }
 
-        // 색별 안전구역 중심 x를 결정한다 - 아레나 중앙 구역 기준 좌우 밀착 배치(경계 맞닿음), 색 배정만 셔플한다 //26 07 16 kjw
+        // 색별 안전구역 중심 x를 결정한다 - 아레나 중앙 구역 기준 좌우 밀착 배치(경계 맞닿음), 색 배정만 셔플한다
         private void BuildSafeZoneCenters()
         {
             int   colorCount   = Constants.Combat.GIMMICK_LASER_COLOR_COUNT;
@@ -192,7 +192,7 @@ namespace Minsung.Boss
             }
         }
 
-        // 예고 1발: 텔레그래프 대기 -> 전장 레이저 연출(판정 없음). 대기 중 매 프레임 안전구역 표시를 갱신한다 //26 07 16 kjw
+        // 예고 1발: 텔레그래프 대기 -> 전장 레이저 연출(판정 없음). 대기 중 매 프레임 안전구역 표시를 갱신한다
         private IEnumerator CoTelegraphLaser(LaserColor color)
         {
             float elapsed = 0f;
@@ -228,7 +228,7 @@ namespace Minsung.Boss
 
             int slot = _pool.Alloc(pos, scale, ColorOf(color), false);
 
-            // 예고 단계에선 레이저 연출 중에도 안전구역 표시가 끊기지 않도록 프레임 루프로 대기한다 //26 07 16 kjw
+            // 예고 단계에선 레이저 연출 중에도 안전구역 표시가 끊기지 않도록 프레임 루프로 대기한다
             // 실전 단계에선 안전구역이 미할당(SLOT_NONE)이라 표시 갱신이 무시된다
             float elapsed = 0f;
             while (elapsed < GameDB.Boss.GimmickLaserActiveTime)
@@ -242,7 +242,7 @@ namespace Minsung.Boss
             // TODO: 레이저 발사 이펙트/사운드/화면 흔들림 (Constants.Audio / ParticlePresets)
         }
 
-        // 색별 안전구역 3개를 일괄 할당. 예고 단계 시작 시 호출한다 //26 07 16 kjw
+        // 색별 안전구역 3개를 일괄 할당. 예고 단계 시작 시 호출한다
         private void AllocAllSafeZones()
         {
             for (int i = 0; i < _safeZoneSlots.Length; ++i)
@@ -251,7 +251,7 @@ namespace Minsung.Boss
             }
         }
 
-        // 예고 단계 종료 시 안전구역 일괄 반환 //26 07 16 kjw
+        // 예고 단계 종료 시 안전구역 일괄 반환
         private void FreeAllSafeZones()
         {
             for (int i = 0; i < _safeZoneSlots.Length; ++i)
@@ -261,7 +261,7 @@ namespace Minsung.Boss
             }
         }
 
-        // 슬로우 상태(IsSlow)에 따라 안전구역 렌더러를 일괄 갱신. 입력이 hold든 토글이든 상태만 따른다 //26 07 16 kjw
+        // 슬로우 상태(IsSlow)에 따라 안전구역 렌더러를 일괄 갱신. 입력이 hold든 토글이든 상태만 따른다
         private void UpdateSafeZoneVisibility()
         {
             bool visible = SlowMotionController.IsSlow;
@@ -285,7 +285,7 @@ namespace Minsung.Boss
         {
             if (Boss.Player == null)
             {
-                return true; // 플레이어 참조가 없으면 판정 생략
+                return true;
             }
             float px     = Boss.Player.transform.position.x;
             float center = _safeZoneCenters[(int)color];

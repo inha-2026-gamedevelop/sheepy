@@ -57,7 +57,7 @@ namespace Minsung.Boss
                 firstStrikeSprite = _strikeSprites[0];
             }
             _pool = new BossHazardPool(POOL_SIZE, "LightningBolt", firstStrikeSprite, null, true,
-                                       _bossSo.LightningParticleSize, _bossSo.LightningParticleColors);
+                                        _bossSo.LightningParticleSize, _bossSo.LightningParticleColors);
 
             _waitNormal    = new WaitForSeconds(_bossSo.LightningInterval);
             _waitPink      = new WaitForSeconds(_bossSo.LightningInterval / _bossSo.LightningRatePinkMult);
@@ -183,7 +183,7 @@ namespace Minsung.Boss
             Vector2 strikePos   = new Vector2(x, _boss.ArenaGroundY + (_bossSo.LightningHeight * 0.5f) - _bossSo.LightningGroundEmbed);
 
             int strikeSlot = _pool.Alloc(strikePos, strikeScale, _bossSo.LightningColor, true,
-                                         _bossSo.LightningDamageHalves, _bossSo.LightningStunDuration);
+                                        _bossSo.LightningDamageHalves, _bossSo.LightningStunDuration);
             if (strikeSlot < 0)
             {
                 yield break;

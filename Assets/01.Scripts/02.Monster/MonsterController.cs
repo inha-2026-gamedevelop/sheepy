@@ -187,7 +187,7 @@ namespace Minsung.Monster
             }
             if (_monsterAnimator != null)
             {
-                _monsterAnimator.SetReversed(true); // 모션 역재생
+                _monsterAnimator.SetReversed(true);
             }
         }
 

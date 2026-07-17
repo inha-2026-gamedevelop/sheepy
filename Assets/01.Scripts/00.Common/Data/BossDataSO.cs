@@ -45,7 +45,7 @@ namespace Minsung.Common.Data
         [SerializeField] private float _cloneAttackRange      = 1.5f;  // 근거리 공격 사거리 TODO: 밸런싱
         [SerializeField] private float _cloneAttackCooldown   = 2f;    // 근거리 공격 간격(초) TODO: 밸런싱
         [SerializeField] private float _cloneAttackActiveTime = 0.2f;  // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
-        [SerializeField] private float _cloneMoveSpeed        = 2.6f;  // 추격 이동 속도 - 플레이어 MoveSpeed(2)보다 느리게 잡아 도망 가능하게 함 // kjw 1.8 -> 2.6 수정
+        [SerializeField] private float _cloneMoveSpeed        = 2.6f;  // 추격 이동 속도 - 플레이어 MoveSpeed(2)보다 느리게 잡아 도망 가능하게 함
 
         [Header("낙뢰 (전 페이즈 공통 패턴 - 예고 후 즉발 강타, 플레이어 주변 낙하)")]
         [SerializeField] private float _lightningInterval        = 4f;    // 기본 발생 간격(초)
@@ -122,11 +122,11 @@ namespace Minsung.Common.Data
         [SerializeField] private float _phase3LaserActiveTime       = 1f;    // 레이저 지속(초)
         [SerializeField] private float _phase3LaserRetractTime      = 0.25f; // 회수 연출 시간(초) - 두께가 이 시간 동안 0으로 좁아진다
         [SerializeField] private float _phase3LaserThickness        = 0.5f;  // 레이저 두께
-        [SerializeField] private float _phase3LaserWarningThickness = 0.05f; // 경고 실선 두께 - 본 레이저보다 얇게 //26 07 17 kjw
+        [SerializeField] private float _phase3LaserWarningThickness = 0.05f; // 경고 실선 두께 - 본 레이저보다 얇게
         [SerializeField] private float _phase3LaserMaxHeight        = 6f;    // 시작/도착 지점 y 랜덤 상한(지면 기준)
 
-        [SerializeField] private Color _phase3LaserWarningColor = new Color(1f, 0.05f, 0.05f, 0.6f); // 경고 깜빡임 실선 색 - 더 빨갛게 //26 07 17 kjw
-        [SerializeField] private Color _phase3LaserColor        = new Color(0.95f, 0f, 0.02f);       // 레이저 발사색 - 더 빨갛게 //26 07 17 kjw
+        [SerializeField] private Color _phase3LaserWarningColor = new Color(1f, 0.05f, 0.05f, 0.6f); // 경고 깜빡임 실선 색 - 더 빨갛게
+        [SerializeField] private Color _phase3LaserColor        = new Color(0.95f, 0f, 0.02f);       // 레이저 발사색 - 더 빨갛게
 
         [SerializeField] private float   _phase3LaserFlowParticleSize = 0.12f; // 진행방향으로 흐르는 파티클 크기
         [SerializeField] private float   _phase3LaserFlowSpeed        = 14f;   // 파티클 흐름 속도(로컬 X, 유닛/초)

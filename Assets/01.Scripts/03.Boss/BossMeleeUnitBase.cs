@@ -11,8 +11,7 @@ using Minsung.TimeSystem;
 
 namespace Minsung.Boss
 {
-    // 보스 근접 개체 공통 몸통 - 사거리 밖이면 추격, 안이면 정지 + 쿨다운마다 공격 모션/판정을 처리한다
-    // 추가로 사거리 밖에서는 도약 슬램으로 접근하고, 사거리 안에서는 주기적으로 무적 백스텝(회피)으로 거리를 벌린다
+    // 보스 근접 개체 공통 몸통 - 사거리 밖이면 추격(도약 슬램 접근), 안이면 정지 + 쿨다운마다 공격 판정, 주기적으로 무적 백스텝(회피)
     [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
     public abstract class BossMeleeUnitBase : MonoBehaviour, IDamageable, IRewindable
     {
@@ -35,7 +34,7 @@ namespace Minsung.Boss
         private bool _isAttacking; // 공격 모션 중 이동 정지
         private bool _isJumping;   // 도약 중 - 조향 정지, 착지까지 유지
         private bool _isDodging;   // 무적 백스텝 중 - 조향 정지, 피해 무시
-        private bool _isMovementLocked; // BossMovementLockBehaviour가 Enter/Exit로 제어 // kjw
+        private bool _isMovementLocked; // BossMovementLockBehaviour가 Enter/Exit로 제어
         private Coroutine _attackLoop;
         private Coroutine _jumpLoop;
         private Coroutine _dodgeLoop;
@@ -263,10 +262,7 @@ namespace Minsung.Boss
             Vector2 v = _rb.linearVelocity;
             v.x = 0f;
 
-
-            // kjw 조건식 변경. 
-            // 변경
-            if ((!_isAttacking) && (!_isMovementLocked) && (_boss != null) && (_boss.Player != null) && 
+            if ((!_isAttacking) && (!_isMovementLocked) && (_boss != null) && (_boss.Player != null) &&
             (!_boss.IsTransitioning))
             {
                 float dx = _boss.Player.transform.position.x - transform.position.x;

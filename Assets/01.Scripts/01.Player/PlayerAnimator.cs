@@ -107,12 +107,12 @@ namespace Minsung.Player
 
         public void TriggerJump()
         {
-            SetTriggerSafe(PARAM_JUMP);        // → 1depthJump
+            SetTriggerSafe(PARAM_JUMP);        // -> 1depthJump
         }
 
         public void TriggerDoubleJump()
         {
-            SetTriggerSafe(PARAM_DOUBLE_JUMP); // → 2depthJump
+            SetTriggerSafe(PARAM_DOUBLE_JUMP); // -> 2depthJump
         }
 
         public void TriggerAttack()
@@ -172,8 +172,7 @@ namespace Minsung.Player
             _animator.Play(anim.StateHash, Constants.Player.ANIM_LAYER_BASE, anim.NormalizedTime);
         }
 
-        /// <summary> true면 스크럽 모드 - 애니메이터 자체 시간 진행을 멈춰
-        /// 스냅 사이(렌더 프레임)에 모션이 앞으로 흐르는 크리프를 막는다 </summary>
+        /// <summary> true면 스크럽 모드 - 애니메이터 자체 시간 진행을 멈춰 스냅 사이(렌더 프레임)에 모션이 앞으로 흐르는 크리프를 막는다 </summary>
         public void SetScrubbing(bool scrubbing)
         {
             _animator.speed = scrubbing ? 0f : 1f;

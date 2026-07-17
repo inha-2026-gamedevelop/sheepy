@@ -8,9 +8,7 @@ using Minsung.TimeSystem;
 
 namespace Minsung.Boss
 {
-    // 보스 본체 - 2페이즈부터 필드에 등장하는 근거리 개체
-    // BossController/BossEmotionHUD와 같은 오브젝트에 있어 gameObject.SetActive는 쓰지 않는다 -
-    // 대신 시각(Visual)/충돌/물리만 켜고 꺼서 "등장 여부"를 표현한다 (씬 배치, 비활성 상태로 시작)
+    // 보스 본체 - 2페이즈부터 등장. BossController/BossEmotionHUD와 같은 오브젝트라 SetActive 대신 시각/충돌/물리만 켜고 꺼서 등장 여부를 표현한다 (씬 배치, 비활성 시작)
     public class BossBodyController : BossMeleeUnitBase
     {
         /****************************************

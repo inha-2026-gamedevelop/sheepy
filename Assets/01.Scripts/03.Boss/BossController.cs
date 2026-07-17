@@ -195,11 +195,7 @@ namespace Minsung.Boss
             }
         }
 
-        /// <summary>
-        /// 1페이즈 즉사 기믹 실패 등 보스전을 처음부터 다시 시작해야 할 때 호출.
-        /// 지금은 현재 씬을 그대로 재로드해 보스전을 전체 리셋한다.
-        /// TODO: 특정 씬/위치로 보내는 기획이 확정되면 이 메서드 내부만 교체
-        /// </summary>
+        /// <summary> 보스전을 처음부터 다시 시작한다 (현재 씬 재로드). TODO: 특정 씬/위치 재시작은 기획 확정 후 교체 </summary>
         public void RestartBossFight()
         {
             GameManager.Instance?.LoadScene(SceneManager.GetActiveScene().name);
@@ -276,7 +272,9 @@ namespace Minsung.Boss
         {
             if (_emotionCursor < _emotionLog.Count)
             {
-                return _emotionLog[_emotionCursor++];
+                BossEmotion logged = _emotionLog[_emotionCursor];
+                ++_emotionCursor;
+                return logged;
             }
 
             BossEmotion emotion = RandomAutoEmotion();
@@ -380,15 +378,12 @@ namespace Minsung.Boss
         *                피해
         ****************************************/
 
-        /// <summary>
-        /// 보스 본체 피격 (IDamageable). 감정 반사에 걸리면 공격자가 대신 피해를 입고 false를 반환한다
-        /// (1페이즈 분신은 자기 피통을 따로 가지며 이 메서드를 거치지 않는다 - 반사 판정만 ReflectIfNeeded로 공유)
-        /// </summary>
+        /// <summary> 보스 본체 피격(IDamageable) - 감정 반사 시 공격자가 대신 피해를 입고 false 반환 (1페이즈 분신은 별도 피통이라 이 메서드를 거치지 않음) </summary>
         public bool TakeDamage(float dmg, DamageSource source = DamageSource.Player, PlayerHealth attacker = null)
         {
             if ((_transitioning) || (_healthFrozen))
             {
-                return false; // 기믹/전환 중 무적
+                return false;
             }
 
             if (ReflectIfNeeded(source, attacker))
@@ -407,10 +402,7 @@ namespace Minsung.Boss
             return true;
         }
 
-        /// <summary>
-        /// 감정 반사 판정 + 공격자 응징. 반사되면 공격자가 대신 피해를 입고 true를 반환한다.
-        /// 본체(TakeDamage)와 분신(BossCloneController)이 같은 감정 반사 규칙을 공유한다
-        /// </summary>
+        /// <summary> 감정 반사 판정 - 반사되면 공격자가 대신 피해를 입고 true 반환 (본체/분신이 규칙 공유) </summary>
         public bool ReflectIfNeeded(DamageSource source, PlayerHealth attacker)
         {
             if (!_emotion.ShouldReflect(source))
@@ -424,25 +416,19 @@ namespace Minsung.Boss
             return true;
         }
 
-        /// <summary>
-        /// 페이즈 종료 시퀀스(피통 동결 + 종료 기믹) 시작. 피통 하한 도달 시 자동 호출되거나,
-        /// 페이즈 상태가 자체 트리거 조건(예: Phase1State의 분신 전멸)을 만족했을 때 직접 호출한다
-        /// </summary>
+        /// <summary> 페이즈 종료 시퀀스(피통 동결 + 종료 기믹) 시작 - 피통 하한 도달 시 자동 호출되거나 페이즈가 자체 조건으로 직접 호출 </summary>
         public void TriggerPhaseEnd()
         {
             if ((_healthFrozen) || (_transitioning))
             {
-                return; // 이미 진행 중 - 중복 호출 방지
+                return;
             }
             _healthFrozen = true;
             StartCoroutine(CoPhaseEnd());
         }
 
 #if UNITY_EDITOR
-        /// <summary>
-        /// QA 전용 - 보스 페이즈를 기믹/전환 연출 없이 즉시 지정 인덱스로 이동시킨다.
-        /// 에디터 전용 컴포넌트(BossPhaseQaDebug)에서만 호출 - 빌드에는 포함되지 않는다
-        /// </summary>
+        /// <summary> QA 전용 - 기믹/전환 연출 없이 지정 페이즈로 즉시 이동 (BossPhaseQaDebug 전용, 빌드 미포함) </summary>
         public void QaJumpToPhase(int targetPhaseIndex)
         {
             if (_transitioning || (targetPhaseIndex == _phaseIndex)
@@ -518,7 +504,7 @@ namespace Minsung.Boss
 
             _states[_phaseIndex].Enter(); // 1페이즈 종료 - 2페이즈부터 Phase2State.Enter가 본체(Body)를 등장시킨다
             OnPhaseChanged?.Invoke(_phaseIndex);
-            PlayAnimTrigger(Constants.Combat.BOSS_ANIM_ROAR); // 페이즈 넘어갈 시
+            PlayAnimTrigger(Constants.Combat.BOSS_ANIM_ROAR);
 
             if (_phaseIndex == 2) // 3페이즈 진입
             {

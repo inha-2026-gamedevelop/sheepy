@@ -45,7 +45,10 @@ namespace Minsung
 
         private void Update()
         {
-            if (!_pulse || (_glowRenderer == null) || _isFlashing) return;
+            if (!_pulse || (_glowRenderer == null) || _isFlashing)
+            {
+                return;
+            }
 
             float alpha = _baseAlpha + Mathf.Sin(Time.time * _pulseSpeed) * _pulseAmplitude;
             Color c = _glowRenderer.color;
@@ -95,21 +98,30 @@ namespace Minsung
         public void SetGlowColor(Color color)
         {
             _glowColor = color;
-            if (_glowRenderer != null) _glowRenderer.color = color;
+            if (_glowRenderer != null)
+            {
+                _glowRenderer.color = color;
+            }
             _baseAlpha = color.a;
         }
 
         /// <summary> 글로우 켜기/끄기 </summary>
         public void SetActive(bool active)
         {
-            if (_glowRenderer != null) _glowRenderer.enabled = active;
+            if (_glowRenderer != null)
+            {
+                _glowRenderer.enabled = active;
+            }
         }
 
         /// <summary> 외부(예: 깜빡임 연출)에서 글로우 밝기를 0~1 배율로 제어. _pulse가 꺼져있을 때 사용. </summary>
         public void SetBrightness(float multiplier)
         {
             _brightnessMultiplier = Mathf.Clamp01(multiplier);
-            if (_glowRenderer == null) return;
+            if (_glowRenderer == null)
+            {
+                return;
+            }
 
             Color c = _glowColor;
             c.a = _baseAlpha * _brightnessMultiplier;

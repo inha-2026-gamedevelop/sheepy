@@ -93,10 +93,7 @@ namespace Minsung.TimeSystem
             _rewindables.Remove(rewindable);
         }
 
-        /// <summary>
-        /// 리와인드 발동 잠금/해제. 보스 페이즈 종료 기믹 중이거나
-        /// 4페이즈(타임리와인드 삭제)에서 잠근다. 기록은 계속된다.
-        /// </summary>
+        /// <summary> 리와인드 발동 잠금/해제 (보스 페이즈 종료 기믹, 4페이즈 등에서 잠금) - 기록은 계속된다 </summary>
         public void SetRewindEnabled(bool enabled)
         {
             _rewindEnabled = enabled;

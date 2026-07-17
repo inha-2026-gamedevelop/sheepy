@@ -24,8 +24,8 @@ namespace Minsung.Achievement
         [SerializeField] private float _fadeDuration = 0.3f;
         [SerializeField] private float _showDuration = 3f;
 
-        private readonly Queue<AchievementData> _queue = new Queue<AchievementData>(); // 대기 중인 토스트
-        private bool _isShowing;                 // 토스트 표시 루프 동작 중 여부
+        private readonly Queue<AchievementData> _queue = new Queue<AchievementData>();
+        private bool _isShowing;
         private AchievementManager _manager;     // 구독 해제용 캐시
         private WaitForSeconds _waitShow;        // 표시 유지 시간 캐시 (GC 방지)
 
@@ -89,7 +89,6 @@ namespace Minsung.Achievement
             _isShowing = false;
         }
 
-        // CanvasGroup 알파를 from -> to로 보간.
         private IEnumerator Fade(float from, float to)
         {
             float t = 0f;

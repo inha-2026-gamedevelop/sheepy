@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace Minsung.Visual
 {
-    // 돌진/대시/분신 역재생 시 스피드라인 연출.
-    // speedline-sheet0 스프라이트를 캐릭터에 붙여 재생.
+    // 돌진/대시/분신 역재생 시 speedline-sheet0 스프라이트를 캐릭터에 붙여 재생하는 스피드라인 연출
     [AddComponentMenu("Minsung/Speedline Effect")]
     public class SpeedlineEffect : MonoBehaviour
     {
@@ -14,7 +13,7 @@ namespace Minsung.Visual
 
         [Header("스피드라인 설정")]
         [SerializeField] private SpriteRenderer _renderer;
-        [SerializeField] private Sprite[]       _frames;            // speedline 스프라이트 배열
+        [SerializeField] private Sprite[]       _frames;
         [SerializeField] private float          _fps            = 24f;
         [SerializeField] private Color          _color          = new Color(1f, 1f, 1f, 0.6f);
         [SerializeField] private bool           _flipWithPlayer = true;
@@ -30,26 +29,34 @@ namespace Minsung.Visual
 
         private void Awake()
         {
-            if (_renderer == null) _renderer = GetComponentInChildren<SpriteRenderer>();
+            if (_renderer == null)
+            {
+                _renderer = GetComponentInChildren<SpriteRenderer>();
+            }
             Stop();
         }
 
         private void Update()
         {
-            if (!_playing || _frames == null || _frames.Length == 0) return;
+            if (!_playing || (_frames == null) || (_frames.Length == 0))
+            {
+                return;
+            }
 
             _timer += Time.deltaTime;
             if (_timer >= 1f / _fps)
             {
                 _timer = 0f;
                 ++_frameIndex;
-                if (_frameIndex >= _frames.Length) _frameIndex = 0;
+                if (_frameIndex >= _frames.Length)
+                {
+                    _frameIndex = 0;
+                }
                 _renderer.sprite = _frames[_frameIndex];
             }
 
             if (_flipWithPlayer && _playerRenderer != null)
             {
-                // 플레이어 SpriteRenderer의 flipX를 그대로 따라감 (2D 방향 전환)
                 _renderer.flipX = _playerRenderer.flipX;
             }
         }

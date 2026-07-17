@@ -77,13 +77,13 @@ namespace Minsung.Boss
 
             Material laserMat  = Resources.Load<Material>("Phase3LaserBeamMat");
             _laserPool         = new BossHazardPool(LASER_POOL_SIZE, "Phase3_Laser", customMaterial: laserMat,
-                                                     attachParticle: true,
-                                                     particleSize: GameDB.Boss.Phase3LaserFlowParticleSize,
-                                                     particleColors: GameDB.Boss.Phase3LaserFlowColors,
-                                                     particleOnHitOnly: true,
-                                                     particleFlowAlongX: true,
-                                                     particleFlowSpeed: GameDB.Boss.Phase3LaserFlowSpeed,
-                                                     particleRate: GameDB.Boss.Phase3LaserFlowRate);
+                                                    attachParticle: true,
+                                                    particleSize: GameDB.Boss.Phase3LaserFlowParticleSize,
+                                                    particleColors: GameDB.Boss.Phase3LaserFlowColors,
+                                                    particleOnHitOnly: true,
+                                                    particleFlowAlongX: true,
+                                                    particleFlowSpeed: GameDB.Boss.Phase3LaserFlowSpeed,
+                                                    particleRate: GameDB.Boss.Phase3LaserFlowRate);
             _laserRewindBuffer = new RingBuffer<Phase3Frame>(RewindManager.TickCapacity);
             _laserLog          = new List<LaserDecision>();
             _laserCursor       = 0;
@@ -192,7 +192,9 @@ namespace Minsung.Boss
         {
             if (_laserCursor < _laserLog.Count)
             {
-                return _laserLog[_laserCursor++];
+                LaserDecision logged = _laserLog[_laserCursor];
+                ++_laserCursor;
+                return logged;
             }
 
             LaserDecision d = new LaserDecision(
@@ -214,7 +216,7 @@ namespace Minsung.Boss
             float   angle  = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
             Vector2 scale  = new Vector2(delta.magnitude, GameDB.Boss.Phase3LaserThickness);
 
-            // 경고: 본 레이저보다 얇은 실선으로 깜빡임 주기마다 표시를 토글 //26 07 17 kjw
+            // 경고: 본 레이저보다 얇은 실선으로 깜빡임 주기마다 표시를 토글
             Vector2 warnScale = new Vector2(delta.magnitude, GameDB.Boss.Phase3LaserWarningThickness);
             int warnSlot = _laserPool.Alloc(center, warnScale, GameDB.Boss.Phase3LaserWarningColor, false,
                                             rotationDeg: angle);
@@ -231,7 +233,7 @@ namespace Minsung.Boss
 
             // 발사: 같은 궤적에 판정 있는 레이저 (하트 한 칸)
             int laserSlot = _laserPool.Alloc(center, scale, GameDB.Boss.Phase3LaserColor, true,
-                                             GameDB.Boss.AttackHalves, rotationDeg: angle);
+                                            GameDB.Boss.AttackHalves, rotationDeg: angle);
             Boss.Body?.PlayCastTrigger();
             yield return _waitLaserActive;
 

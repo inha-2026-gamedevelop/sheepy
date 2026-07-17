@@ -79,7 +79,8 @@ namespace Minsung.UI
                         continue;
                     }
 
-                    Image slot = _iconSlots[slotIndex++];
+                    Image slot = _iconSlots[slotIndex];
+                    ++slotIndex;
                     if (slot != null)
                     {
                         slot.sprite  = _iconMap[i].Icon;

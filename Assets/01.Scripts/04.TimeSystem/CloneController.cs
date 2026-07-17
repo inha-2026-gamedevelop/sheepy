@@ -12,8 +12,7 @@ using Minsung.Utility;
 
 namespace Minsung.TimeSystem
 {
-    // 분신. 기록된 클립을 정방향 재생하며 다 재생하면 마지막 자세로 idle된다.
-    // 하트 0이면 즉시 풀로 반환하지 않고 비활성화만 한다 - 되감기로 부활해야 하기 때문.
+    // 분신 - 기록된 클립을 정방향 재생하다 끝나면 idle. 하트 0이어도 되감기로 부활해야 해서 즉시 풀 반환하지 않고 비활성화만 한다.
     [RequireComponent(typeof(Rigidbody2D))]
     public class CloneController : MonoBehaviour, ICommandActor, IRewindable
     {
@@ -290,7 +289,7 @@ namespace Minsung.TimeSystem
             ++_index;
             if (_index >= _clip.Count)
             {
-                _finished = true; // 마지막 자세로 멈춰 idle
+                _finished = true;
             }
         }
 

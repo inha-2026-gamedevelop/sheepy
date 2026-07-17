@@ -26,7 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - 모든 제어문 중괄호 필수 (단일 라인도), Allman 스타일, 전위 증감(`++i`)
    - `[SerializeField] private` (public 필드 금지), 멤버 변수 `_camelCase`
    - 런타임 GC 최소화: WaitForSeconds/material/컴포넌트 참조 캐싱, `TryGetComponent`, NonAlloc 쿼리
-   - **TABWIDTH는 4** - 들여쓰기는 TABWIDTH(4) 단위로 맞춘다
+   - **TABWIDTH는 4** - 들여쓰기는 TABWIDTH(4) 단위로 맞춘다. 여러 줄 시그니처/호출도 여는 괄호에 맞추지 말고 시작 줄 + TABWIDTH만 추가 들여쓰기
 2. **네임스페이스 `Minsung.*`은 민성 코드 전용**. 팀원(명진/진욱) 코드는 네임스페이스 없음 — 수정 전 소유자 확인.
 3. **리와인드 버퍼 용량은 `RewindManager.TickCapacity`만 사용**. 직접 `RecordSeconds / fixedDeltaTime` 계산 금지 (참여자 간 인덱스 어긋남). 기록 길이(초) 조정은 TimeDB(`GameDB.Time.RecordSeconds`)에서만.
 4. **리와인드 참여 오브젝트 규칙**: `IRewindable` 구현 + `Register/Unregister` 쌍 호출, 랜덤 패턴은 결정 로그로 재현, 연출 오브젝트는 생성/파괴 대신 풀 활성/비활성.

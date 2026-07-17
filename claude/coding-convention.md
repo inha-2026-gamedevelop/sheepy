@@ -225,104 +225,6 @@ namespace Minsung
 }
 ```
 
-### 상속 구조가 있는 경우 — 클래스 선언 위에 상속 구조 주석 필수
-
-인벤토리 코드 방식을 따른다. 클래스 선언 바로 위에 `#region` 또는 주석 블록으로 상속 계층을 명시한다.
-
-```csharp
-// Unity
-using UnityEngine;
-
-namespace Minsung.Combat
-{
-    /*
-     * 상속 구조:
-     *
-     * MonoBehaviour
-     *   └── EnemyBase          (공통 HP, 피격, 사망)
-     *         ├── EnemyPatrol  (좌우 패트롤)
-     *         └── EnemyBoss    (페이즈 전환, 패턴 호출)
-     *               ├── BossPhase1
-     *               └── BossPhase2
-     */
-    public abstract class EnemyBase : MonoBehaviour
-    {
-        /****************************************
-        *                Fields
-        ****************************************/
-
-        protected const float BASE_HEALTH = 100f;
-
-        [Header("기본 스탯")]
-        [SerializeField] protected float _maxHealth = BASE_HEALTH;
-
-        protected float _health;
-
-        /****************************************
-        *              Unity Event
-        ****************************************/
-
-        protected virtual void Awake()
-        {
-            _health = _maxHealth;
-        }
-
-        /****************************************
-        *                Methods
-        ****************************************/
-
-        public virtual void TakeDamage(float damage)
-        {
-            _health -= damage;
-            if (_health <= 0f)
-            {
-                Die();
-            }
-        }
-
-        protected abstract void Die();
-    }
-}
-```
-
-```csharp
-// Unity
-using UnityEngine;
-
-namespace Minsung.Combat
-{
-    /*
-     * 상속 구조:
-     *
-     * EnemyBase
-     *   └── EnemyBoss  ← 현재 클래스
-     *         ├── BossPhase1
-     *         └── BossPhase2
-     */
-    public abstract class EnemyBoss : EnemyBase
-    {
-        /****************************************
-        *                Fields
-        ****************************************/
-
-        protected int _currentPhase = 0;
-
-        /****************************************
-        *                Methods
-        ****************************************/
-
-        protected abstract void TransitionPhase(int phase);
-
-        protected override void Die()
-        {
-            // 보스 사망 처리
-        }
-    }
-}
-```
-
----
-
 ## 10. 참조 타입 매개변수
 
 ```csharp
@@ -566,6 +468,31 @@ public class GameManager : PersistentSingleton<GameManager>
 
 ---
 
+## 20. 여러 줄 시그니처/호출의 들여쓰기 (TABWIDTH 4)
+
+**매개변수가 길어 줄바꿈하는 메서드 시그니처/호출은, 여는 괄호 뒤 컬럼에 맞춰 정렬하지 않는다.
+이어지는 줄은 시작 줄의 들여쓰기에서 TABWIDTH(4) 만큼만 추가로 들여쓴다.**
+
+```csharp
+// ❌ 여는 괄호 뒤에 맞춤 (TABWIDTH 배수가 아닌 임의 칸수)
+public BossHazardPool(int count, string namePrefix, Sprite customSprite = null,
+                      bool attachParticle = false, float particleSize = 0.2f)
+
+// ✅ 시작 줄 들여쓰기 + TABWIDTH(4)
+public BossHazardPool(int count, string namePrefix, Sprite customSprite = null,
+    bool attachParticle = false, float particleSize = 0.2f)
+```
+
+메서드 호출도 동일하게 적용한다.
+
+```csharp
+// ✅
+Configure(i, rec.Position, rec.Scale, rec.RotationDeg, rec.Color,
+    rec.HasCollider, rec.DamageHalves, rec.StunDuration, rec.InstantKill);
+```
+
+---
+
 ## 요약 카드 (팀원 공유용)
 
 ```
@@ -578,8 +505,8 @@ public class GameManager : PersistentSingleton<GameManager>
 ✅ 매직넘버            밸런싱은 GameDB(SO DB), 계약값은 Constants.*.cs
 ✅ SO 네이밍           클래스 *DataSO, 변수 So 어미 (_playerSo)
 ✅ 필드 정렬           = 기준 정렬
+✅ 여러 줄 시그니처    여는 괄호 정렬 금지, 시작 줄 + TABWIDTH(4)만 추가 들여쓰기
 ✅ Inspector 노출      [SerializeField] private
-✅ 상속 구조 명시      클래스 위에 계층 주석
 ✅ 네임스페이스        민성만 사용 (Minsung.XXX)
 ✅ FixedUpdate         지양, 코루틴 지향 (물리 동기화 예외)
 ✅ GC                  WaitForSeconds/material/참조 캐싱, NonAlloc 쿼리

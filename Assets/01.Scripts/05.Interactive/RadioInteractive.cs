@@ -16,7 +16,7 @@ namespace Minsung.Interactive
         ****************************************/
 
         [Header("라디오 설정")]
-        [SerializeField] private EBgm _bgm       = EBgm.Radio; // 재생할 저장된 BGM 카테고리
+        [SerializeField] private EBgm _bgm       = EBgm.Radio;
         [SerializeField] private int  _clipIndex = -1;         // 카테고리 내 클립 인덱스 (-1이면 무작위, 커스텀 인스펙터에서 드롭다운으로 선택)
         [SerializeField] private bool _isLoop    = true;       // 라디오 특성상 기본 루프 재생
 
