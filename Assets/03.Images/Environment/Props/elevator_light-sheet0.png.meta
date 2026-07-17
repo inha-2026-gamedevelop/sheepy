@@ -116,12 +116,12 @@ TextureImporter:
       name: elevator_light-sheet0_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 6
-        width: 58
-        height: 58
+        x: 1
+        y: 46
+        width: 17
+        height: 17
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: f74acf3dc2f47e74593be415d7ebffdf
     internalID: 0
     vertices: []
     indices: 

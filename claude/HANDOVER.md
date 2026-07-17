@@ -1,6 +1,30 @@
-# 인수인계 문서 (2026-07-13 갱신)
+# 인수인계 문서 (2026-07-16 갱신)
 
 > 브랜치: `develop` (`feature/boss-batch` + `feature/boss-emotion-scene-handoff` + `feature/player` 병합)
+
+## 2026-07-16 추가 - 1페이즈 즉사 기믹 겹침 방지 / 낙뢰 비주얼 전면 교체 / 2페이즈 장풍 재설계
+
+1. **1페이즈 즉사 기믹 - 안전구역 겹침 방지** (`Phase1State`, 커밋 `fc3d55c`) - 색별 안전구역 3개를 "아레나 균등 분할 + 구간 내 랜덤 배치"로 바꿔 겹침을 원천 차단(`BuildSafeZoneCenters` 신설). 색-구간 배정은 매번 셔플해 특정 색이 항상 같은 위치에 오지 않게 함. 예고 단계는 3색 동시 표시(Shift 중에만)로 개편, 실전 단계 구조/판정은 무변경.
+2. **낙뢰(LightningBolt) 비주얼 전면 교체** (`BossHazardPool`, `BossLightningPattern`, `BossDataSO`, `BossDB.asset`, 커밋 `5300c40`)
+   - 크랙클 스프라이트를 새 아틀라스(`Assets/03.Images/Boss/Boss2/zone5_boss2_fxs_ground-sheet0.png`)로 교체, 프레임 3 -> 7개(원본 순서 0~6)로 확장. `LightningFrameInterval` 0.05 -> 0.02로 줄여서 같은 `LightningActiveTime`(0.15초, 피해 판정 지속시간) 안에서 전부 순환하도록 함 - 데미지 타이밍은 불변.
+   - **아틀라스 pivot 버그**: Multiple 모드로 슬라이스된 서브스프라이트 pivot이 좌하단(0,0)으로 되어 있어, 기존 코드의 "중심 pivot" 전제 위치 계산과 어긋나 강타가 절반쯤 공중에 뜸 - 사용 프레임들의 `.meta` pivot을 (0.5, 0.5)로 수정해서 해결.
+   - **`.cs` 기본값과 `.asset` 값 불일치 함정**: SO 필드의 C# 기본값을 바꿔도 이미 직렬화된 `BossDB.asset` 값은 자동으로 안 바뀜. `_lightningHeight`를 스크립트에서 9로 바꿨는데 실제 에셋엔 11이 남아있던 걸 뒤늦게 발견 - 동기화함. **아래 주의사항 참고.**
+   - `_lightningGroundEmbed`(0.4) 신설 - pivot 수정 후에도 크랙클 아트 자체의 발광 여백(가장자리가 서서히 투명해지는 부분) 때문에 살짝 뜬 느낌이 남아, 강타 y좌표를 지면 아래로 밀어넣어 보정. 여전히 뜬 느낌이면 인스펙터에서 값만 올리면 됨.
+   - 파티클: 크기(`LightningParticleSize`=0.08), 보라 계열 4색 랜덤(`LightningParticleColors`, `Gradient` 하드스텝 + `RandomColor` 모드), 원형 렌더링(`BossHazardPool.CircleTexture()` 절차적 생성, `_squareSprite`와 동일 캐싱 패턴).
+3. **2페이즈 장풍(Phase2_Wave) - "상승 이동" -> "예고 파티클 + 폭발 강타" 구조로 재설계** (`Phase2State`, `BossHazardPool`, `BossDataSO`, `BossDB.asset`, 커밋 `920d664`)
+   - `WaveState`/`FixedTick`(상승 이동)와 `Phase2Frame`/`RingBuffer` 정밀 스냅샷을 전부 제거. 되감기 훅은 낙뢰와 동일하게 "정지+회수 -> 재시작"으로 단순화(정밀 스크럽은 포기 - 지속시간이 짧아 문제 안 됨, 코드에 TODO로 명시). 결정 로그(`_waveXLog`/`_waveCursor`)는 프로젝트 규칙(랜덤 패턴은 결정 로그로 재현)대로 유지.
+   - `CoTelegraphAndStrike` 신설: 예고(파티클만, 1초, 판정 없음) -> 강타(폭발 아틀라스 `boss2_fx_explosion-sheet0` 0~8 프레임 순환, 0.3초).
+   - 폭발 프레임 앞 5개(0~4)만 피해 판정, 뒤 4개(5~8)는 무판정 종료 연출 - `BossHazardPool.SetColliderActive(int,bool)` 신설(시각은 유지한 채 판정만 토글).
+   - `BossHazardPool`의 파티클 부착 조건을 `namePrefix == "LightningBolt"` 하드코딩에서 `bool attachParticle` 매개변수로 일반화(Lightning/Phase2 공용, 향후 다른 패턴도 재사용 가능).
+   - 판정 박스 1x2 -> 2.5x2.5로 확대(폭발 비주얼에 맞춤). `scalingMode = Shape` 특성을 이용해 예고 파티클 방출 영역이 이 스케일을 자동으로 따라가게 함(별도 계산 불필요).
+   - 폭발 아틀라스도 서브스프라이트 pivot이 (0,0)이라 사용 프레임 9개 모두 (0.5, 0.5)로 수정.
+   - 파티클은 낙뢰와 같은 보라 4색 팔레트를 쓰되 독립 필드(`Phase2WaveParticleColors`)로 분리 - 이후 따로 튜닝 가능.
+
+### 해야 할 것 (추가)
+
+- [ ] 낙뢰 `LightningGroundEmbed`(0.4) / 2페이즈 강타 판정 크기(2.5x2.5) / 무판정 경계(앞 5프레임) 등은 이번 세션에서 잡은 초기값 제안임 - 실제 플레이로 확인 후 인스펙터에서 미세조정 필요
+- [ ] `Assets/03.Images/Boss/Boss2/_back/` 폴더에 구버전 아틀라스(`zone5_boss2_fxs_ground-sheet0`, `boss2_fx_explosion-sheet0`)가 루트와 중복 존재 - 정리 필요 여부 확인
+- [ ] 1페이즈 즉사 기믹 실패 시 "즉사 대신 1페이즈로 회귀" 기획 여전히 미정 (`Phase1State.CoJudgeLaser`에 TODO만 존재, 이번 세션에서도 그대로 유지)
 
 ## 2026-07-13 추가 - 로딩/일시정지/메인메뉴/세이브 흐름 신설
 
@@ -51,6 +75,7 @@
 
 ## 주의사항
 
+- **GameDB(SO) 밸런싱 값은 `.cs`의 `[SerializeField]` 기본값이 아니라 실제 직렬화된 `.asset` 파일 값이 런타임에 쓰인다.** 코드에서 기본값을 바꿔도 이미 저장된 에셋(`BossDB.asset` 등)의 값은 자동으로 갱신되지 않는다 - 인스펙터(또는 `.asset` YAML)에서 직접 바꿔야 실제로 반영됨. 2026-07-16 세션에서 `_lightningHeight`를 스크립트에서만 바꾸고 에셋은 안 바뀌어 있어 혼란을 겪은 실제 사례 있음 - 밸런싱 값 변경 후에는 항상 에셋 쪽 값도 같이 확인할 것.
 - **Boss 씬(`Boss.unity`)의 Player 태그가 `Untagged`로 되어 있던 기존 버그를 `Player`로 수정함.** `Constants.Tag.PLAYER` 태그 검색에 의존하는 코드(`MonsterController`, `LpManager` 등)가 이 씬에서 정상 동작하려면 필요한 수정이었음. 다른 씬(맵 3종 제작 시)도 Player 프리팹 배치 시 태그 확인할 것.
 - **Boss 씬에서 리와인드(`PlayerRewind.OnRewindStart/OnRewindEnd` → `PlayerAnimator.SetReversed`)가 발동하면 콘솔에 `Parameter 'Hash -1564865577' does not exist` 에러가 반복 출력됨.** 이 씬의 Player Animator Controller에 리와인드 역재생용 파라미터가 없거나 다른 것으로 추정되는 기존 이슈 (발견만 하고 미수정 - Animator Controller 담당자 확인 필요).
 - **Unity 에디터가 포커스를 잃은 상태(백그라운드)에서는 MCP로 Play 모드를 구동해도 물리 틱(FixedUpdate)이 실시간으로 진행되지 않는 것으로 관찰됨.** 자동화 테스트에서 `sleep` 후 상태 확인하는 방식이 신뢰할 수 없었음 - 프레임 진행이 필요한 검증은 `IRewindable` 메서드를 리플렉션으로 직접 호출하는 결정론적 방식을 쓰거나, 에디터에 포커스를 준 상태에서 확인할 것.

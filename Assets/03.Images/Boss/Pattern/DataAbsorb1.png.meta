@@ -1,0 +1,1469 @@
+fileFormatVersion: 2
+guid: ff00b97f4b5118a41a1df5465ddbd58e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2773906553374433202
+    second: DataAbsorb1_0
+  - first:
+      213: 2915407471595862276
+    second: DataAbsorb1_1
+  - first:
+      213: 3407119761979963371
+    second: DataAbsorb1_2
+  - first:
+      213: -4101559225259017701
+    second: DataAbsorb1_3
+  - first:
+      213: -3645849024385671898
+    second: DataAbsorb1_4
+  - first:
+      213: 4205700521225147073
+    second: DataAbsorb1_5
+  - first:
+      213: 2725436502750646486
+    second: DataAbsorb1_6
+  - first:
+      213: -8111118786775434715
+    second: DataAbsorb1_7
+  - first:
+      213: 2386325801857395387
+    second: DataAbsorb1_8
+  - first:
+      213: -7504482275270264648
+    second: DataAbsorb1_9
+  - first:
+      213: 7537858430891990618
+    second: DataAbsorb1_10
+  - first:
+      213: 4489390713470294871
+    second: DataAbsorb1_11
+  - first:
+      213: -8262408890444699595
+    second: DataAbsorb1_12
+  - first:
+      213: 5959491915778116607
+    second: DataAbsorb1_13
+  - first:
+      213: -4622232397337135321
+    second: DataAbsorb1_14
+  - first:
+      213: -5535836148390310373
+    second: DataAbsorb1_15
+  - first:
+      213: -7990667724536096692
+    second: DataAbsorb1_16
+  - first:
+      213: -6144670993559197277
+    second: DataAbsorb1_17
+  - first:
+      213: 4242347075427853093
+    second: DataAbsorb1_18
+  - first:
+      213: -5809736797390215065
+    second: DataAbsorb1_19
+  - first:
+      213: -3057591279313772538
+    second: DataAbsorb1_20
+  - first:
+      213: 932502602428812168
+    second: DataAbsorb1_21
+  - first:
+      213: 7552577800606952858
+    second: DataAbsorb1_22
+  - first:
+      213: 2855092397447579636
+    second: DataAbsorb1_23
+  - first:
+      213: -2593623103301358068
+    second: DataAbsorb1_24
+  - first:
+      213: 2238267969624162204
+    second: DataAbsorb1_25
+  - first:
+      213: -4077211501129198791
+    second: DataAbsorb1_26
+  - first:
+      213: 567882490932815675
+    second: DataAbsorb1_27
+  - first:
+      213: -6784016475833183526
+    second: DataAbsorb1_28
+  - first:
+      213: 2570709546153220259
+    second: DataAbsorb1_29
+  - first:
+      213: 574530705059340980
+    second: DataAbsorb1_30
+  - first:
+      213: 403128691518743626
+    second: DataAbsorb1_31
+  - first:
+      213: 4532958586256936782
+    second: DataAbsorb1_32
+  - first:
+      213: -853873323183626631
+    second: DataAbsorb1_33
+  - first:
+      213: -8318654706011424679
+    second: DataAbsorb1_34
+  - first:
+      213: -177406499760689077
+    second: DataAbsorb1_35
+  - first:
+      213: 7240392680012106527
+    second: DataAbsorb1_36
+  - first:
+      213: 2472424603171880720
+    second: DataAbsorb1_37
+  - first:
+      213: -8601028560827904673
+    second: DataAbsorb1_38
+  - first:
+      213: 1691172188865335875
+    second: DataAbsorb1_39
+  - first:
+      213: -8163684401995911648
+    second: DataAbsorb1_40
+  - first:
+      213: 207771591770914275
+    second: DataAbsorb1_41
+  - first:
+      213: -1811664717731590782
+    second: DataAbsorb1_42
+  - first:
+      213: -165111796969504072
+    second: DataAbsorb1_43
+  - first:
+      213: 8033058524355185425
+    second: DataAbsorb1_44
+  - first:
+      213: -6969892003110705927
+    second: DataAbsorb1_45
+  - first:
+      213: 2377709047740410660
+    second: DataAbsorb1_46
+  - first:
+      213: 4973119601099109143
+    second: DataAbsorb1_47
+  - first:
+      213: -4056697561093074597
+    second: DataAbsorb1_48
+  - first:
+      213: 2390735774158211612
+    second: DataAbsorb1_49
+  - first:
+      213: 7610432729515629823
+    second: DataAbsorb1_50
+  - first:
+      213: -8607022051088893655
+    second: DataAbsorb1_51
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: DataAbsorb1_0
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 42
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bfd2024055ee7620800000000000000
+      internalID: 2773906553374433202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_1
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 46
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 409bdff16ab957820800000000000000
+      internalID: 2915407471595862276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_2
+      rect:
+        serializedVersion: 2
+        x: 74
+        y: 48
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be777003f55884f20800000000000000
+      internalID: 3407119761979963371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_3
+      rect:
+        serializedVersion: 2
+        x: 87
+        y: 41
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1ab5399d955417c0800000000000000
+      internalID: -4101559225259017701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_4
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 26
+        width: 17
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62d99ccf0a7576dc0800000000000000
+      internalID: -3645849024385671898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_5
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 54
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c2dc4f5756ad5a30800000000000000
+      internalID: 4205700521225147073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_6
+      rect:
+        serializedVersion: 2
+        x: 238
+        y: 51
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d0d55c2f02b2d520800000000000000
+      internalID: 2725436502750646486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_7
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 49
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52ab04f10748f6f80800000000000000
+      internalID: -8111118786775434715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_8
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 44
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bba2f0a6caeed1120800000000000000
+      internalID: 2386325801857395387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_9
+      rect:
+        serializedVersion: 2
+        x: 344
+        y: 44
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b8fc4f8129bad790800000000000000
+      internalID: -7504482275270264648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_10
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 46
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5e108c3e4adb9860800000000000000
+      internalID: 7537858430891990618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_11
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 34
+        width: 24
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75b955e61158d4e30800000000000000
+      internalID: 4489390713470294871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_12
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 43
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 538a308e3e6065d80800000000000000
+      internalID: -8262408890444699595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_13
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 30
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffb44c9925e54b250800000000000000
+      internalID: 5959491915778116607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_14
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 33
+        width: 18
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 727fa6fcf188adfb0800000000000000
+      internalID: -4622232397337135321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_15
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 40
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1ecd686a52cc23b0800000000000000
+      internalID: -5535836148390310373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_16
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 28
+        width: 17
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c48d8d87a027b1190800000000000000
+      internalID: -7990667724536096692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_17
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 38
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a9e147894eb9baa0800000000000000
+      internalID: -6144670993559197277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_18
+      rect:
+        serializedVersion: 2
+        x: 153
+        y: 35
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5236bcc2038dfda30800000000000000
+      internalID: 4242347075427853093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_19
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 35
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7686a010a2baf5fa0800000000000000
+      internalID: -5809736797390215065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_20
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 24
+        width: 16
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 600ab286ee04195d0800000000000000
+      internalID: -3057591279313772538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_21
+      rect:
+        serializedVersion: 2
+        x: 231
+        y: 32
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88b85e12d2ae0fc00800000000000000
+      internalID: 932502602428812168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_22
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 33
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9dadaf8e7520d860800000000000000
+      internalID: 7552577800606952858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_23
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 30
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f708c698635f9720800000000000000
+      internalID: 2855092397447579636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_24
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 40
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0ee9767789910cd0800000000000000
+      internalID: -2593623103301358068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_25
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 32
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9f35990cdcef0f10800000000000000
+      internalID: 2238267969624162204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_26
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 4
+        width: 28
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9339e01edb5da67c0800000000000000
+      internalID: -4077211501129198791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_27
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 22
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b37e632ed1681e700800000000000000
+      internalID: 567882490932815675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_28
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 11
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad2d09f55f45ad1a0800000000000000
+      internalID: -6784016475833183526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_29
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 21
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a81b2746befca320800000000000000
+      internalID: 2570709546153220259
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_30
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 16
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b2ed9bd1a429f700800000000000000
+      internalID: 574530705059340980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_31
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 11
+        width: 26
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a442eb8b863389500800000000000000
+      internalID: 403128691518743626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_32
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 19
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4fc66b41dd48ee30800000000000000
+      internalID: 4532958586256936782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_33
+      rect:
+        serializedVersion: 2
+        x: 222
+        y: 14
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97625709cbe6624f0800000000000000
+      internalID: -853873323183626631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_34
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 19
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 958be077e933e8c80800000000000000
+      internalID: -8318654706011424679
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_35
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 10
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b403be87ab9b98df0800000000000000
+      internalID: -177406499760689077
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_36
+      rect:
+        serializedVersion: 2
+        x: 322
+        y: 18
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f1bc57ef7ca0b7460800000000000000
+      internalID: 7240392680012106527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_37
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 14
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01ffefdb311df4220800000000000000
+      internalID: 2472424603171880720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_38
+      rect:
+        serializedVersion: 2
+        x: 392
+        y: 7
+        width: 24
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5d0dd8181203a880800000000000000
+      internalID: -8601028560827904673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_39
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 0
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34296534520487710800000000000000
+      internalID: 1691172188865335875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_40
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 4
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02ee2a81a44c4be80800000000000000
+      internalID: -8163684401995911648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_41
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 7
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ed3ce1792722e200800000000000000
+      internalID: 207771591770914275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_42
+      rect:
+        serializedVersion: 2
+        x: 106
+        y: 6
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28d008fa98cabd6e0800000000000000
+      internalID: -1811664717731590782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_43
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 3
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b2086902b765bdf0800000000000000
+      internalID: -165111796969504072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_44
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 2
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11b4d1cba282b7f60800000000000000
+      internalID: 8033058524355185425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_45
+      rect:
+        serializedVersion: 2
+        x: 229
+        y: 4
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f420c7b628f54f90800000000000000
+      internalID: -6969892003110705927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_46
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 4
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42bacc108c15ff020800000000000000
+      internalID: 2377709047740410660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_47
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 0
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7137b01bde1140540800000000000000
+      internalID: 4973119601099109143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_48
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 1
+        width: 16
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b519addbf07b3b7c0800000000000000
+      internalID: -4056697561093074597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_49
+      rect:
+        serializedVersion: 2
+        x: 338
+        y: 1
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1ac48a15899d2120800000000000000
+      internalID: 2390735774158211612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_50
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 3
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffc19c5ee30bd9960800000000000000
+      internalID: 7610432729515629823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DataAbsorb1_51
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 0
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92974e6eb07bd8880800000000000000
+      internalID: -8607022051088893655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      DataAbsorb1_0: 2773906553374433202
+      DataAbsorb1_1: 2915407471595862276
+      DataAbsorb1_10: 7537858430891990618
+      DataAbsorb1_11: 4489390713470294871
+      DataAbsorb1_12: -8262408890444699595
+      DataAbsorb1_13: 5959491915778116607
+      DataAbsorb1_14: -4622232397337135321
+      DataAbsorb1_15: -5535836148390310373
+      DataAbsorb1_16: -7990667724536096692
+      DataAbsorb1_17: -6144670993559197277
+      DataAbsorb1_18: 4242347075427853093
+      DataAbsorb1_19: -5809736797390215065
+      DataAbsorb1_2: 3407119761979963371
+      DataAbsorb1_20: -3057591279313772538
+      DataAbsorb1_21: 932502602428812168
+      DataAbsorb1_22: 7552577800606952858
+      DataAbsorb1_23: 2855092397447579636
+      DataAbsorb1_24: -2593623103301358068
+      DataAbsorb1_25: 2238267969624162204
+      DataAbsorb1_26: -4077211501129198791
+      DataAbsorb1_27: 567882490932815675
+      DataAbsorb1_28: -6784016475833183526
+      DataAbsorb1_29: 2570709546153220259
+      DataAbsorb1_3: -4101559225259017701
+      DataAbsorb1_30: 574530705059340980
+      DataAbsorb1_31: 403128691518743626
+      DataAbsorb1_32: 4532958586256936782
+      DataAbsorb1_33: -853873323183626631
+      DataAbsorb1_34: -8318654706011424679
+      DataAbsorb1_35: -177406499760689077
+      DataAbsorb1_36: 7240392680012106527
+      DataAbsorb1_37: 2472424603171880720
+      DataAbsorb1_38: -8601028560827904673
+      DataAbsorb1_39: 1691172188865335875
+      DataAbsorb1_4: -3645849024385671898
+      DataAbsorb1_40: -8163684401995911648
+      DataAbsorb1_41: 207771591770914275
+      DataAbsorb1_42: -1811664717731590782
+      DataAbsorb1_43: -165111796969504072
+      DataAbsorb1_44: 8033058524355185425
+      DataAbsorb1_45: -6969892003110705927
+      DataAbsorb1_46: 2377709047740410660
+      DataAbsorb1_47: 4973119601099109143
+      DataAbsorb1_48: -4056697561093074597
+      DataAbsorb1_49: 2390735774158211612
+      DataAbsorb1_5: 4205700521225147073
+      DataAbsorb1_50: 7610432729515629823
+      DataAbsorb1_51: -8607022051088893655
+      DataAbsorb1_6: 2725436502750646486
+      DataAbsorb1_7: -8111118786775434715
+      DataAbsorb1_8: 2386325801857395387
+      DataAbsorb1_9: -7504482275270264648
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 // Unity
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 using Minsung.Achievement;
 using Minsung.CameraSystem;
@@ -23,12 +24,12 @@ namespace Minsung.Boss
         *             Inner Types
         ****************************************/
 
-        // 한 틱의 보스 기록. 페이즈/기믹 진행은 되돌리지 않고 피통 + 감정(반사/낙뢰 배율에 영향)을 되돌린다
+        // 한 틱의 보스 기록. 페이즈/기믹 진행은 되돌리지 않고 피통/감정만 되돌린다
         private struct BossFrame
         {
-            public float       Health;
+            public float Health;
             public BossEmotion Emotion;
-            public int         EmotionCursor; // 결정 로그 커서 - 되감기 후 같은 감정 순서 재현
+            public int EmotionCursor; // 자동 전환 결정 로그 커서 - 되감기 후 같은 순서로 이어가기 위함
         }
 
         /****************************************
@@ -52,11 +53,6 @@ namespace Minsung.Boss
         [SerializeField] private float _arenaMaxX = 10f;
         [SerializeField] private float _arenaGroundY = 0f;
 
-        [Header("페이즈 씬 전환")]
-        // 2->3페이즈 종료 시 로드할 맵 씬. TODO: 3페이즈 전용 맵 씬 확정 후 교체
-        // (임시: Boss 씬 자기 재로드로 상태 이관 검증 - 빈 값이면 씬 전환 없이 페이드만)
-        [SerializeField] private string _phase3SceneName = "Boss";
-
         private BossState[] _states;       // 페이즈별 상태 객체 (인덱스 = 페이즈)
         private int _phaseIndex;           // 현재 페이즈 인덱스 (0부터)
         private float _currentHealth;      // 총 피통(64,000)에서 시작하는 단일 값
@@ -70,25 +66,17 @@ namespace Minsung.Boss
         private bool _timeOverKilled;      // 제한시간 즉사 1회 처리 플래그
 
         private PlayerHealth _playerHealth;          // 즉사/반사 대상 (본체)
-        private SpriteRenderer _bodyRenderer;        // 본체(Boss 오브젝트) 스프라이트 - 1페이즈엔 숨김(분신만 등장)
-        private Collider2D _bodyCollider;            // 본체 피격 콜라이더 - 1페이즈엔 비활성(분신만 피격)
         private readonly List<IBossPattern> _patterns = new List<IBossPattern>(); // 전 페이즈 공통 패턴 (낙뢰 등)
         private Coroutine _confusionRoutine;         // 화남 감정 혼란(키반전) 루프
         private WaitForSeconds _waitConfusionInterval;
         private WaitForSeconds _waitConfusionDuration;
-        private RingBuffer<BossFrame> _rewindBuffer; // 피통 리와인드 기록
+        private RingBuffer<BossFrame> _rewindBuffer; // 피통/감정 리와인드 기록
 
-        private Coroutine _emotionRoutine;           // 감정 자동 전환 루프
+        private Coroutine _emotionLoop;              // 2페이즈부터 도는 자동 감정 전환 루프
+        private bool _autoEmotionSuspended;           // 3페이즈 화남 고정 등 - true면 주기가 와도 전환하지 않는다
         private WaitForSeconds _waitEmotionInterval;
-        private bool _emotionAutoSuspended;          // 페이즈 상태가 감정을 고정할 때(3페이즈 화남) 자동 전환 정지
-        private readonly List<BossEmotion> _emotionLog = new List<BossEmotion>(); // 결정 로그 - 되감기 재현용
+        private readonly List<BossEmotion> _emotionLog = new List<BossEmotion>(); // 결정 로그 - 되감기 후 동일 순서 재현
         private int _emotionCursor;
-
-        // 자동 전환 후보 (기본/화남 제외 - 화남은 3페이즈 전용 고정)
-        private static readonly BossEmotion[] EMOTION_CANDIDATES =
-        {
-            BossEmotion.Black, BossEmotion.White, BossEmotion.Navy, BossEmotion.Pink, BossEmotion.Blue,
-        };
 
         public PlayerController Player => _player;              // 페이즈 패턴이 플레이어를 조준할 때 사용
         public BossCloneController[] Phase1Clones => _phase1Clones;
@@ -102,7 +90,6 @@ namespace Minsung.Boss
         public float ArenaMinX => _arenaMinX;
         public float ArenaMaxX => _arenaMaxX;
         public float ArenaGroundY => _arenaGroundY;
-        public string Phase3SceneName => _phase3SceneName; // Phase2State가 종료 기믹에서 참조
 
         // 현재 페이즈의 피통 경계. 하한에 닿으면 동결 + 종료 기믹
         private float PhaseFloorHealth => GameDB.Boss.TotalHealth - (GameDB.Boss.PhaseHealth * (_phaseIndex + 1));
@@ -129,15 +116,14 @@ namespace Minsung.Boss
 
             _waitConfusionInterval = new WaitForSeconds(GameDB.Boss.ConfusionInterval);
             _waitConfusionDuration = new WaitForSeconds(GameDB.Boss.ConfusionDuration);
-
-            TryGetComponent(out _bodyRenderer);
-            TryGetComponent(out _bodyCollider);
             _waitEmotionInterval   = new WaitForSeconds(GameDB.Boss.EmotionInterval);
         }
 
         private void Start()
         {
-            _rewindBuffer = new RingBuffer<BossFrame>(RewindManager.TickCapacity);
+            _phaseIndex    = 0;
+            _currentHealth = GameDB.Boss.TotalHealth;
+            _rewindBuffer  = new RingBuffer<BossFrame>(RewindManager.TickCapacity);
 
             if (_player != null)
             {
@@ -146,31 +132,10 @@ namespace Minsung.Boss
 
             RegisterPattern(new BossLightningPattern(this));
 
-            // 씬 변경(2->3페이즈)으로 넘어온 상태가 있으면 복원, 없으면 처음부터 시작
-            float startElapsed = 0f;
-            if (BossHandoff.HasPending)
-            {
-                _phaseIndex    = BossHandoff.PhaseIndex;
-                _currentHealth = BossHandoff.Health;
-                _emotion       = BossHandoff.Emotion;
-                startElapsed   = BossHandoff.BattleElapsed;
-                BossHandoff.Consume();
-            }
-            else
-            {
-                _phaseIndex    = 0;
-                _currentHealth = GameDB.Boss.TotalHealth;
-            }
-
             _states[_phaseIndex].Enter();
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
-            OnEmotionChanged?.Invoke(_emotion); // 복원/기본 감정으로 HUD 동기화 (Enter가 감정을 고정했으면 그 값)
 
-            SetBodyPresence(false); // 1페이즈는 분신만 등장 - 본체는 숨김
-
-            _emotionRoutine = StartCoroutine(CoEmotionLoop());
-
-            BeginBattle(startElapsed); // TODO: 보스 입장 연출 완성 후, 연출이 끝나는 시점 호출로 이동
+            BeginBattle(); // TODO: 보스 입장 연출 완성 후, 연출이 끝나는 시점 호출로 이동
             RewindManager.Instance?.Register(this);
         }
 
@@ -206,18 +171,12 @@ namespace Minsung.Boss
         *            전투 타이머
         ****************************************/
 
-        /// <summary> 보스전 타이머 시작 + 카메라 줌아웃(아레나 전체가 보이도록). 입장 연출이 끝나는 시점에 호출한다. 씬 이관 복원 시 경과값을 이어받는다 </summary>
-        public void BeginBattle(float startElapsed = 0f)
+        /// <summary> 보스전 타이머 시작 + 카메라 줌아웃(아레나 전체가 보이도록). 입장 연출이 끝나는 시점에 호출한다 </summary>
+        public void BeginBattle()
         {
             _battleStarted = true;
-            _battleElapsed = startElapsed;
+            _battleElapsed = 0f;
             CameraManager.Instance?.SetPlayerZoom(Constants.Camera.BOSS_ORTHOGRAPHIC_SIZE);
-        }
-
-        /// <summary> 다음 페이즈 상태를 씬 이관 캐리어에 저장 (Phase2State 종료 기믹에서 씬 전환 직전 호출) </summary>
-        public void SaveHandoffToNextPhase()
-        {
-            BossHandoff.Save(_currentHealth, _phaseIndex + 1, _battleElapsed, _emotion);
         }
 
         /// <summary> 공통 패턴 등록 + 즉시 가동. 정지/파괴/리와인드 훅은 BossController가 일괄 관리한다 </summary>
@@ -227,7 +186,7 @@ namespace Minsung.Boss
             pattern.Play();
         }
 
-        /// <summary> 플레이어 즉사 (즉사 기믹 실패 / 제한시간 초과) </summary>
+        /// <summary> 플레이어 즉사 (제한시간 초과 등 - 그 자리 체크포인트 리스폰) </summary>
         public void KillPlayer()
         {
             if (_playerHealth != null)
@@ -236,23 +195,20 @@ namespace Minsung.Boss
             }
         }
 
+        /// <summary>
+        /// 1페이즈 즉사 기믹 실패 등 보스전을 처음부터 다시 시작해야 할 때 호출.
+        /// 지금은 현재 씬을 그대로 재로드해 보스전을 전체 리셋한다.
+        /// TODO: 특정 씬/위치로 보내는 기획이 확정되면 이 메서드 내부만 교체
+        /// </summary>
+        public void RestartBossFight()
+        {
+            GameManager.Instance?.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
         /// <summary> 화면 중앙 패턴 경고 배너 표시. 특정 패턴을 시작하는 상태/코루틴이 호출한다 (배너 미연결 시 무시) </summary>
         public void ShowBanner(string message)
         {
             _patternBanner?.Show(message, _bannerDuration);
-        }
-
-        // 본체(Boss 오브젝트) 등장 여부. 1페이즈는 분신만 싸우므로 숨기고, 2페이즈부터 본체가 등장한다
-        private void SetBodyPresence(bool present)
-        {
-            if (_bodyRenderer != null)
-            {
-                _bodyRenderer.enabled = present;
-            }
-            if (_bodyCollider != null)
-            {
-                _bodyCollider.enabled = present;
-            }
         }
 
         // 리와인드/슬로우 배율과 무관하게 실시간으로 누적한다 - "되감아도 시간은 계속 지나간다"
@@ -275,8 +231,67 @@ namespace Minsung.Boss
         *                감정
         ****************************************/
 
+        /// <summary>
+        /// 자동 감정 전환 루프 시작 (2페이즈 진입 시 CoPhaseEnd가 1회 호출). 이미 돌고 있으면 무시
+        /// </summary>
+        private void StartEmotionLoop()
+        {
+            if (_emotionLoop == null)
+            {
+                _emotionLoop = StartCoroutine(CoEmotionLoop());
+            }
+        }
+
+        private void StopEmotionLoop()
+        {
+            if (_emotionLoop != null)
+            {
+                StopCoroutine(_emotionLoop);
+                _emotionLoop = null;
+            }
+        }
+
+        /// <summary> 자동 감정 전환을 일시 정지/재개한다. 3페이즈처럼 감정을 고정해야 할 때 사용 </summary>
+        public void SetAutoEmotionSuspended(bool suspended)
+        {
+            _autoEmotionSuspended = suspended;
+        }
+
+        // EmotionInterval마다 Black/White/Navy/Pink/Blue 중 하나로 랜덤 전환. 전환/기믹 중에는 건너뛴다
+        private IEnumerator CoEmotionLoop()
+        {
+            while (true)
+            {
+                yield return _waitEmotionInterval;
+                if (_transitioning || _autoEmotionSuspended)
+                {
+                    continue;
+                }
+                SetEmotion(GetOrMakeAutoEmotion());
+            }
+        }
+
+        // 이미 만들어진 결정이 있으면 재사용(리와인드 후 재현), 없으면 새로 만들어 로그에 추가
+        private BossEmotion GetOrMakeAutoEmotion()
+        {
+            if (_emotionCursor < _emotionLog.Count)
+            {
+                return _emotionLog[_emotionCursor++];
+            }
+
+            BossEmotion emotion = RandomAutoEmotion();
+            _emotionLog.Add(emotion);
+            ++_emotionCursor;
+            return emotion;
+        }
+
+        // BossEmotion 순서상 Black(1)~Blue(5)만 자동 전환 후보 - None(기본)/Angry(3페이즈 전용)는 제외
+        private static BossEmotion RandomAutoEmotion()
+        {
+            return (BossEmotion)UnityEngine.Random.Range(1, (int)BossEmotion.Angry);
+        }
+
         /// <summary> 감정 상태 변경. 반사/낙뢰 비율/혼란(화남) 변조가 즉시 적용된다 </summary>
-        /// TODO: 감정 전환 주기/랜덤 규칙은 기획 확정 후 구동부 추가 (현재는 페이즈 상태가 직접 호출)
         public void SetEmotion(BossEmotion emotion)
         {
             if (_emotion == emotion)
@@ -361,55 +376,6 @@ namespace Minsung.Boss
             _heartPickup.gameObject.SetActive(true);
         }
 
-        /// <summary> 페이즈 상태가 감정을 고정할 때(3페이즈 화남) 자동 랜덤 전환을 정지/재개한다 </summary>
-        public void SetAutoEmotionSuspended(bool suspended)
-        {
-            _emotionAutoSuspended = suspended;
-        }
-
-        // 감정 자동 전환 루프. 전환/되감기/고정(3페이즈) 중에는 건너뛴다
-        private IEnumerator CoEmotionLoop()
-        {
-            while (true)
-            {
-                yield return _waitEmotionInterval;
-                if ((_transitioning) || (_isGlobalRewinding) || (_emotionAutoSuspended))
-                {
-                    continue;
-                }
-                SetEmotion(NextEmotion());
-            }
-        }
-
-        // 결정 로그에 남은 감정이 있으면 재사용(되감기 후 재현), 없으면 새 랜덤을 만들어 로그에 추가
-        private BossEmotion NextEmotion()
-        {
-            BossEmotion emotion;
-            if (_emotionCursor < _emotionLog.Count)
-            {
-                emotion = _emotionLog[_emotionCursor];
-            }
-            else
-            {
-                emotion = EMOTION_CANDIDATES[UnityEngine.Random.Range(0, EMOTION_CANDIDATES.Length)];
-                _emotionLog.Add(emotion);
-            }
-            ++_emotionCursor;
-            return emotion;
-        }
-
-        // 되감기 스크럽/종료 시 감정 값만 복원한다 - 반사/낙뢰 배율/HUD에 필요.
-        // 혼란(키반전)/하트 픽업 같은 부수효과는 상태이상/픽업이 자체 수명으로 흐르므로 여기서 재발동하지 않는다
-        private void RestoreEmotionState(BossEmotion emotion)
-        {
-            if (_emotion == emotion)
-            {
-                return;
-            }
-            _emotion = emotion;
-            OnEmotionChanged?.Invoke(emotion);
-        }
-
         /****************************************
         *                피해
         ****************************************/
@@ -472,6 +438,42 @@ namespace Minsung.Boss
             StartCoroutine(CoPhaseEnd());
         }
 
+#if UNITY_EDITOR
+        /// <summary>
+        /// QA 전용 - 보스 페이즈를 기믹/전환 연출 없이 즉시 지정 인덱스로 이동시킨다.
+        /// 에디터 전용 컴포넌트(BossPhaseQaDebug)에서만 호출 - 빌드에는 포함되지 않는다
+        /// </summary>
+        public void QaJumpToPhase(int targetPhaseIndex)
+        {
+            if (_transitioning || (targetPhaseIndex == _phaseIndex)
+                || (targetPhaseIndex < 0) || (targetPhaseIndex >= _states.Length))
+            {
+                return;
+            }
+
+            _states[_phaseIndex].Exit();
+
+            _phaseIndex    = targetPhaseIndex;
+            _healthFrozen  = false;
+            _currentHealth = PhaseCeilHealth;
+            OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
+
+            SetAutoEmotionSuspended(false);
+            SetEmotion(BossEmotion.None);
+            if (_phaseIndex >= 1)
+            {
+                StartEmotionLoop();
+            }
+            else
+            {
+                StopEmotionLoop();
+            }
+
+            _states[_phaseIndex].Enter();
+            OnPhaseChanged?.Invoke(_phaseIndex);
+        }
+#endif
+
         // 페이즈 종료: 피통 동결 -> 종료 기믹(즉사 레이저/컷신 등) -> 다음 페이즈
         // 기믹 중에는 리와인드를 잠가 동결된 피통/기믹 진행이 되감기와 엉키지 않게 한다
         private IEnumerator CoPhaseEnd()
@@ -496,6 +498,7 @@ namespace Minsung.Boss
                 AchievementManager.Instance?.Unlock(AchievementIds.BOSS_DEFEATED);
                 PlayAnimTrigger(Constants.Combat.BOSS_ANIM_DEATH);
                 CameraManager.Instance?.ResetPlayerZoom();
+                StopEmotionLoop();
                 OnBossDefeated?.Invoke();
                 yield break;
             }
@@ -504,6 +507,7 @@ namespace Minsung.Boss
             if (_phaseIndex == 1)
             {
                 AchievementManager.Instance?.Unlock(AchievementIds.BOSS_PHASE1_CLEAR);
+                StartEmotionLoop(); // 2페이즈부터 자동 감정 전환 시작 (3페이즈는 SetAutoEmotionSuspended로 정지)
             }
 
             // 새 페이즈 상한으로 피통을 스냅한다. 1페이즈(분신 별도 피통)를 지나 2페이즈에 진입하면
@@ -512,9 +516,7 @@ namespace Minsung.Boss
             _currentHealth = PhaseCeilHealth;
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
 
-            SetBodyPresence(true); // 1페이즈 종료 - 2페이즈부터 본체 등장
-
-            _states[_phaseIndex].Enter();
+            _states[_phaseIndex].Enter(); // 1페이즈 종료 - 2페이즈부터 Phase2State.Enter가 본체(Body)를 등장시킨다
             OnPhaseChanged?.Invoke(_phaseIndex);
             PlayAnimTrigger(Constants.Combat.BOSS_ANIM_ROAR); // 페이즈 넘어갈 시
 
@@ -527,10 +529,10 @@ namespace Minsung.Boss
             _transitioning = false;
         }
 
-        // 트리거 파라미터 재생. Animator 미연결 시 무시
+        // 트리거 파라미터 재생. Animator 미연결/비활성/컨트롤러 미할당 시 무시
         private void PlayAnimTrigger(string trigger)
         {
-            if (_animator != null)
+            if ((_animator != null) && _animator.isActiveAndEnabled && (_animator.runtimeAnimatorController != null))
             {
                 _animator.SetTrigger(trigger);
             }
@@ -540,15 +542,15 @@ namespace Minsung.Boss
         *            IRewindable
         ****************************************/
 
-        // 피통은 항상 기록하고(동결 중엔 값이 안 변하므로 무해), 패턴 기록은 상태에 위임한다
+        // 피통/감정은 항상 기록하고(동결 중엔 값이 안 변하므로 무해), 패턴 기록은 상태에 위임한다
 
         public void RecordTick()
         {
             _rewindBuffer.Push(new BossFrame
             {
-                Health        = _currentHealth,
-                Emotion       = _emotion,
-                EmotionCursor = _emotionCursor,
+                Health         = _currentHealth,
+                Emotion        = _emotion,
+                EmotionCursor  = _emotionCursor,
             });
             if (!_transitioning)
             {
@@ -559,6 +561,7 @@ namespace Minsung.Boss
         public void OnRewindStart()
         {
             _isGlobalRewinding = true;
+            StopEmotionLoop();
             foreach (IBossPattern pattern in _patterns)
             {
                 pattern.OnRewindStart();
@@ -573,8 +576,7 @@ namespace Minsung.Boss
         {
             if (_rewindBuffer.TryGetOrdered(orderedIndex, out BossFrame frame))
             {
-                ApplyHealthFrame(frame);
-                RestoreEmotionState(frame.Emotion);
+                ApplyFrame(frame);
             }
             if (!_transitioning)
             {
@@ -586,9 +588,8 @@ namespace Minsung.Boss
         {
             if (_rewindBuffer.TryGetOrdered(orderedIndex, out BossFrame frame))
             {
-                ApplyHealthFrame(frame);
-                RestoreEmotionState(frame.Emotion);
-                _emotionCursor = frame.EmotionCursor; // 이후 루프가 같은 감정 순서를 재현
+                ApplyFrame(frame);
+                _emotionCursor = frame.EmotionCursor;
             }
             _rewindBuffer.Clear();
 
@@ -601,14 +602,26 @@ namespace Minsung.Boss
                 pattern.OnRewindEnd();
             }
             _isGlobalRewinding = false;
+
+            if (_phaseIndex >= 1)
+            {
+                StartEmotionLoop(); // 루프가 이미 시작된 페이즈였다면 재개 - 같은 결정 로그로 이어진다
+            }
         }
 
-        // 피통만 기록 시점으로 복원. 페이즈 경계는 넘지 않는다 -
+        // 피통/감정을 기록 시점으로 복원. 페이즈 경계는 넘지 않는다 -
         // 전환 직후 이전 페이즈 기록이 남아 있어도 현재 페이즈 구간으로 클램프된다
-        private void ApplyHealthFrame(BossFrame frame)
+        // 감정은 사이드이펙트(반사/혼란 루프/하트 픽업) 없이 표시만 갱신한다
+        private void ApplyFrame(BossFrame frame)
         {
             _currentHealth = Mathf.Clamp(frame.Health, PhaseFloorHealth, PhaseCeilHealth);
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
+
+            if (_emotion != frame.Emotion)
+            {
+                _emotion = frame.Emotion;
+                OnEmotionChanged?.Invoke(_emotion);
+            }
         }
     }
 }

@@ -87,12 +87,12 @@ GameObject:
   - component: {fileID: 6735138002802195490}
   - component: {fileID: 1294953696546694188}
   m_Layer: 5
-  m_Name: BossHealthBar
+  m_Name: BossHealthBar[OFF]
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4164780316120249302
 RectTransform:
   m_ObjectHideFlags: 0

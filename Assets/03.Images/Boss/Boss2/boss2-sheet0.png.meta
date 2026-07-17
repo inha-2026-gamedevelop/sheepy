@@ -43,7 +43,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -81,7 +81,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -123,11 +123,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 27
-        width: 55
-        height: 37
+        y: 46
+        width: 18
+        height: 18
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -144,12 +144,12 @@ TextureImporter:
       name: boss2-sheet0_1
       rect:
         serializedVersion: 2
-        x: 3
-        y: 9
-        width: 12
-        height: 15
+        x: 4
+        y: 10
+        width: 10
+        height: 13
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -166,12 +166,12 @@ TextureImporter:
       name: boss2-sheet0_2
       rect:
         serializedVersion: 2
-        x: 17
-        y: 9
-        width: 38
-        height: 12
+        x: 18
+        y: 10
+        width: 18
+        height: 9
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -184,11 +184,143 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: boss2-sheet0_3
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 46
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c980d12e70bd1ae48b4b2985453287e3
+      internalID: -1121881025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: boss2-sheet0_4
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 46
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c88bafeb9360c344b43e8b311245d17
+      internalID: 483138411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: boss2-sheet0_5
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 28
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 55b0f980ba3cf0249a7cc35f01bcb33e
+      internalID: -2098552241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: boss2-sheet0_6
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 28
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 55753c45e60c07840892968627377845
+      internalID: 396424165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: boss2-sheet0_7
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 28
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4c2da7b01aed15046bbeb3dc5aad00ca
+      internalID: -25654754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: boss2-sheet0_8
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 10
+        width: 18
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0584b1038a1ce0f47a246067d2402e86
+      internalID: -873540770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 71409cdaef069c24f823fdf96266030c
     internalID: 0
     vertices: []
     indices: 
@@ -201,6 +333,12 @@ TextureImporter:
       boss2-sheet0_0: 4036833447792631172
       boss2-sheet0_1: 568099584899063468
       boss2-sheet0_2: -8128227301654977122
+      boss2-sheet0_3: -1121881025
+      boss2-sheet0_4: 483138411
+      boss2-sheet0_5: -2098552241
+      boss2-sheet0_6: 396424165
+      boss2-sheet0_7: -25654754
+      boss2-sheet0_8: -873540770
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

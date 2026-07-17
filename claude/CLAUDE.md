@@ -26,6 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - 모든 제어문 중괄호 필수 (단일 라인도), Allman 스타일, 전위 증감(`++i`)
    - `[SerializeField] private` (public 필드 금지), 멤버 변수 `_camelCase`
    - 런타임 GC 최소화: WaitForSeconds/material/컴포넌트 참조 캐싱, `TryGetComponent`, NonAlloc 쿼리
+   - **TABWIDTH는 4** - 들여쓰기는 TABWIDTH(4) 단위로 맞춘다
 2. **네임스페이스 `Minsung.*`은 민성 코드 전용**. 팀원(명진/진욱) 코드는 네임스페이스 없음 — 수정 전 소유자 확인.
 3. **리와인드 버퍼 용량은 `RewindManager.TickCapacity`만 사용**. 직접 `RecordSeconds / fixedDeltaTime` 계산 금지 (참여자 간 인덱스 어긋남). 기록 길이(초) 조정은 TimeDB(`GameDB.Time.RecordSeconds`)에서만.
 4. **리와인드 참여 오브젝트 규칙**: `IRewindable` 구현 + `Register/Unregister` 쌍 호출, 랜덤 패턴은 결정 로그로 재현, 연출 오브젝트는 생성/파괴 대신 풀 활성/비활성.
@@ -36,6 +37,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 9. **`Ex/` 폴더는 샘플/예제 코드**(네임스페이스 없음). 프로덕션 코드(`Minsung.*`)가 `Ex`를 참조하면 안 된다. UI 진행바 등 참고 구현은 정식 폴더(`06.UI` 등)로 승격해서 쓴다.
 10. **진행바(HP바 등)는 `Slider` 컴포넌트로 구현**. `Image.fillAmount` 대신 `Slider.value`(0~1 정규화)를 쓴다. (`BossHealthBarUI` 기준)
 11. **커밋 전 `claude/HANDOVER.md`를 최신 상태로 갱신**하고, **커밋 메시지는 `claude/commit-convention.md` 규칙**(`type: Scope 한국어 제목`)을 따른다.
+12. **UI 오브젝트 이름은 기본 On/Off 상태를 접미사로 표기**: 기본적으로 꺼져 있는 상태로 시작하면 이름 뒤에 `[OFF]`, 기본적으로 켜져 있어야 하면 `[ON]`을 붙인다 (예: `Caption[OFF]`).
 
 ## Architecture
 
