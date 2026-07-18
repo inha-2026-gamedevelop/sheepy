@@ -202,8 +202,7 @@ namespace Minsung.Player
         // "필터 없음" ContactFilter2D 생성 (트리거 콜라이더도 대상에 포함).
         private static ContactFilter2D CreateNoFilter()
         {
-            ContactFilter2D filter = new ContactFilter2D();
-            filter.NoFilter();
+            ContactFilter2D filter = ContactFilter2D.noFilter;
             filter.useTriggers = true; // NoFilter는 필터 쿼리에서 트리거를 제외하므로 명시적으로 포함 (트리거 판정형 보스 유닛 대응)
             return filter;
         }
