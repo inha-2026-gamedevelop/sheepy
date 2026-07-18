@@ -34,6 +34,7 @@ namespace Minsung.Common.Data
         [SerializeField] private float _jumpCooldown       = 4f;   // 최소 재사용 대기시간(초) TODO: 밸런싱
         [SerializeField] private float _jumpArcHeight      = 2f;   // 도약 최대 높이
         [SerializeField] private float _jumpLandActiveTime = 0.2f; // 착지 슬램 판정 유지 시간(초) - 각 유닛 AttackHalves 재사용
+        [SerializeField] private float _stuckEscapeDelay    = 0.35f; // 지형에 막혀 수평 이동하지 못할 때 탈출 도약까지 대기 시간(초)
 
         [SerializeField] private float _dodgeCooldown     = 5f;   // 최소 재사용 대기시간(초) TODO: 밸런싱
         [SerializeField] private float _dodgeTriggerRange = 1.5f; // 이 거리보다 가까우면 후퇴 회피
@@ -171,6 +172,7 @@ namespace Minsung.Common.Data
         public float JumpCooldown      => _jumpCooldown;
         public float JumpArcHeight     => _jumpArcHeight;
         public float JumpLandActiveTime => _jumpLandActiveTime;
+        public float StuckEscapeDelay  => _stuckEscapeDelay;
 
         public float DodgeCooldown     => _dodgeCooldown;
         public float DodgeTriggerRange => _dodgeTriggerRange;

@@ -7,6 +7,7 @@ using UnityEngine.Events;
 
 using Minsung.Common;
 using Minsung.Player;
+using Minsung.Sound;
 using Minsung.TimeSystem;
 using Minsung.UI;
 using Minsung.Utility;
@@ -50,6 +51,7 @@ namespace Minsung.Interactive
 
         private bool _isPulled;
         private RingBuffer<LeverTick> _rewindBuffer; // 틱마다 당김/표시 상태 기록 - 되감기 시 그대로 복원한다
+        private LocalSfxEmitter _sfxEmitter;
 
         private Coroutine _coUnlockInteraction;
         private WaitForSeconds _waitInteractionLock;
@@ -67,6 +69,7 @@ namespace Minsung.Interactive
             {
                 TryGetComponent(out _renderer);
             }
+            TryGetComponent(out _sfxEmitter);
             UpdateVisual();
         }
 
@@ -77,8 +80,9 @@ namespace Minsung.Interactive
             RewindManager.Instance?.Register(this);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             RewindManager.Instance?.Unregister(this);
         }
 
@@ -118,6 +122,7 @@ namespace Minsung.Interactive
 
             _isPulled = true;
             UpdateVisual();
+            _sfxEmitter?.PlayInteract();
             SetRendererVisible(false); // 연출 아트에 레버가 포함되므로 연출 중엔 실제 레버를 숨긴다
             UtilCoroutine.CheckRunCoroutine(ref _coUnlockInteraction, StartCoroutine(CoUnlockInteraction(playerController)), this);
             _onLeverPulled?.Invoke();

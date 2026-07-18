@@ -30,6 +30,7 @@ namespace Minsung.Interactive
 
         private bool  _isPlaying;
         private float _focusSize;
+        private LocalSfxEmitter _sfxEmitter;
 
         /****************************************
         *              Unity Event
@@ -39,6 +40,7 @@ namespace Minsung.Interactive
         {
             base.Awake();
             _focusSize = Constants.Camera.FOCUS_ORTHOGRAPHIC_SIZE;
+            TryGetComponent(out _sfxEmitter);
         }
 
         protected override void OnEnable()
@@ -86,6 +88,8 @@ namespace Minsung.Interactive
 
         private void PlayRadio()
         {
+            _sfxEmitter?.PlayActivate();
+
             if (SoundManager.Instance == null)
             {
                 return;
@@ -107,6 +111,7 @@ namespace Minsung.Interactive
             // 씬 종료 순서에 따라 SoundManager/CaptionManager가 먼저 사라질 수 있어 null 확인
             SoundManager.Instance?.StopBGMOverride();
             CaptionManager.Instance?.StopSequence();
+            _sfxEmitter?.PlayDeactivate();
             _isPlaying = false;
         }
 

@@ -101,7 +101,7 @@
 | 3 | **리와인드 버퍼 구조 변경 필요** — `RewindManager.TickCapacity` 외 방식으로 버퍼 용량을 계산해야 할 것 같을 때 | `claude/CLAUDE.md` Critical Rule 3 | 대안 없이 진행하면 참여자 간 인덱스가 어긋나므로 반드시 질문 |
 | 4 | **기획 판단 필요** — 스펙에 없는 A/B 선택, 기획 문서와 코드의 갭 | 실사례: 이번 세션 보스 감정 자동 전환 주기·씬 이관 방식 선택 시 사용자에게 확인 요청 | 선택지별 영향을 표로 제시하고 결정 대기 |
 
-**중단할 때의 표준 행동**: 조용히 멈추지 않는다. ① 지금까지의 검증된 진행 상황(도구 출력 근거 포함) ② 결정이 필요한 사항 ③ 선택지와 권고안을 보고하고 턴을 종료한다. 장기 작업 중간이면 [CHECKPOINT_RULES.md](CHECKPOINT_RULES.md)에 따라 `claude/HANDOVER.md`를 갱신해 다음 세션이 이어받을 수 있게 한다.
+**중단할 때의 표준 행동**: 조용히 멈추지 않는다. ① 지금까지의 검증된 진행 상황(도구 출력 근거 포함) ② 결정이 필요한 사항 ③ 선택지와 권고안을 보고하고 턴을 종료한다. 장기 작업 중간이면 [CHECKPOINT_RULES.md](CHECKPOINT_RULES.md)에 따라 `claude/PLAN.md`를 갱신해 다음 세션이 이어받을 수 있게 한다.
 
 ---
 
@@ -124,6 +124,6 @@
 - [TEST_AND_VERIFICATION_STANDARD.md](TEST_AND_VERIFICATION_STANDARD.md) — 검증 표준
 - [VERIFIER_SUBAGENT_SPEC.md](VERIFIER_SUBAGENT_SPEC.md) — 2-3 문구를 삽입할 검수 서브에이전트 사양
 - [ACTION_BOUNDARIES.md](ACTION_BOUNDARIES.md) — 3절 중단 조건의 전체 경계 목록
-- [CHECKPOINT_RULES.md](CHECKPOINT_RULES.md) — 중단 시 HANDOVER 작성 규칙
+- [CHECKPOINT_RULES.md](CHECKPOINT_RULES.md) — 중단 시 PLAN 작성 규칙
 - [PROMPT_TEMPLATE_STANDARD.md](PROMPT_TEMPLATE_STANDARD.md) / [SUBAGENT_ORCHESTRATION.md](SUBAGENT_ORCHESTRATION.md) — 2-2·2-3 문구의 삽입처
 - [SYSTEM_PROMPT_V2.md](SYSTEM_PROMPT_V2.md) — 2-1 문구가 반영될 CLAUDE.md 재작성안

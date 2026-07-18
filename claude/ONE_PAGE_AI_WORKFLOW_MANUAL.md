@@ -7,7 +7,7 @@
 **① 세션 시작 — 무엇을 읽나**
 - [ ] `claude/CLAUDE.md`(자동 로드)와 영속 메모리(`C:\Users\inha\.claude\projects\d--unity2d\memory\MEMORY.md`, 현재 비어 있음) 확인
 - [ ] `git status`로 병행 작업 변경분 식별 — 커밋 시 선별 스테이징의 전제
-- [ ] 이어받는 작업이면 `claude/HANDOVER.md`(이번에 고친 것/해야 할 것)부터, 세부 로드맵은 `claude/PLAN.md`
+- [ ] 이어받는 작업이면 `claude/PLAN.md`(이번에 고친 것/해야 할 것)부터, 세부 로드맵은 `claude/PLAN.md`
 
 **② 작업 의뢰 — 어떤 템플릿**
 - [ ] 의뢰문 = 5필드([PROMPT_TEMPLATE_STANDARD](PROMPT_TEMPLATE_STANDARD.md)) + "왜" 4필드([REQUEST_CONTEXT_TEMPLATE](REQUEST_CONTEXT_TEMPLATE.md))
@@ -24,7 +24,7 @@
 
 **⑤ 세션 종료 — 메모리·체크포인트**
 - [ ] 사용자 교정·확정 결정이 있었다면 `feedback_*`/`project_*` 메모리로 저장([MEMORY_RULES](MEMORY_RULES.md)) — 2026-07-11 기준 메모리가 비어 있어 특히 중요
-- [ ] 미완 중단이면 `claude/HANDOVER.md`를 "이번에 고친 것/해야 할 것" 형식으로 갱신([CHECKPOINT_RULES](CHECKPOINT_RULES.md))
+- [ ] 미완 중단이면 `claude/PLAN.md`를 "이번에 고친 것/해야 할 것" 형식으로 갱신([CHECKPOINT_RULES](CHECKPOINT_RULES.md))
 
 ## 표 1 — 문서 레지스트리 (루틴 단계순)
 
@@ -52,9 +52,9 @@
 | ③실행 | [DATA_RETENTION_AND_PRIVACY_RULES](DATA_RETENTION_AND_PRIVACY_RULES.md) | 비밀·민감정보 3등급 금지표(Supabase KEY.txt 등) |
 | ④보고 | [FINAL_RESPONSE_STYLE_GUIDE](FINAL_RESPONSE_STYLE_GUIDE.md) | 한국어·결론 우선·수정 코드 전수 하이퍼링크 등 보고 규칙 |
 | ⑤종료 | [MEMORY_RULES](MEMORY_RULES.md) | 영속 메모리의 저장·갱신·링크·절대날짜 규칙 |
-| ⑤종료 | [CHECKPOINT_RULES](CHECKPOINT_RULES.md) | `claude/HANDOVER.md` 갱신 트리거 + 표준 목차(단일 파일 관례) |
+| ⑤종료 | [CHECKPOINT_RULES](CHECKPOINT_RULES.md) | `claude/PLAN.md` 갱신 트리거 + 표준 목차(단일 파일 관례) |
 | ⑤종료 | [CONVERSATION_SPLIT_RULES](CONVERSATION_SPLIT_RULES.md) | 세션 분리 트리거 + 이관 체크리스트 |
-| ⑤종료 | [POST_FABLE_HANDOFF](POST_FABLE_HANDOFF.md) | **이 프로젝트엔 해당 없음** — `claude/HANDOVER.md`가 실질적으로 같은 역할 수행 |
+| ⑤종료 | [POST_FABLE_HANDOFF](POST_FABLE_HANDOFF.md) | **이 프로젝트엔 해당 없음** — `claude/PLAN.md`가 실질적으로 같은 역할 수행 |
 | ⑥개정 | [SYSTEM_PROMPT_V2](SYSTEM_PROMPT_V2.md) | `claude/CLAUDE.md` 재작성 제안 양식(이 프로젝트는 이미 간결해 변경 폭 작음) |
 | ⑥개정 | [SKILLS_AUDIT_TABLE](SKILLS_AUDIT_TABLE.md) | 스킬·문서 자산 전수 감사(유지/수정/통합/폐기) |
 | ⑥개정 | [INSTRUCTION_PRUNING_REPORT](INSTRUCTION_PRUNING_REPORT.md) | 중복·과잉·사문화 지시 감사(2026-07-11 기준 과잉 0건) |
@@ -72,6 +72,6 @@
 | 세이브 스키마 | **해당 없음** — 로컬 세이브 없음. Supabase는 랭킹/고스트 리플레이 백엔드(`Assets/StreamingAssets/KEY.txt`, gitignore) |
 | 테스트 진입 | 대상 씬에서 Play(예: `Boss.unity`). 자동 치트 진입 스크립트는 미확인 |
 | 커밋 | `claude/commit-convention.md` 형식(`type: Scope 한국어 제목`), git-flow `feature/<기능명>` 브랜치. push는 사용자 명시 요청 시만 |
-| 에디터 연동 | Unity MCP(`http://127.0.0.1:8080/mcp`, `claude/HANDOVER.md` 근거) — 이번 세션 기준 대부분 미연결. 연결 여부는 매 세션 ToolSearch로 확인 |
+| 에디터 연동 | Unity MCP(`http://127.0.0.1:8080/mcp`, `claude/PLAN.md` 근거) — 이번 세션 기준 대부분 미연결. 연결 여부는 매 세션 ToolSearch로 확인 |
 | 감지 훅 | 없음(2026-07-11 기준 `.claude/hooks/` 미확인) |
 | 아키텍처 질문 | `claude/CLAUDE.md` Architecture 절 먼저 읽기, 상세는 `claude/UML.md` |

@@ -42,7 +42,13 @@ namespace Minsung.TimeSystem
         private RewindManager _rewindManager;
         private RingBuffer<CloneTick> _rewindBuffer; // 클립 재생 위치 + 하트 기록
         private bool _isRewinding;
+        private string _objectId;
         private int _deadTicks; // 사망 후 경과 틱 - 기록 창을 벗어나면 부활 불가 -> 풀 반환
+
+        private static readonly List<CloneController> _activeInstances = new List<CloneController>();
+
+        public static IReadOnlyList<CloneController> ActiveInstances => _activeInstances;
+        public string ObjectId => _objectId;
 
         // 한 틱의 분신 기록. 위치는 클립이 결정하므로 재생 인덱스와 체력(반칸)만 있으면 복원된다.
         private readonly struct CloneTick
@@ -65,6 +71,7 @@ namespace Minsung.TimeSystem
 
         private void Awake()
         {
+            _objectId = ManagedObjectManager.Register(EManagedObjectType.PlayerClone, this);
             _rb = GetComponent<Rigidbody2D>();
             _rb.bodyType = RigidbodyType2D.Kinematic;
             _orbs = GetComponent<PlayerOrbs>();
@@ -92,8 +99,23 @@ namespace Minsung.TimeSystem
             }
         }
 
+        private void OnEnable()
+        {
+            if (!_activeInstances.Contains(this))
+            {
+                _activeInstances.Add(this);
+            }
+        }
+
+        private void OnDisable()
+        {
+            _activeInstances.Remove(this);
+        }
+
         private void OnDestroy()
         {
+            ManagedObjectManager.Unregister(this);
+            _activeInstances.Remove(this);
             if (_health != null)
             {
                 _health.OnDeath -= HandleDeath;

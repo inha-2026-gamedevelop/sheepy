@@ -42,6 +42,7 @@ namespace Minsung.Visual
             _player.Stop();
             _player.clip = _clip;
             _player.skipOnDrop = false;
+            _player.aspectRatio = VideoAspectRatio.FitOutside; // 화면 전체를 채우도록 비율 유지 크롭 (씬에 FitHorizontally로 잘못 설정된 경우 대비)
 
             bool prepared = false;
             bool finished = false;

@@ -36,7 +36,7 @@
 
 | # | 메모리 파일 | 판정 | 근거 | 조치 |
 |---|---|---|---|---|
-| — | (해당 없음) | — | `C:\Users\inha\.claude\projects\d--unity2d\memory\`가 2026-07-11 기준 완전히 비어 있음(`MEMORY.md` 인덱스도 없음) | 다음 세션 착수 전, 이번 세션에서 나온 사용자 교정 4건([MEMORY_RULES.md](MEMORY_RULES.md) 8절에 기록됨: 커밋 공저자 표기 금지, push는 명시 요청 시만, 커밋 컨벤션 괄호 없는 형식, HANDOVER 간결화 요구)을 `feedback_*` 메모리로 저장할 것을 권고 |
+| — | (해당 없음) | — | `C:\Users\inha\.claude\projects\d--unity2d\memory\`가 2026-07-11 기준 완전히 비어 있음(`MEMORY.md` 인덱스도 없음) | 다음 세션 착수 전, 이번 세션에서 나온 사용자 교정 4건([MEMORY_RULES.md](MEMORY_RULES.md) 8절에 기록됨: 커밋 공저자 표기 금지, push는 명시 요청 시만, 커밋 컨벤션 괄호 없는 형식, PLAN 간결화 요구)을 `feedback_*` 메모리로 저장할 것을 권고 |
 
 ## 4. SYSTEM_PROMPT_V2 반영 지침
 

@@ -68,6 +68,7 @@ namespace Minsung.Boss
         [Header("구간 종료 방식 - true면 영상 재생 후 다음 씬 로드, false면 기존 보스 격파 처리")]
         [SerializeField] private bool _transitionToNextScene;
         [SerializeField] private BossOutroVideoUI _outroVideo;      // _transitionToNextScene일 때 재생할 풀스크린 영상
+        [SerializeField] private BossOutroVideoUI _introVideo;      // 보스방 입장 후 전투 시작 전에 재생할 풀스크린 영상
         [SerializeField] private string _nextSceneName = Constants.Scene.MAP_3;
 
         private BossState[] _states;       // 페이즈별 상태 객체 (인덱스 = 페이즈)
@@ -82,6 +83,10 @@ namespace Minsung.Boss
 
         private float _battleElapsed;      // 보스전 경과(초, 실시간)
         private bool _battleStarted;
+        private bool _battleInitialized;
+        private bool _introPlaying;
+        private Coroutine _introCoroutine;
+        private float _entranceRewindLockUntil; // 입장 시각 + RecordSeconds - 이 시각까지는 되감기를 잠가 입장 이전으로 돌아가는 것을 막는다
         private bool _timeOverKilled;      // 제한시간 즉사 1회 처리 플래그
 
         private PlayerHealth _playerHealth;          // 즉사/반사 대상 (본체)
@@ -90,6 +95,7 @@ namespace Minsung.Boss
         private WaitForSeconds _waitConfusionInterval;
         private WaitForSeconds _waitConfusionDuration;
         private RingBuffer<BossFrame> _rewindBuffer; // 피통/감정 리와인드 기록
+        private string _objectId;
 
         private Coroutine _emotionLoop;              // 2페이즈부터 도는 자동 감정 전환 루프
         private bool _autoEmotionSuspended;           // 3페이즈 화남 고정 등 - true면 주기가 와도 전환하지 않는다
@@ -98,6 +104,7 @@ namespace Minsung.Boss
         private int _emotionCursor;
 
         public PlayerController Player => _player;              // 페이즈 패턴이 플레이어를 조준할 때 사용
+        public string ObjectId => _objectId;
         public BossCloneController[] Phase1Clones => _phase1Clones;
         public BossBodyController Body => _body;                // 2페이즈부터 페이즈 상태가 활성/비활성 관리
         public int PhaseIndex => _phaseIndex;
@@ -136,6 +143,7 @@ namespace Minsung.Boss
 
         private void Awake()
         {
+            _objectId = ManagedObjectManager.Register(EManagedObjectType.Boss, this);
             _states = new BossState[]
             {
                 new Phase1State(this),
@@ -158,19 +166,25 @@ namespace Minsung.Boss
             if (_player != null)
             {
                 _player.TryGetComponent(out _playerHealth);
+                if (_playerHealth != null)
+                {
+                    _playerHealth.OnDeath += HandlePlayerDeath;
+                }
             }
 
-            RegisterPattern(new BossLightningPattern(this));
-
-            _states[_phaseIndex].Enter();
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
 
-            BeginBattle(); // TODO: 보스 입장 연출 완성 후, 연출이 끝나는 시점 호출로 이동
+            PrepareBossReturnState();
             RewindManager.Instance?.Register(this);
         }
 
         private void OnDestroy()
         {
+            ManagedObjectManager.Unregister(this);
+            if (_playerHealth != null)
+            {
+                _playerHealth.OnDeath -= HandlePlayerDeath;
+            }
             foreach (IBossPattern pattern in _patterns)
             {
                 pattern.Dispose();
@@ -207,6 +221,69 @@ namespace Minsung.Boss
             _battleStarted = true;
             _battleElapsed = 0f;
             CameraManager.Instance?.SetPlayerZoom(Constants.Camera.BOSS_ORTHOGRAPHIC_SIZE);
+
+            // 보스 클리어 타이머 - 이미 진행 중(2/3페이즈 구간 씬)이면 무시, 컷신을 넘어 다시 시작할 때는 정지 해제
+            GameManager.Instance?.StartBossTimer();
+            GameManager.Instance?.SetBossTimerTransitionPaused(false);
+        }
+
+        // 입구 트리거가 호출하는 실제 전투 시작 지점. 중복 진입은 무시한다.
+        public void BeginBossBattle()
+        {
+            if (_battleInitialized || _transitioning)
+            {
+                return;
+            }
+
+            _battleInitialized = true;
+            RegisterPattern(new BossLightningPattern(this));
+            _states[_phaseIndex].Enter();
+            BeginBattle();
+        }
+
+        /// <summary> 보스방 입장 연출을 재생한 뒤 전투를 시작한다. 영상 동안에는 플레이어와 보스 패턴을 모두 잠근다. </summary>
+        public void BeginBossIntro()
+        {
+            if (_introPlaying || _battleInitialized || _transitioning)
+            {
+                return;
+            }
+
+            _introPlaying = true;
+            _transitioning = true;
+            // 리와인드 기록 길이(GameDB.Time.RecordSeconds)만큼은 입장 시각부터 되감기를 잠가야
+            // 잠금 해제 시점에 버퍼에 입장 이전 기록이 전혀 남아있지 않다 - 입장 전으로 돌아가 추격을 피하는 것을 막는다
+            _entranceRewindLockUntil = Time.unscaledTime + GameDB.Time.RecordSeconds;
+            _player?.SetInteracting(true);
+            RewindManager.Instance?.SetRewindEnabled(false);
+            _introCoroutine = StartCoroutine(CoPlayIntroThenBeginBattle());
+        }
+
+        private IEnumerator CoPlayIntroThenBeginBattle()
+        {
+            if (_introVideo != null)
+            {
+                yield return _introVideo.CoPlay();
+            }
+
+            _player?.SetInteracting(false);
+            _introCoroutine = null;
+            _introPlaying = false;
+            _transitioning = false;
+            BeginBossBattle();
+
+            StartCoroutine(CoUnlockRewindAfterEntranceLock());
+        }
+
+        // 영상 재생 시간과 무관하게 입장 시각 기준으로 정확히 RecordSeconds가 지난 뒤에만 되감기를 푼다.
+        private IEnumerator CoUnlockRewindAfterEntranceLock()
+        {
+            float remaining = _entranceRewindLockUntil - Time.unscaledTime;
+            if (remaining > 0f)
+            {
+                yield return new WaitForSecondsRealtime(remaining);
+            }
+            RewindManager.Instance?.SetRewindEnabled(true);
         }
 
         /// <summary> 공통 패턴 등록 + 즉시 가동. 정지/파괴/리와인드 훅은 BossController가 일괄 관리한다 </summary>
@@ -225,9 +302,52 @@ namespace Minsung.Boss
             }
         }
 
+        // 보스전에서 사망하면 Map2를 다시 로드해 보스/분신/패턴/타이머를 전부 초기 상태로 되돌린다.
+        private void HandlePlayerDeath()
+        {
+            RespawnManager.RestartBossAtReturnPoint();
+        }
+
+        private void PrepareBossReturnState()
+        {
+            if (_introCoroutine != null)
+            {
+                StopCoroutine(_introCoroutine);
+                _introCoroutine = null;
+            }
+            _introPlaying = false;
+            _battleStarted = false;
+            _battleInitialized = false;
+            _timeOverKilled = false;
+            _healthFrozen = false;
+            _transitioning = false;
+            _isGlobalRewinding = false;
+            _player?.SetInteracting(false);
+            RewindManager.Instance?.SetRewindEnabled(true);
+            StopEmotionLoop();
+            StopConfusion();
+            SetEmotion(BossEmotion.None);
+            if (_heartPickup != null)
+            {
+                _heartPickup.gameObject.SetActive(false);
+            }
+            _body?.Deactivate();
+
+            if (_phase1Clones == null)
+            {
+                return;
+            }
+
+            foreach (BossCloneController clone in _phase1Clones)
+            {
+                clone?.Deactivate();
+            }
+        }
+
         /// <summary> 보스전을 처음부터 다시 시작한다 (현재 씬 재로드). TODO: 특정 씬/위치 재시작은 기획 확정 후 교체 </summary>
         public void RestartBossFight()
         {
+            GameManager.Instance?.ResetBossTimer();
             GameManager.Instance?.LoadScene(SceneManager.GetActiveScene().name);
         }
 
@@ -525,6 +645,7 @@ namespace Minsung.Boss
         private IEnumerator CoPhaseEnd()
         {
             _transitioning = true;
+            GameManager.Instance?.SetBossTimerTransitionPaused(true); // 기믹/아웃트로 컷신 동안 클리어 타이머 정지
             RewindManager.Instance?.SetRewindEnabled(false);
             PlayAnimTrigger(Constants.Combat.BOSS_ANIM_ROAR); // 기믹 시전 시그널
 
@@ -560,6 +681,7 @@ namespace Minsung.Boss
                 PlayAnimTrigger(Constants.Combat.BOSS_ANIM_DEATH);
                 StartCoroutine(CoActivateDeathLightFx());
                 CameraManager.Instance?.ResetPlayerZoom();
+                GameManager.Instance?.StopBossTimer(); // 보스 격파 - 클리어 타임 확정
                 OnBossDefeated?.Invoke();
                 yield break;
             }
@@ -590,6 +712,7 @@ namespace Minsung.Boss
 
             _healthFrozen  = false;
             _transitioning = false;
+            GameManager.Instance?.SetBossTimerTransitionPaused(false); // 같은 씬 안에서 다음 페이즈로 이어지는 경우
         }
 
         // 트리거 파라미터 재생. Animator 미연결/비활성/컨트롤러 미할당 시 무시

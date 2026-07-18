@@ -16,3 +16,4 @@ MonoBehaviour:
   _bossSo: {fileID: 11400000, guid: 5019035401ced964fb8d87f4c2f21348, type: 2}
   _timeSo: {fileID: 11400000, guid: f34b478da806e3d4389cc2c49a832ef3, type: 2}
   _lpSo: {fileID: 11400000, guid: d9d4678701efec44090a74e343efdaca, type: 2}
+  _potionSo: {fileID: 11400000, guid: e85104a47dab46d0b4278c1faf65fc51, type: 2}
