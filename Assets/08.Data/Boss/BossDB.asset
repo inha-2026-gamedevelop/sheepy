@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cecac0579d4201428448f0a1ed527f1, type: 3}
   m_Name: BossDB
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.BossDataSO
-  _totalHealth: 400
+  _cloneCrowdAvoidHorizontalRange: 0.75
+  _cloneCrowdAvoidVerticalRange: 1.25
+  _totalHealth: 4000
   _timeLimit: 600
   _attackHalves: 2
   _cloneAttackHalves: 1
@@ -24,19 +26,18 @@ MonoBehaviour:
   _jumpCooldown: 4
   _jumpArcHeight: 2
   _jumpLandActiveTime: 0.2
+  _stuckEscapeDelay: 0.35
   _dodgeCooldown: 5
   _dodgeTriggerRange: 1.5
   _dodgeBackDistance: 3
   _dodgeDuration: 0.3
-  _cloneHealth: 400
+  _cloneHealth: 1000
   _cloneCount: 2
   _cloneAttackRange: 0.7
   _cloneAttackCooldown: 2
   _cloneAttackActiveTime: 0.2
   _cloneMoveSpeed: 1.8
   _cloneEntranceLeapHeight: 2
-  _cloneCrowdAvoidHorizontalRange: 0.75
-  _cloneCrowdAvoidVerticalRange: 1.25
   _lightningInterval: 8
   _lightningTelegraphTime: 0.8
   _lightningTelegraphHeight: 0.15
@@ -66,6 +67,15 @@ MonoBehaviour:
   - {r: 0.78, g: 0.49, b: 1, a: 1}
   - {r: 0.61, g: 0.31, b: 0.87, a: 1}
   - {r: 0.48, g: 0.17, b: 0.75, a: 1}
+  _deathLightDelay: 0.4
+  _deathCircleDelay: 1.275
+  _deathCircleLaunchDirection: {x: -1, y: 1}
+  _deathCircleLaunchSpeed: 8
+  _deathCircleLaunchDuration: 0.3
+  _deathCircleFloatDuration: 2
+  _deathCircleFloatAmplitude: 0.15
+  _deathCircleFloatFrequency: 1.5
+  _deathCircleReturnSpeed: 3
   _confusionInterval: 10
   _confusionDuration: 1
   _heartPickupHeight: 0.5

@@ -52,7 +52,7 @@ Unity MCP가 연결돼 있지 않을 때(이번 세션 기본 상태) 씬/프리
 ## 4. 세션 컨텍스트 예산 운영 수칙
 
 1. **대형 파일 원문을 대화에 남기지 않는다**: 씬/프리팹 YAML을 부분 Read할 때도 필요 블록만.
-2. **긴 세션은 이관이 정답**: 한 세션에서 대형 자산 탐색 + 구현 + 검증을 모두 끌고 가면 컨텍스트 압축으로 초기 규칙(코딩 컨벤션, 경계)이 유실된다. 전환 시점 판단은 [CONVERSATION_SPLIT_RULES.md](CONVERSATION_SPLIT_RULES.md), 이관 문서 작성은 [CHECKPOINT_RULES.md](CHECKPOINT_RULES.md)의 HANDOVER 표준을 따른다.
+2. **긴 세션은 이관이 정답**: 한 세션에서 대형 자산 탐색 + 구현 + 검증을 모두 끌고 가면 컨텍스트 압축으로 초기 규칙(코딩 컨벤션, 경계)이 유실된다. 전환 시점 판단은 [CONVERSATION_SPLIT_RULES.md](CONVERSATION_SPLIT_RULES.md), 이관 문서 작성은 [CHECKPOINT_RULES.md](CHECKPOINT_RULES.md)의 PLAN 표준을 따른다.
 3. **모델 배분과 연동**: 대형 자산이 얽힌 고난도 탐색은 상위 모델·고effort 구간에 배정하고, 단순 순회·집계는 하위 모델로 내린다 — [FABLE_ONLY_TASKS.md](FABLE_ONLY_TASKS.md) · [EFFORT_POLICY.md](EFFORT_POLICY.md).
 4. **읽기 전 항상 자문**: "이 질문의 답이 파일 전체에 있는가, 특정 블록에 있는가?" — 후자라면 Grep 좌표 확정이 먼저다. 이 저장소에서 전체 Read가 대체로 안전한 것은 C# 스크립트와 MD 문서, 소형 GameDB 에셋이다.
 

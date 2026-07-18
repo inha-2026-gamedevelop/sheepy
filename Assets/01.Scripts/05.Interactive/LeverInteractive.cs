@@ -7,6 +7,7 @@ using UnityEngine.Events;
 
 using Minsung.Common;
 using Minsung.Player;
+using Minsung.Sound;
 using Minsung.TimeSystem;
 using Minsung.UI;
 using Minsung.Utility;
@@ -44,12 +45,16 @@ namespace Minsung.Interactive
         [SerializeField] private Sprite _spriteUnpulled; // 당기기 전 레버 - LeverAction 연출이 손잡이를 위로 올리므로 손잡이 아래(lever_down)
         [SerializeField] private Sprite _spritePulled;   // 당긴 후 레버 - 연출 마지막 프레임과 같은 손잡이 위(lever_up)
 
+        [Header("엘리베이터 연동")]
+        [SerializeField, Min(0)] private int _elevatorId; // 0이면 엘리베이터 연동 없이 기존 레버 이벤트만 실행
+
         [Header("이벤트")]
         [SerializeField] private UnityEvent _onLeverPulled; // 문 열기 등 실제 효과 (Inspector에서 연결)
         [SerializeField] private UnityEvent _onLeverReset;   // 되감기로 당기기 전 상태로 되돌아갔을 때 (문 닫기 등)
 
         private bool _isPulled;
         private RingBuffer<LeverTick> _rewindBuffer; // 틱마다 당김/표시 상태 기록 - 되감기 시 그대로 복원한다
+        private LocalSfxEmitter _sfxEmitter;
 
         private Coroutine _coUnlockInteraction;
         private WaitForSeconds _waitInteractionLock;
@@ -67,6 +72,7 @@ namespace Minsung.Interactive
             {
                 TryGetComponent(out _renderer);
             }
+            TryGetComponent(out _sfxEmitter);
             UpdateVisual();
         }
 
@@ -77,8 +83,9 @@ namespace Minsung.Interactive
             RewindManager.Instance?.Register(this);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             RewindManager.Instance?.Unregister(this);
         }
 
@@ -118,9 +125,11 @@ namespace Minsung.Interactive
 
             _isPulled = true;
             UpdateVisual();
+            _sfxEmitter?.PlayInteract();
             SetRendererVisible(false); // 연출 아트에 레버가 포함되므로 연출 중엔 실제 레버를 숨긴다
             UtilCoroutine.CheckRunCoroutine(ref _coUnlockInteraction, StartCoroutine(CoUnlockInteraction(playerController)), this);
             _onLeverPulled?.Invoke();
+            NotifyElevatorLeverState(true);
         }
 
         public override void OnUnfocus()
@@ -194,9 +203,27 @@ namespace Minsung.Interactive
             _isPulled = wasPulled;
             UpdateVisual();
 
-            if (!_isPulled)
+            if (_isPulled)
+            {
+                NotifyElevatorLeverState(true);
+            }
+            else
             {
                 _onLeverReset?.Invoke();
+                NotifyElevatorLeverState(false);
+            }
+        }
+
+        private void NotifyElevatorLeverState(bool pulled)
+        {
+            if (_elevatorId <= 0)
+            {
+                return;
+            }
+
+            if ((ElevatorManager.Instance != null) && ElevatorManager.Instance.TryGetController(_elevatorId, out ElevatorController controller))
+            {
+                controller.SetLeverPulled(pulled);
             }
         }
 

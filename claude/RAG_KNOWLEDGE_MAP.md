@@ -18,7 +18,7 @@
 | 커밋 메시지 형식이 뭔가 | `claude/commit-convention.md` | `type: Scope 한국어 제목` — 괄호 없음 주의(`type(scope):` 아님) |
 | 코딩 컨벤션이 궁금하다 | `claude/coding-convention.md` | 이 프로젝트는 `go`/`tr`/`img` 같은 타입 접두사 컨벤션을 **쓰지 않는다** — 다른 Unity 프로젝트 관례와 혼동 금지 |
 | 팀원 코드를 고쳐도 되나 | `claude/CLAUDE.md` Critical Rule 2 + [ACTION_BOUNDARIES.md](ACTION_BOUNDARIES.md) | `Minsung.*` 밖은 명진/진욱 소유 — 수정 전 소유자 확인 |
-| Unity MCP로 에디터를 직접 조작하고 싶다 | `claude/HANDOVER.md`(연결 정보) | 이 세션에 연결 안 돼 있으면 씬/프리팹은 YAML 직접 편집, 컴파일/Play는 사용자 확인 요청으로 대체 |
+| Unity MCP로 에디터를 직접 조작하고 싶다 | `claude/PLAN.md`(연결 정보) | 이 세션에 연결 안 돼 있으면 씬/프리팹은 YAML 직접 편집, 컴파일/Play는 사용자 확인 요청으로 대체 |
 | 테스트/검증을 어떻게 하나 | [TEST_AND_VERIFICATION_STANDARD.md](TEST_AND_VERIFICATION_STANDARD.md) | MCP 연결 여부에 따라 경로가 갈린다 |
 | 감정/낙뢰/반사 로직이 실제로 발동하는지 | `BossController.CoEmotionLoop`, `BossEmotionExtensions` | 로직 존재 ≠ 발동 경로 존재 — `SetEmotion` 호출처를 직접 확인할 것 |
 | 세이브 시스템 관련 작업 | **해당 없음** | 이 프로젝트는 로컬 세이브가 없다. Supabase는 랭킹/고스트 리플레이 백엔드일 뿐 |
@@ -44,7 +44,7 @@
 | `claude/codingconvention.md`(하이픈 없음) | 실제 파일명은 `claude/coding-convention.md`. 2026-07-11 이전 문서에 잘못된 참조가 다수 있었으나 전부 수정됨 |
 | 세이브 시스템, `SaveManager`, `SaveData` | 이 프로젝트에 존재하지 않음. 게임 상태 저장 개념 자체가 없다(Supabase는 랭킹/리플레이 백엔드) |
 | 타입 접두사 컨벤션(`go`/`tr`/`img` 등) | 이 프로젝트의 컨벤션이 아니다 — `claude/coding-convention.md`에는 그런 규칙이 없음. 다른 프로젝트 습관을 가져오지 말 것 |
-| Player 전용 Behavior Tree | 제거됨 — 플레이어 입력은 `PlayerController`가 직접 처리(`claude/CLAUDE.md` 참고). Monster/Boss BT만 남아 있음 |
+| Player 전용 Behavior Tree | 제거됨 — 플레이어 입력은 `PlayerController`, 일반 몬스터는 `MonsterState` FSM, 보스는 `BossState` FSM이 직접 처리(`claude/CLAUDE.md` 참고) |
 
 ## claude.ai Projects RAG와 이 맵의 관계
 

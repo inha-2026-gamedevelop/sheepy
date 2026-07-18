@@ -13,7 +13,7 @@
 | B1 | `Minsung.*` 밖(팀원 명진/진욱 소유) 코드 수정 전 소유자 확인 | `claude/CLAUDE.md` Critical Rule 2 | 팀원 작업 충돌, 담당 영역 침범 |
 | B2 | 리와인드 버퍼는 `RewindManager.TickCapacity`만 사용 | `claude/CLAUDE.md` Critical Rule 3 | 참여자 간 인덱스 어긋남 — 리와인드 전체 파손 |
 | B3 | 리와인드 참여 오브젝트는 `IRewindable` + Register/Unregister 쌍, 랜덤은 결정 로그, 연출은 풀 활성/비활성 | `claude/CLAUDE.md` Critical Rule 4 | 되감기 후 상태 불일치, 스냅샷 역재생 불가 |
-| B4 | Behavior Graph(`Monster/BT`, `Boss/BT`) 노드의 `id`·필드명 변경 주의 | `claude/CLAUDE.md` Critical Rule 5 | 기존 그래프 에셋 파손 |
+| B4 | 몬스터/보스 FSM 상태 전이 우선순위와 리와인드 정지 규칙 유지 | `claude/CLAUDE.md` Critical Rule 5 | 상태 전이 누락, 리와인드 중 신규 행동 발생 |
 | B5 | DontDestroyOnLoad 싱글톤은 `PersistentSingleton<T>` 상속 | `claude/CLAUDE.md` Critical Rule 6 | Awake 직접 구현 시 중복 인스턴스/초기화 순서 버그 |
 | B6 | `GameDB.*` 호출은 MonoBehaviour 필드 초기화식/생성자 금지(Awake 이후만) | `claude/CLAUDE.md`, `claude/gamedb.md` | Resources.Load 제약 위반으로 null 참조 |
 | B7 | 커밋·푸시는 요청 시만, 선별 스테이징 | Git Safety Protocol(공통 시스템 규칙) | 병행 작업자(팀원, 사용자 IDE 작업) 미완성 변경분 오염 커밋 |
@@ -44,12 +44,12 @@
 - **위반 시 리스크**: Register/Unregister 누락 시 리와인드 되감기가 해당 오브젝트를 놓치거나 파괴된 참조에 접근. 랜덤 패턴에 결정 로그가 없으면 되감기 후 다른 결과가 나와 플레이어가 혼란. 연출 오브젝트를 Destroy로 처리하면 되감기 스냅샷 역재생이 불가능.
 - **예외 승인 절차**: 예외 없음 — 구조적 요구사항.
 
-### B4. Behavior Graph 에셋 호환
+### B4. FSM 상태 전이
 
-- **범위**: `Assets/01.Scripts/02.Monster/BT/`, `Assets/01.Scripts/03.Boss/BT/` 노드의 `id`/필드명.
+- **범위**: `Assets/01.Scripts/02.Monster/MonsterState.cs`, `MonsterController.cs`, `Assets/01.Scripts/03.Boss/BossState.cs`, `Phase1State.cs`~`Phase4State.cs`.
 - **출처**: `claude/CLAUDE.md` Critical Rule 5.
-- **위반 시 리스크**: Unity Behavior 그래프 에셋(씬/에셋에 직렬화된 노드 참조)이 코드 시그니처와 어긋나면 그래프가 깨진다.
-- **예외 승인 절차**: 시그니처 변경 전 반드시 그래프 에셋 영향을 확인하고 보고. Player BT는 이미 제거됨(플레이어 입력은 `PlayerController`가 직접 처리) — 헷갈리지 말 것.
+- **위반 시 리스크**: 상태 전이 우선순위가 바뀌면 공격/추격이 누락되거나 반복되고, 리와인드 중 상태가 신규 행동을 실행하면 기록과 현재 상태가 어긋난다.
+- **예외 승인 절차**: 새 상태를 추가할 때는 진입·퇴장·전이 조건과 리와인드 중 동작을 함께 검증한다.
 
 ### B5. DontDestroyOnLoad 싱글톤은 `PersistentSingleton<T>`
 

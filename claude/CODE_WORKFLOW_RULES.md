@@ -17,7 +17,7 @@
 ### 단계 1 — 수정 전 Read
 
 - 수정 대상 파일은 반드시 **먼저 Read**한다. 씬/프리팹(YAML)도 동일 — Unity MCP가 연결돼 있지 않으면 씬/프리팹은 YAML 직접 편집 방식이다([CONTEXT_LIMITS_POLICY.md](CONTEXT_LIMITS_POLICY.md) 3-1절).
-- `claude/HANDOVER.md`에서 작업 영역과 겹치는 미완 항목이 있는지 확인한다.
+- `claude/PLAN.md`에서 작업 영역과 겹치는 미완 항목이 있는지 확인한다.
 - 구조 파악이 필요하면 `claude/CLAUDE.md`(아키텍처 절)와 `claude/UML.md`를 먼저 읽는다. 질문 유형별 진입점은 [지식 검색 맵](RAG_KNOWLEDGE_MAP.md) 참조.
 
 ### 단계 2 — 수정
@@ -94,7 +94,7 @@ type: Scope 한국어 제목
   1. 진짜 bash heredoc: `git commit -m "$(cat <<'EOF' ... EOF)"`
   2. 파일 + `-F`: 메시지를 스크래치패드 파일에 Write 후 `git commit -F <파일>`
   3. PowerShell **툴**을 쓸 때만 `@'...'@` here-string이 유효(닫는 `'@`는 반드시 0열)
-- 커밋 전 HANDOVER 갱신 규칙(`claude/CLAUDE.md` Critical Rule 11): **커밋 전 `claude/HANDOVER.md`를 최신 상태로 갱신**하고, 커밋 메시지는 `claude/commit-convention.md` 형식을 따른다.
+- 커밋 전 PLAN 갱신 규칙(`claude/CLAUDE.md` Critical Rule 11): **커밋 전 `claude/PLAN.md`를 최신 상태로 갱신**하고, 커밋 메시지는 `claude/commit-convention.md` 형식을 따른다.
 
 ## 7. 관련 문서
 
@@ -102,5 +102,5 @@ type: Scope 한국어 제목
 - [진행상황 검증 규칙](PROGRESS_CLAIM_POLICY.md) — "완료" 선언 전 필수 증거
 - [검수 Subagent 사양서](VERIFIER_SUBAGENT_SPEC.md) — 컴파일/컨벤션/리와인드 영향 검수자
 - [작업 경계선](ACTION_BOUNDARIES.md) — 팀원 소유 코드 등 경계 총정리
-- [체크포인트 규칙](CHECKPOINT_RULES.md) — 커밋 못 하고 세션이 끝날 때의 HANDOVER 갱신
+- [체크포인트 규칙](CHECKPOINT_RULES.md) — 커밋 못 하고 세션이 끝날 때의 PLAN 갱신
 - 원본 규약: `claude/commit-convention.md`

@@ -44,7 +44,7 @@
 | 등급 | 대상 (이 저장소의 실물) | 허용 범위 |
 |---|---|---|
 | **공개 가능** | 코드 구조·컨벤션: `claude/coding-convention.md`의 네이밍 규칙, `PersistentSingleton<T>` 같은 일반 패턴, "Unity 2D 코루틴 리스타트 버그" 류의 **일반화된** 기술 질문 | 웹 검색 쿼리·Artifact 게시 가능. 단 프로젝트 고유명사 최소화(4절 ③) |
-| **내부 한정** | 기획·설계: `claude/README.md`(보스 기획 상세), `claude/PLAN.md`, `claude/HANDOVER.md`, GameDB(SO) 밸런싱 값, 이 AI_Workflow 문서군 | git·팀 내부 공유만. Artifact 공유 링크 생성 지양, 외부 API 전송 금지, claude.ai Projects 지식 업로드는 사용자 승인 후 |
+| **내부 한정** | 기획·설계: `claude/README.md`(보스 기획 상세), `claude/PLAN.md`, GameDB(SO) 밸런싱 값, 이 AI_Workflow 문서군 | git·팀 내부 공유만. Artifact 공유 링크 생성 지양, 외부 API 전송 금지, claude.ai Projects 지식 업로드는 사용자 승인 후 |
 | **절대 금지** | 2절의 3종: Supabase 크리덴셜, 계정·이메일, 미공개 콘텐츠/아트 원본 | 모든 외부 채널 차단 + 컨텍스트 주입도 최소화(값 대신 경로) |
 
 판단이 애매한 자료(예: 신규 문서, 외부 협력사 자료)는 **한 등급 위로** 취급하고 사용자에게 질문한다.

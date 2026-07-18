@@ -50,10 +50,10 @@ namespace Minsung.UI
         *                Methods
         ****************************************/
 
-        /// <summary> 게임 시작 (새로 시작) - 임시로 보스방(Boss) 진입, 맵 완성 후 MAP_1로 교체 예정 </summary>
+        /// <summary> 게임 시작 (새로 시작) - 임시로 Map2 진입, 맵 완성 후 MAP_1로 교체 예정 </summary>
         public void OnClickStart()
         {
-            PlayBurstThenLoad(_startButtonRect, Constants.Scene.BOSS);
+            PlayBurstThenLoad(_startButtonRect, Constants.Scene.MAP_2);
         }
 
         /// <summary> 이어하기 - 마지막으로 저장된 씬으로 진입 </summary>

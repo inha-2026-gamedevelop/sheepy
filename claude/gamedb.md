@@ -25,6 +25,8 @@
 | `PlayerDataSO.cs` | 플레이어 밸런싱 (이동/공격·차지/체력·사망/넉백·플래시/오브/시각효과) |
 | `BossDataSO.cs` | 보스 밸런싱 (피통·페이즈/본체/분신/낙뢰/감정/1페이즈 기믹/2페이즈 장풍/3페이즈 레이저) |
 | `TimeDataSO.cs` | 타임시스템 밸런싱 (리와인드/분신/슬로우/MP) |
+| `LpDataSO.cs` | LP(수집 재화) 밸런싱 (드랍/자석 픽업/풀) |
+| `PotionDataSO.cs` | 포션(회복 소비 아이템) 밸런싱 (드랍/자석 픽업/풀/소지·사용) |
 
 모두 네임스페이스 `Minsung.Common.Data` (민성 소유 - 구조 변경 전 소유자 확인, 필드 추가는 섹션 6 절차대로 누구나 가능).
 
@@ -36,9 +38,11 @@
 | `08.Data/Player/PlayerDB.asset` | `PlayerDataSO` | TheLastRewind > GameDB > PlayerDB |
 | `08.Data/Boss/BossDB.asset` | `BossDataSO` | TheLastRewind > GameDB > BossDB |
 | `08.Data/Time/TimeDB.asset` | `TimeDataSO` | TheLastRewind > GameDB > TimeDB |
+| `08.Data/Lp/LpDB.asset` | `LpDataSO` | TheLastRewind > GameDB > LpDB |
+| `08.Data/Potion/PotionDB.asset` | `PotionDataSO` | TheLastRewind > GameDB > PotionDB |
 
 - **루트만 Resources 폴더에 있다.** 도메인 에셋은 루트가 참조하므로 빌드에 의존성으로 자동 포함된다 (Resources 팽창 방지 + 폴더 구분 관리)
-- `GameDB.asset` 인스펙터의 `_playerSo` / `_bossSo` / `_timeSo` 슬롯에 도메인 에셋이 연결돼 있어야 한다 (현재 연결 완료 상태)
+- `GameDB.asset` 인스펙터의 `_playerSo` / `_bossSo` / `_timeSo` / `_lpSo` / `_potionSo` 슬롯에 도메인 에셋이 연결돼 있어야 한다 (현재 연결 완료 상태)
 - 같은 `08.Data/Resources/`에 있는 `SoundDB.asset` / `AchievementDatabase.asset`은 별도 시스템(사운드/업적)이며 GameDB 소속이 아니다
 
 ### 2.3 로드 흐름
@@ -134,7 +138,7 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 | `Constants.Player.HALVES_PER_HEART` (= 2) | 하트 1칸 = 반칸 2개 구조 상수. 바꾸면 체력 로직 전체가 깨짐 |
 | `Constants.Player.ANIM_DIR_FORWARD/REVERSE` (1/-1) | 애니메이터 재생 방향 부호 |
 | `Constants.Combat.MIN_DAMAGE`, `CRITICAL_MULTIPLIER`, `HIT_STOP_DURATION` | 전투 공식 상수 |
-| `Constants.Combat.ENEMY_*` (7개) | 몬스터는 BT 그래프 에셋 호환 + 배치별 인스펙터 튜닝 전제라 의도적으로 유지. 몬스터 종류가 늘면 `MonsterDataSO` 분리 권장 (섹션 6.2 절차) |
+| `Constants.Combat.ENEMY_*` (7개) | 몬스터 FSM 기본값 + 배치별 인스펙터 튜닝 전제라 의도적으로 유지. 몬스터 종류가 늘면 `MonsterDataSO` 분리 권장 (섹션 6.2 절차) |
 | `Constants.Combat.GIMMICK_LASER_COLOR_COUNT` (= 3) | `LaserColor` enum 개수와 일치해야 하는 구조 상수 |
 | `Constants.audio/camera/interactive/item/ui` | 타 도메인 계약값 파일 - 이번 이관 범위 밖 |
 
@@ -170,7 +174,7 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 
 - 하트 차감은 반칸(Halves) 단위: AttackHalves 2 = 한 칸, CloneAttackHalves 1 = 반 칸
 - `TODO: 밸런싱` 주석이 붙은 필드는 기획 미확정 임시값
-- **주의: 현재 BossDB.asset의 TotalHealth는 400이다 (관람/테스트용 - 페이즈당 100).** 코드 기본값이자 프로덕션 값은 64000. 실 밸런스 테스트 전 인스펙터에서 되돌릴 것 (`claude/HANDOVER.md` 주의사항 (1)과 동일 건)
+- **주의: 현재 BossDB.asset의 TotalHealth는 400이다 (관람/테스트용 - 페이즈당 100).** 코드 기본값이자 프로덕션 값은 64000. 실 밸런스 테스트 전 인스펙터에서 되돌릴 것 (`claude/PLAN.md` 주의사항 (1)과 동일 건)
 
 ### 5.3 TimeDataSO (`GameDB.Time`)
 
@@ -182,6 +186,25 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 | MP | MaxMp, MpRegenPerSec, RewindMpCost, SlowMpCostPerSec, KillMpRestore |
 
 - **`RecordSeconds`는 직접 쓰지 말 것.** 버퍼 용량은 반드시 `RewindManager.TickCapacity` 경유 (리와인드 참여자 전원의 버퍼 인덱스 정합성)
+
+### 5.4 LpDataSO (`GameDB.Lp`)
+
+| 그룹 | 프로퍼티 |
+|---|---|
+| 드랍 | DropChance |
+| 자석 픽업 | MagnetRadius, MagnetSpeed, CollectRadius |
+| 풀 | PoolSize |
+
+### 5.5 PotionDataSO (`GameDB.Potion`)
+
+| 그룹 | 프로퍼티 |
+|---|---|
+| 드랍 | DropChance |
+| 자석 픽업 | MagnetRadius, MagnetSpeed, CollectRadius |
+| 풀 | PoolSize |
+| 소지/사용 | MaxCarryCount(최대 소지 개수), HealHalves(1개 사용 시 회복량, 반칸 단위) |
+
+- LP와 동일하게 몬스터 처치 드랍 + 자석 픽업 패턴(`LpManager`/`LpPickupPool` 참고 구현)을 그대로 재사용한다. 소지 개수는 `MaxCarryCount`로 상한을 두고(가득 차면 드랍을 줍지 못함), 사용은 `PlayerInput`의 `Constants.Player.KEY_USE_POTION`(Q) 입력 -> `PotionManager.TryUsePotion()` -> `PlayerHealth.Heal(HealHalves)`
 
 ## 6. 확장 절차
 
@@ -218,6 +241,7 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 - **03.Boss**: BossController, BossBodyController, BossCloneController, BossEmotion, BossLightningPattern, Phase1State, Phase2State, Phase3State
 - **04.TimeSystem**: RewindManager, ClonePool, CloneController, SlowMotionController
 - **06.UI**: BossHealthBarUI
+- **12.Item**: LpManager, PotionManager
 
 패턴 참고에 좋은 파일: `OrbController.cs`(So 어미 필드 캐싱), `Phase1State.cs`(생성자에서 WaitForSeconds 캐싱), `RewindManager.cs`(TickCapacity).
 
@@ -253,7 +277,7 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 9. 에셋의 직렬화 값이 코드 기본값보다 우선한다. 값 변경은 에셋 인스펙터에서
 10. Ex/ 폴더의 ExBossDataSO는 샘플이며 GameDB와 무관 - 프로덕션에서 참조 금지
 11. GameDB 코어(Minsung.Common.Data)의 구조 변경은 소유자(민성) 확인 후 진행
-12. 몬스터 ENEMY_* 값은 BT 에셋 호환 때문에 Constants.Combat에 의도적으로 남아 있다 - 임의로 SO 이관하지 말 것
+12. 몬스터 ENEMY_* 값은 FSM 기본값과 배치별 튜닝을 위해 Constants.Combat에 의도적으로 남아 있다 - 임의로 SO 이관하지 말 것
 ```
 
 ## 11. 관련 문서
@@ -264,4 +288,4 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 | `claude/coding-convention.md` | 섹션 2 SO 네이밍, 섹션 16 데이터 관리 규칙 전문 |
 | `claude/UML.md` | 섹션 7 GameDB 클래스 다이어그램 (Mermaid) |
 | `claude/PLAN.md` | 리팩토링 이력 2026-07-11 (Constants -> GameDB 이관 기록) |
-| `claude/HANDOVER.md` | 세션 종합 인수인계 (씬 구성/신규 기능/미커밋 상태/검증 결과) - GameDB 에셋 생성 경위 포함 |
+| `claude/PLAN.md` | 세션 종합 인수인계 (씬 구성/신규 기능/미커밋 상태/검증 결과) - GameDB 에셋 생성 경위 포함 |

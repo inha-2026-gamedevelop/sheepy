@@ -1,5 +1,6 @@
 // System
 using System;
+using System.Collections;
 
 // Unity
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace Minsung.Monster
         [SerializeField] private float _maxHealth = Constants.Combat.ENEMY_BASE_HEALTH;
 
         private float _currentHealth; // 남은 체력. 0 이하가 되면 비활성화 (리와인드로 부활 가능)
+        private readonly WaitForSeconds _deathAnimWait = new WaitForSeconds(Constants.Combat.ENEMY_DEATH_ANIM_DURATION);
 
         public float CurrentHealth => _currentHealth;
         public bool  IsDead        => _currentHealth <= 0f;
@@ -58,7 +60,7 @@ namespace Minsung.Monster
             if (_currentHealth <= 0f)
             {
                 OnDeath?.Invoke();
-                gameObject.SetActive(false); // 파괴 대신 비활성화 - 리와인드 부활 대상
+                StartCoroutine(CoDeactivateAfterDeathAnim());
             }
             else
             {
@@ -71,6 +73,17 @@ namespace Minsung.Monster
         public void RestoreHealth(float health)
         {
             _currentHealth = Mathf.Clamp(health, 0f, _maxHealth);
+        }
+
+        // 사망 모션이 끝날 때까지 기다린 뒤 비활성화. 파괴 대신 비활성화하는 이유는 리와인드 부활 대상이기 때문
+        // 대기 중 리와인드로 부활(RestoreHealth)했다면 죽은 게 아니므로 비활성화하지 않는다
+        private IEnumerator CoDeactivateAfterDeathAnim()
+        {
+            yield return _deathAnimWait;
+            if (IsDead)
+            {
+                gameObject.SetActive(false);
+            }
         }
     }
 }

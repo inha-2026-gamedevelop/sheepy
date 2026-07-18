@@ -1,6 +1,8 @@
 // Unity
 using UnityEngine;
 
+using Minsung.Common;
+
 namespace Minsung.Item
 {
     // 포션 드랍 오브젝트 풀. LpPickupPool과 동일하게 생성/파괴 대신 슬롯 활성/비활성으로 관리한다.
@@ -26,6 +28,8 @@ namespace Minsung.Item
 
         private static Sprite _placeholderSprite; // 전용 아트 확보 전 임시 스프라이트 (지연 생성 후 재사용)
 
+        private readonly Color _color = new Color(1f, 0.35f, 0.45f); // 포션 전용 아트 확보 전 임시 색상 (붉은빛)
+
         private PoolSlot[] _slots;
 
         public int Size => (_slots != null) ? _slots.Length : 0;
@@ -44,6 +48,7 @@ namespace Minsung.Item
                 SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = PotionSprite();
                 sr.color  = Color.white;
+                ManagedObjectManager.Register(EManagedObjectType.PotionPickup, sr);
                 _slots[i] = new PoolSlot { Go = go, Renderer = sr };
             }
         }
@@ -120,6 +125,7 @@ namespace Minsung.Item
             {
                 if (_slots[i].Go != null)
                 {
+                    ManagedObjectManager.Unregister(_slots[i].Renderer);
                     Object.Destroy(_slots[i].Go);
                 }
             }

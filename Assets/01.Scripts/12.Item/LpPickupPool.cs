@@ -1,6 +1,8 @@
 // Unity
 using UnityEngine;
 
+using Minsung.Common;
+
 namespace Minsung.Item
 {
     // LP(수집 재화) 드랍 오브젝트 풀. BossHazardPool과 동일하게 생성/파괴 대신 슬롯 활성/비활성으로 관리한다.
@@ -42,6 +44,7 @@ namespace Minsung.Item
                 SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = PlaceholderSprite();
                 sr.color  = _color;
+                ManagedObjectManager.Register(EManagedObjectType.LpPickup, sr);
                 _slots[i] = new PoolSlot { Go = go, Renderer = sr };
             }
         }
@@ -118,6 +121,7 @@ namespace Minsung.Item
             {
                 if (_slots[i].Go != null)
                 {
+                    ManagedObjectManager.Unregister(_slots[i].Renderer);
                     Object.Destroy(_slots[i].Go);
                 }
             }

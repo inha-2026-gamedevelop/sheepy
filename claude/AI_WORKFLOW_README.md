@@ -57,7 +57,7 @@
 - [FALLBACK_POLICY.md](FALLBACK_POLICY.md) — Refusal/실패 대응 플레이북
 
 ### G. 세션 종료·보안
-- [CHECKPOINT_RULES.md](CHECKPOINT_RULES.md) — `claude/HANDOVER.md` 갱신 시점·표준 목차
+- [CHECKPOINT_RULES.md](CHECKPOINT_RULES.md) — `claude/PLAN.md` 갱신 시점·표준 목차
 - [DATA_RETENTION_AND_PRIVACY_RULES.md](DATA_RETENTION_AND_PRIVACY_RULES.md) — 민감정보 업로드 기준
 - [POST_FABLE_HANDOFF.md](POST_FABLE_HANDOFF.md) — 모델 전환 인수인계 양식(이 프로젝트엔 현재 해당 없음)
 

@@ -32,6 +32,7 @@ namespace Minsung.Player
         private PlayerRewind      _rewind;
         private PlayerHealth      _health;
         private PlayerStatusEffectController _statusEffects;
+        private string _objectId;
 
         private Material  _material; // _renderer의 인스턴스 머티리얼 캐시
         private CharaGlow _glow;     // 피격 플래시용 글로우 (없으면 플래시 생략)
@@ -47,6 +48,7 @@ namespace Minsung.Player
         public bool IsInputInverted => _input.IsInverted;
         public bool IsDead          => _isDead;
         public PlayerStatusEffectController StatusEffects => _statusEffects;
+        public string ObjectId => _objectId;
 
         public event Action<bool> OnInputInvertedChanged; // 혼란 아이콘 UI 연동용
 
@@ -56,6 +58,7 @@ namespace Minsung.Player
 
         private void Awake()
         {
+            _objectId    = ManagedObjectManager.Register(EManagedObjectType.Player, this);
             _input       = GetComponent<PlayerInput>();
             _movement    = GetComponent<PlayerMovement>();
             _combat      = GetComponent<PlayerCombat>();
@@ -103,6 +106,7 @@ namespace Minsung.Player
 
         private void OnDestroy()
         {
+            ManagedObjectManager.Unregister(this);
             if (_input != null)
             {
                 _input.OnInvertedChanged -= ForwardInvertedChanged;
@@ -163,6 +167,7 @@ namespace Minsung.Player
             {
                 return;
             }
+            GameManager.Instance?.ResetBossTimer(); // 보스전 중 사망 - 진행 중이던 클리어 타이머 폐기
             StartCoroutine(CoDeathRespawn());
         }
 
@@ -176,9 +181,10 @@ namespace Minsung.Player
             yield return _waitDeathDelay;
 
             bool respawned = false;
+            respawned = RespawnManager.TryRespawn(this, OnRespawned);
             if (GameManager.Instance != null)
             {
-                respawned = GameManager.Instance.RequestCheckpointRespawn(transform, OnRespawned);
+                respawned = respawned || GameManager.Instance.RequestCheckpointRespawn(transform, OnRespawned);
             }
             if (!respawned)
             {

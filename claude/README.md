@@ -68,12 +68,13 @@ Sheepy는 한 아이와 함께 놀던 봉제인형이었다.
 | `R` | 타임리와인드 + 분신 소환 | ✅ |
 | `Shift` | 슬로우모션 | ✅ |
 | `T` | 분신 전체 삭제 | ✅ |
-| `X` 홀드 | 차지공격 (데미지 2.5배) | 🔲 예정 |
-| `E` | 분신 소환 (단독) | 🔲 예정 |
+| `X` 홀드 | 차지공격 (데미지 2.5배) | ✅ |
+| `Q` | 포션 사용 (소지 1개 소비, 하트 1칸 회복) | ✅ (2026-07-18) |
+| `E` | 상호작용 (레버/라디오/엘리베이터 등) | ✅ |
 
 플레이어 입력은 `PlayerInput`이 읽어 `PlayerMovement`/`PlayerCombat`/`PlayerRewind` 등 각 컴포넌트로 전달한다(코디네이터 `PlayerController`가 조율).  
-키는 `Constants.Player`(KEY_JUMP/KEY_ATTACK/KEY_REWIND/KEY_CLEAR_CLONES)에서 중앙 관리한다.  
-(Behavior Tree는 몬스터 판단 전용 - Player BT, Boss BT 모두 제거됨. 보스는 FSM(`BossState`/`Phase1~4State`)이 판단)
+키는 `Constants.Player`(KEY_JUMP/KEY_ATTACK/KEY_REWIND/KEY_CLEAR_CLONES/KEY_USE_POTION)에서 중앙 관리한다.  
+(플레이어 입력은 `PlayerController`, 일반 몬스터는 `MonsterState` FSM, 보스는 `BossState`/`Phase1~4State` FSM이 판단)
 
 ### 상태이상 (디버프) ✅ 구현
 `PlayerStatusEffectController`가 지속시간형 디버프를 관리한다.  
@@ -85,6 +86,7 @@ Sheepy는 한 아이와 함께 놀던 봉제인형이었다.
 
 ### 상호작용 ✅ 구현
 `IInteractable` + `InteractableRegistry`(Collider2D 조회) 기반. `LeverInteractive`(되감기 재연 지원) / `RadioInteractive`(사운드 토글 + 카메라 포커스). E키 감지는 `PlayerInteractionSensor`, 키 가이드 HUD는 `KeyGuideManager`.
+홀드형 상호작용은 `IHoldInteractable`로 별도 계약 - 레버로 해금한 `ElevatorController`(IRewindable)를 `ElevatorButtonInteractive`(3초 홀드)로 호출하는 엘리베이터가 대표 사례.
 
 ### 체력 — 하트 방식 (실크송류) ✅ 구현
 - 플레이어/분신 공통 `PlayerHealth`: **하트 6개**, 피격 시 무조건 1개 차감
@@ -154,18 +156,16 @@ Sheepy: A Short Adventure의 보스 리소스를 활용.
 
 ---
 
-## 📦 아이템 🔲 예정
+## 📦 아이템 ✅ 구현 (LP + 포션)
 
-> 데이터/드랍 상수는 `Constants.Item` / `Constants.Equipment`에 준비됨. 시스템은 Week 2 예정.
+> 장비/강화석/골드/MP포션/회중시계(이스터에그)는 2026-07-11 범위 제외 확정. 아이템은 LP(수집 카운터) + 포션(회복 소비 아이템) 2종으로 단순화.
 
-| 아이템 | 획득처 | 효과 |
-|---|---|---|
-| HP 포션 | 몬스터 드랍, 상점 | HP 30 회복 |
-| MP 포션 | 몬스터 드랍, 상점 | MP 40 회복 |
-| 강화석 | 몬스터/보스 드랍, 퍼즐 보상 | 장비 강화 재료 |
-| 골드 | 몬스터/보스 드랍, 퍼즐 보상 | 강화 비용, 상점 화폐 |
-| 보스 입장 재료 | 특정 몬스터 드랍 | 보스방 진입 조건 |
-| **깨진 회중시계** | 챕터 1 초반 고정 획득 | 이스터에그 열쇠 |
+| 아이템 | 획득처 | 효과 | 상태 |
+|---|---|---|---|
+| LP | 몬스터 처치 확률 드랍(자석 픽업) | 단순 수집 카운터 (사용처 미정) | ✅ |
+| 포션 | 몬스터 처치 확률 드랍(자석 픽업) | 소지(최대 3개) 후 `Q`로 사용 - 하트 1칸 회복 | ✅ (2026-07-18) |
+
+두 아이템 모두 `LpManager`/`PotionManager`(`12.Item/`, `IRewindable`, 자동 생성 싱글톤)가 드랍 확률/자석 이동/획득/개수를 관리하며, 되감기 시 개수와 필드에 남은 픽업 오브젝트가 함께 복원된다. 밸런싱은 `GameDB.Lp`/`GameDB.Potion`(`LpDataSO`/`PotionDataSO`).
 
 ---
 
@@ -182,21 +182,21 @@ Supabase 기반 온라인 랭킹 시스템 (`SupabaseClient` — REST 래퍼 완
 
 ```
 Assets/
-├── 00.Scenes/          씬 파일 (Boss / Map1 / Map2 / Loading + Minsung 테스트 씬)
-├── 01.Scripts/         (총 104개 스크립트, 번호 접두사)
-│   ├── 00.Common/      GameManager / ColorType / DamageSource / IDamageable / Constants(10분할) / Utility
+├── 00.Scenes/          씬 파일 (MainMenu / Map1~4 / Loading / Pause + Minsung/Jinwook 테스트 씬)
+├── 01.Scripts/         (총 135개 스크립트, 번호 접두사, 전부 Minsung.* 프로덕션 코드 - Ex/ 샘플 폴더는 2026-07-18 제거)
+│   ├── 00.Common/      GameManager / SaveManager / ColorType / DamageSource / IDamageable / Constants(분할) / Data(GameDB) / Utility
 │   ├── 01.Player/      코디네이터(PlayerController) + Input/Movement/Combat/Interaction/Rewind/StatusEffect / Health(하트) / Orbs / Animator / HeartUI / 상호작용 센서
-│   ├── 02.Monster/     MonsterController / MonsterHealth / Animator / BT(순찰·추격·공격 노드)
+│   ├── 02.Monster/     MonsterController / MonsterHealth / Animator(사망 모션 포함) / FSM(순찰·추격·공격 상태)
 │   ├── 03.Boss/        BossController(단일 피통) + Phase1~4State(FSM) / 감정(BossEmotion) / 근접유닛(본체·분신) / 낙뢰·해저드 풀 / DamageHazard
 │   ├── 04.TimeSystem/  RewindManager / RingBuffer / 커맨드(Tick·Move·Attack·Interact·Anim) / 분신 / 슬로우
-│   ├── 05.Interactive/ IInteractable / 레지스트리 / BaseInteractive / Lever / Radio (+Editor)
-│   ├── 06.UI/          BossHealthBarUI(Slider) / KeyGuide / Caption(자막) / 상태이상 UI / SpriteReference
+│   ├── 05.Interactive/ IInteractable / IHoldInteractable / 레지스트리 / BaseInteractive / Lever(+LightSwitch) / Radio / Elevator(Controller·Button·Manager) (+Editor)
+│   ├── 06.UI/          BossHealthBarUI(Slider) / KeyGuide / Caption(자막) / 상태이상 UI / SpriteReference / Loading·Pause·MainMenu 컨트롤러
 │   ├── 07.Achievement/ 업적 (Manager / Database SO / Toast UI / Ids)
 │   ├── 08.Backend/     Supabase 클라이언트 / 모델 / 고스트 프레임
-│   ├── 09.Visual/      VHS 오버레이 / 글로우 / 그림자 / 페이드 / 스피드라인 / 파티클 / URP 세팅
+│   ├── 09.Visual/      VHS 오버레이 / 글로우 / 그림자 / 페이드 / 스피드라인 / 파티클 / URP 세팅 / 보스 아웃트로 영상
 │   ├── 10.Sound/       SoundManager / MapBgmPlayer / SoundData(SO) (+Editor)
 │   ├── 11.CameraSystem/ CameraManager (Cinemachine 포커스 전환)
-│   └── Ex/             샘플/예제 코드 (네임스페이스 없음, 프로덕션 참조 금지)
+│   └── 12.Item/        LP(수집 재화)/포션(회복 소비) 드랍/자석픽업/카운트 - LpManager·PotionManager(IRewindable) / LpPickupPool·PotionPickupPool
 ├── 02.Prefabs/         프리팹 (Player/Clone/Boss/Monster/FX/UI)
 ├── 03.Images/          스프라이트 (Sheepy 리소스 기반)
 ├── 04.Models/          머티리얼 / 텍스처
@@ -211,7 +211,7 @@ Assets/
 ### 아키텍처 한눈에
 
 ```
-[입력]  플레이어 = PlayerInput / 몬스터 = Behavior Tree 노드 (Monster/BT) / 보스 = FSM (BossState, Phase1~4State)
+[입력]  플레이어 = PlayerInput / 몬스터 = FSM (MonsterState) / 보스 = FSM (BossState, Phase1~4State)
            v Request* 호출
 [몸통]  PlayerMovement·Combat / MonsterController  -- 물리, 애니메이션
            v RecordTick / ApplyRewindTick (IRewindable: PlayerRewind, Monster, Boss, Clone, Lever)

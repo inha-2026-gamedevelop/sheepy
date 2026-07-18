@@ -58,12 +58,12 @@
 | `BossHazardPool.cs` | 해저드 풀 | 레이저/안전구역/장풍 등 공유 판정·연출 오브젝트 |
 | `BossCloneController.cs` / `BossBodyController.cs` / `BossMeleeUnitBase.cs` | 근접 유닛 | 1페이즈 분신 / 2페이즈~ 본체 |
 
-### Monster (`02.Monster/` + `BT/`)
+### Monster (`02.Monster/`)
 
 | 파일 | 역할 |
 |---|---|
 | `MonsterController.cs` / `MonsterHealth.cs` / `MonsterAnimator.cs` | 몸통/체력/애니메이터 |
-| `BT/PatrolAction.cs` / `ChaseAction.cs` / `AttackPlayerAction.cs` 등 | Unity Behavior 노드(판단 담당) |
+| `MonsterState.cs` | Patrol/Chase/Attack C# FSM 상태와 전이 판단 |
 
 ### Interactive (`05.Interactive/`)
 
@@ -88,7 +88,7 @@
 | 항목 | 문서상 표기 | 실측 결과 | 조치 |
 |---|---|---|---|
 | `claude/coding-convention.md` | 과거 `claude/codingconvention.md`(하이픈 없음)로 여러 문서에서 참조됨 | 실제 파일명은 `coding-convention.md`(하이픈 있음) | 2026-07-11에 전 참조 수정 완료(커밋 `ab9a479`/`5c1b7ce` 등) — 재발 방지로 이 표에 남김 |
-| 3페이즈 전용 맵 씬 | `BossController._phase3SceneName` 필드 존재 | 씬 자체는 아직 미제작(현재 `"Boss"` 자기 재로드로 임시 설정) | 명진 담당, `claude/HANDOVER.md` "해야 할 것" 참고 |
+| 3페이즈 전용 맵 씬 | `BossController._phase3SceneName` 필드 존재 | 씬 자체는 아직 미제작(현재 `"Boss"` 자기 재로드로 임시 설정) | 명진 담당, `claude/PLAN.md` "해야 할 것" 참고 |
 
 ## 관련 문서
 

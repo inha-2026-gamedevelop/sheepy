@@ -105,7 +105,7 @@ fix: Boss Phase2 낙뢰 풀 오브젝트 미반환 수정
 feat: TimeSystem 분신 InteractCommand 재연 지원
 fix: Interactive LeverInteractive 되감기 시 상태 불일치 수정
 refactor: Boss BossEmotion 반사 판정 DamageSource 기준으로 통일
-docs: HANDOVER.md 검증 상태 갱신
+docs: PLAN.md 검증 상태 갱신
 chore: Backend KEY.txt 예시 포맷 정리
 perf: Monster OverlapCircleAll 호출을 NonAlloc 버퍼로 교체
 ```

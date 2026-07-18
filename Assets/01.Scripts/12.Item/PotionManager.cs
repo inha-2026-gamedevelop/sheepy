@@ -7,6 +7,7 @@ using UnityEngine;
 using Minsung.Common;
 using Minsung.Common.Data;
 using Minsung.Player;
+using Minsung.Sound;
 using Minsung.TimeSystem;
 
 namespace Minsung.Item
@@ -44,6 +45,7 @@ namespace Minsung.Item
         private float _collectRadius;
         private int   _maxCarryCount;
         private int   _healHalves;
+        private AudioClip _pickupClip;
 
         private PotionPickupPool _pool;
         private Transform        _player;
@@ -97,6 +99,7 @@ namespace Minsung.Item
             _collectRadius = potionSo.CollectRadius;
             _maxCarryCount = potionSo.MaxCarryCount;
             _healHalves    = potionSo.HealHalves;
+            _pickupClip    = CreatePickupClip();
 
             _pool = new PotionPickupPool(potionSo.PoolSize);
 
@@ -201,8 +204,33 @@ namespace Minsung.Item
             _pool.Free(i);
             ++_potionCount;
             OnPotionChanged?.Invoke(_potionCount);
+            SoundManager.Instance?.PlaySFX(_pickupClip);
 
             // TODO: 획득 이펙트/사운드 (ParticlePresets / Constants.Audio)
+        }
+
+        private static AudioClip CreatePickupClip()
+        {
+            const int sampleRate = 22050;
+            const float duration = 0.32f;
+            const float baseFrequency = 880f;
+            const float harmonicFrequency = 1320f;
+
+            int sampleCount = Mathf.CeilToInt(sampleRate * duration);
+            float[] samples = new float[sampleCount];
+            for (int i = 0; i < sampleCount; ++i)
+            {
+                float time = (float)i / sampleRate;
+                float progress = time / duration;
+                float envelope = Mathf.Sin(Mathf.PI * Mathf.Min(progress * 3f, 1f)) * (1f - progress);
+                float primary = Mathf.Sin(Mathf.PI * 2f * (baseFrequency + (600f * progress)) * time);
+                float harmonic = Mathf.Sin(Mathf.PI * 2f * (harmonicFrequency + (900f * progress)) * time);
+                samples[i] = (primary + (harmonic * 0.35f)) * envelope * 0.35f;
+            }
+
+            AudioClip clip = AudioClip.Create("PotionPickup", sampleCount, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
         }
 
         /****************************************
