@@ -43,6 +43,8 @@ namespace Minsung.Player
 
         private IInteractable _currentInteractable;
         private IInteractable _previousInteractable;
+        private IHoldInteractable _activeHoldInteractable;
+        private GameObject        _activeHoldTarget;
 
         private ContactFilter2D _itemContactFilter;
         private readonly RaycastHit2D[] _sphereHits = new RaycastHit2D[MAX_HIT_BUFFER_SIZE]; // NonAlloc용 버퍼
@@ -108,11 +110,13 @@ namespace Minsung.Player
         {
             if (!_isSensorActive)
             {
+                CancelHoldInteraction();
                 return false;
             }
             // 되감기 중에는 플레이어 위치가 RewindManager에 의해 강제로 이동하므로 판정을 쉰다.
             if ((_playerController != null) && _playerController.IsRewinding)
             {
+                CancelHoldInteraction();
                 return false;
             }
             return true;
@@ -184,6 +188,16 @@ namespace Minsung.Player
         /// <summary> 타겟 변경 시 Focus/Unfocus 처리 </summary>
         private void UpdateTarget(IInteractable newTarget)
         {
+            if (ReferenceEquals(_currentInteractable, newTarget))
+            {
+                return;
+            }
+
+            if (_activeHoldInteractable != null)
+            {
+                CancelHoldInteraction();
+            }
+
             _previousInteractable = _currentInteractable;
             _previousInteractable?.OnUnfocus();
 
@@ -194,6 +208,7 @@ namespace Minsung.Player
         /// <summary> 포커스 중인 대상을 강제로 OnUnfocus 처리하고 비운다 (상점 종료 연출 등 센서 정지 시 포커스 잔상 제거용). </summary>
         public void ClearCurrentTarget()
         {
+            CancelHoldInteraction();
             _currentInteractable?.OnUnfocus();
             _currentInteractable = null;
             _previousInteractable = null;
@@ -202,6 +217,12 @@ namespace Minsung.Player
         /// <summary> 상호작용 입력 처리 </summary>
         private void HandleInteractionInput()
         {
+            if (_activeHoldInteractable != null)
+            {
+                HandleHoldInteraction();
+                return;
+            }
+
             if ((_playerController != null) && _playerController.IsInteracting)
             {
                 return;
@@ -209,10 +230,51 @@ namespace Minsung.Player
 
             if (Input.GetKeyDown(_interactKey) && (_currentInteractable != null))
             {
+                if ((_currentInteractable is IHoldInteractable holdInteractable) && holdInteractable.CanHoldInteract)
+                {
+                    if (holdInteractable.OnHoldStart(gameObject))
+                    {
+                        _activeHoldInteractable = holdInteractable;
+                        _activeHoldTarget        = _currentInteractable.GetTransform().gameObject;
+                    }
+                    return;
+                }
+
                 GameObject target = _currentInteractable.GetTransform().gameObject;
                 _currentInteractable.OnInteract(gameObject);
                 _playerController?.NotifyInteracted(target); // 분신 재연용 - 다음 RecordTick에 기록됨
             }
+        }
+
+        private void HandleHoldInteraction()
+        {
+            if (!ReferenceEquals(_activeHoldInteractable, _currentInteractable) || !Input.GetKey(_interactKey))
+            {
+                CancelHoldInteraction();
+                return;
+            }
+
+            if (!_activeHoldInteractable.OnHoldUpdate(gameObject, Time.deltaTime))
+            {
+                return;
+            }
+
+            _playerController?.NotifyInteracted(_activeHoldTarget); // 완료된 홀드만 분신 커맨드로 기록
+            _activeHoldInteractable = null;
+            _activeHoldTarget = null;
+        }
+
+        private void CancelHoldInteraction()
+        {
+            if (_activeHoldInteractable == null)
+            {
+                return;
+            }
+
+            IHoldInteractable holdInteractable = _activeHoldInteractable;
+            _activeHoldInteractable = null;
+            _activeHoldTarget = null;
+            holdInteractable.OnHoldCancel(gameObject);
         }
 
         // 디버그용 기즈모 - 실제 감지에 쓰는 CircleCast 원점/반경을 그대로 표시한다.
