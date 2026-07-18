@@ -72,6 +72,8 @@ namespace Minsung.Monster
         public bool IsPlayerDetected => IsPlayerWithinRange(_detectRange);
         public bool IsPlayerInAttackRange => IsPlayerWithinRange(_attackRange);
 
+        // 사망 모션 재생 중(MonsterHealth가 비활성화를 지연하는 구간)에는 FSM 요청을 무시한다.
+        private bool IsDead => (_health != null) && _health.IsDead;
 
         /****************************************
         *              Unity Event
@@ -121,7 +123,7 @@ namespace Minsung.Monster
 
         private void FixedUpdate()
         {
-            if (_isRewinding)
+            if (_isRewinding || IsDead)
             {
                 return;
             }
@@ -165,7 +167,7 @@ namespace Minsung.Monster
         /// <summary> 순찰 속도로 수평 이동. 되감기 중/사망 모션 중 무시. </summary>
         public void RequestMove(float horizontal)
         {
-            if (_isRewinding)
+            if (_isRewinding || IsDead)
             {
                 return;
             }
@@ -175,7 +177,7 @@ namespace Minsung.Monster
         /// <summary> 추격 배속으로 수평 이동. 되감기 중/사망 모션 중 무시. </summary>
         public void RequestChaseMove(float horizontal)
         {
-            if (_isRewinding)
+            if (_isRewinding || IsDead)
             {
                 return;
             }
@@ -185,7 +187,7 @@ namespace Minsung.Monster
         /// <summary> 수평 이동 정지. 되감기 중/사망 모션 중 무시. </summary>
         public void RequestStop()
         {
-            if (_isRewinding)
+            if (_isRewinding || IsDead)
             {
                 return;
             }
@@ -246,6 +248,10 @@ namespace Minsung.Monster
         // 사망 순간(MonsterHealth.OnDeath) 사망 모션 재생 + 확률적으로 LP 드랍.
         private void HandleDeath()
         {
+            if (_monsterAnimator != null)
+            {
+                _monsterAnimator.TriggerDeath();
+            }
             _sfxEmitter?.PlayDeath();
             LpManager.Instance?.TryDropLp(transform.position);
         }
@@ -396,6 +402,10 @@ namespace Minsung.Monster
             _deadTicks = 0;
             _rb.bodyType = RigidbodyType2D.Kinematic; // 되감기가 끝나기 전까지는 물리 꺼진 상태 유지
             _rb.linearVelocity = Vector2.zero;
+            if (_monsterAnimator != null)
+            {
+                _monsterAnimator.ResetToIdle(); // Death 등 종단 상태에 갇힌 채 부활하는 것 방지
+            }
         }
 
         // 사망 스냅샷만 기록 창 전체를 채우면 되감기로 부활할 수 없으므로 타임라인과 씬에서 제거
@@ -409,7 +419,7 @@ namespace Minsung.Monster
         /// <summary> 플레이어 공격 (하트 한 칸). 쿨다운은 Attack FSM 상태가 관리한다. </summary>
         public void RequestAttackPlayer()
         {
-            if (_isRewinding)
+            if (_isRewinding || IsDead)
             {
                 return;
             }

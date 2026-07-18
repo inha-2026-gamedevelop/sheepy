@@ -24,6 +24,9 @@ namespace Minsung.Common
             public const float ENEMY_PATROL_DISTANCE  = 3f;   // 스폰 지점 기준 좌우 순찰 거리
             public const float ENEMY_ART_FACING_SIGN  = -1f;  // 원본 몬스터 아트가 왼쪽을 봄 (-1 = 오른쪽을 볼 때 좌우 반전)
 
+            // 사망 모션 재생 시간 - Monster.controller의 Death.anim 클립 길이와 반드시 일치해야 한다
+            public const float ENEMY_DEATH_ANIM_DURATION = 0.25f;
+
             // 1페이즈 즉사 기믹 - LaserColor enum 개수와 일치해야 하는 구조 상수
             public const int GIMMICK_LASER_COLOR_COUNT = 3;
 
