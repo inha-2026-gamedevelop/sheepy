@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Minsung.Utility
 {
-    // DontDestroyOnLoad 싱글톤 공통 베이스.
-    public abstract class PersistentSingleton<T> : MonoBehaviour where T : PersistentSingleton<T>
+    // 씬 안에서만 유지되는 싱글톤 공통 베이스
+    public abstract class SceneSingleton<T> : MonoBehaviour where T : SceneSingleton<T>
     {
         /****************************************
         *                Fields
@@ -23,24 +23,20 @@ namespace Minsung.Utility
                 Destroy(gameObject);
                 return;
             }
+
             Instance = (T)this;
-
-            // DontDestroyOnLoad는 루트 오브젝트에서만 동작 - 씬에 자식으로 배치된 경우를 대비해 루트로 승격
-            if (transform.parent != null)
-            {
-                transform.SetParent(null);
-            }
-            DontDestroyOnLoad(gameObject);
-
             OnSingletonAwake();
         }
 
         protected virtual void OnDestroy()
         {
-            if (Instance == this)
+            if (Instance != this)
             {
-                Instance = null;
+                return;
             }
+
+            OnSingletonDestroy();
+            Instance = null;
         }
 
         /****************************************
@@ -53,7 +49,7 @@ namespace Minsung.Utility
             Instance = null;
         }
 
-        // 파생 클래스의 AfterSceneLoad 훅에서 미배치 영속 인스턴스를 자동 생성한다
+        // 파생 클래스의 AfterSceneLoad 훅에서 씬 미배치 인스턴스를 자동 생성한다
         protected static void EnsureCreated(string objectName)
         {
             if (Instance == null)
@@ -62,7 +58,10 @@ namespace Minsung.Utility
             }
         }
 
-        // 최초 인스턴스로 확정된 뒤 1회 호출되는 초기화 훅.
+        // 최초 인스턴스로 확정된 뒤 1회 호출되는 초기화 훅
         protected virtual void OnSingletonAwake() { }
+
+        // 최초 인스턴스가 파괴되기 직전에 호출되는 정리 훅
+        protected virtual void OnSingletonDestroy() { }
     }
 }

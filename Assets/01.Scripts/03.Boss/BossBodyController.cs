@@ -129,7 +129,7 @@ namespace Minsung.Boss
         /// <summary> 원거리 패턴(장풍/레이저) 발사 시 캐스팅 모션 재생. Phase2/3 상태가 발사 시점마다 호출한다 </summary>
         public void PlayCastTrigger()
         {
-            PlayAnimTrigger(Constants.Combat.BOSS_ANIM_CAST);
+            PlayAnimTrigger(PARAM_CAST);
         }
 
         /****************************************

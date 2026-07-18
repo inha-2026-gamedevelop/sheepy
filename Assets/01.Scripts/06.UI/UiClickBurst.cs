@@ -24,6 +24,49 @@ namespace Minsung.UI
         [SerializeField] private float  _maxSize       = 26f;
         [SerializeField] private Color  _color         = new Color(0.8f, 0.9f, 1f, 1f);
 
+        private struct ParticleSlot
+        {
+            public RectTransform RectTransform;
+            public Image Image;
+            public Vector2 Origin;
+            public Vector2 Direction;
+            public float Speed;
+            public float Elapsed;
+        }
+
+        private ParticleSlot[] _particles;
+        private Coroutine _particleUpdateLoop;
+        private int _activeParticleCount;
+
+        /****************************************
+        *              Unity Event
+        ****************************************/
+
+        private void Awake()
+        {
+            InitializePool();
+        }
+
+        private void OnDisable()
+        {
+            if (_particleUpdateLoop != null)
+            {
+                StopCoroutine(_particleUpdateLoop);
+                _particleUpdateLoop = null;
+            }
+
+            if (_particles == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _particles.Length; ++i)
+            {
+                _particles[i].RectTransform.gameObject.SetActive(false);
+            }
+            _activeParticleCount = 0;
+        }
+
         /****************************************
         *                Methods
         ****************************************/
@@ -40,50 +83,103 @@ namespace Minsung.UI
             Vector2       screenPoint = RectTransformUtility.WorldToScreenPoint(null, origin.position);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(burstRect, screenPoint, null, out Vector2 localPoint);
 
-            for (int i = 0; i < _particleCount; ++i)
+            for (int i = 0; i < _particles.Length; ++i)
             {
-                StartCoroutine(CoParticle(localPoint));
+                if (_particles[i].RectTransform.gameObject.activeSelf)
+                {
+                    continue;
+                }
+
+                ActivateParticle(i, localPoint);
+            }
+
+            if ((_activeParticleCount > 0) && (_particleUpdateLoop == null))
+            {
+                _particleUpdateLoop = StartCoroutine(CoUpdateParticles());
             }
         }
 
-        private IEnumerator CoParticle(Vector2 origin)
+        private void InitializePool()
         {
-            GameObject go = new GameObject("Particle");
-            go.transform.SetParent(transform, false);
+            int particleCount = Mathf.Max(0, _particleCount);
+            _particles = new ParticleSlot[particleCount];
 
-            RectTransform rt = go.AddComponent<RectTransform>();
-            float size = Random.Range(_minSize, _maxSize);
-            rt.sizeDelta        = new Vector2(size, size);
-            rt.anchorMin        = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = origin;
-
-            Image img = go.AddComponent<Image>();
-            img.sprite        = _particleSprite;
-            img.color         = _color;
-            img.raycastTarget = false;
-
-            float angle = Random.Range(0f, Mathf.PI * 2f);
-            float speed = Random.Range(_minSpeed, _maxSpeed);
-            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-
-            // 일시정지(Time.timeScale = 0) 중에도 재생될 수 있어 실시간 기준으로 진행
-            float elapsed = 0f;
-            while (elapsed < _duration)
+            for (int i = 0; i < _particles.Length; ++i)
             {
-                elapsed += Time.unscaledDeltaTime;
-                float t = Mathf.Clamp01(elapsed / _duration);
+                GameObject particle = new GameObject($"Particle {i + 1}");
+                particle.transform.SetParent(transform, false);
 
-                rt.anchoredPosition = origin + dir * speed * t;
-                rt.localScale       = Vector3.one * (1f - (t * 0.4f));
+                RectTransform rectTransform = particle.AddComponent<RectTransform>();
+                rectTransform.anchorMin = rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
 
-                Color c = _color;
-                c.a *= (1f - t);
-                img.color = c;
+                Image image = particle.AddComponent<Image>();
+                image.sprite        = _particleSprite;
+                image.raycastTarget = false;
+
+                _particles[i] = new ParticleSlot
+                {
+                    RectTransform = rectTransform,
+                    Image = image,
+                };
+                particle.SetActive(false);
+            }
+        }
+
+        private void ActivateParticle(int index, Vector2 origin)
+        {
+            ParticleSlot particle = _particles[index];
+            float size = Random.Range(_minSize, _maxSize);
+            float angle = Random.Range(0f, Mathf.PI * 2f);
+
+            particle.Origin    = origin;
+            particle.Direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            particle.Speed     = Random.Range(_minSpeed, _maxSpeed);
+            particle.Elapsed   = 0f;
+            particle.RectTransform.sizeDelta        = new Vector2(size, size);
+            particle.RectTransform.anchoredPosition = origin;
+            particle.RectTransform.localScale       = Vector3.one;
+            particle.Image.color                    = _color;
+            particle.RectTransform.gameObject.SetActive(true);
+
+            _particles[index] = particle;
+            ++_activeParticleCount;
+        }
+
+        // 일시정지(Time.timeScale = 0) 중에도 재생될 수 있도록 실시간 기준으로 모든 슬롯을 한 코루틴에서 갱신한다.
+        private IEnumerator CoUpdateParticles()
+        {
+            while (_activeParticleCount > 0)
+            {
+                for (int i = 0; i < _particles.Length; ++i)
+                {
+                    if (!_particles[i].RectTransform.gameObject.activeSelf)
+                    {
+                        continue;
+                    }
+
+                    ParticleSlot particle = _particles[i];
+                    particle.Elapsed += Time.unscaledDeltaTime;
+                    float t = _duration > 0f ? Mathf.Clamp01(particle.Elapsed / _duration) : 1f;
+
+                    particle.RectTransform.anchoredPosition = particle.Origin + particle.Direction * particle.Speed * t;
+                    particle.RectTransform.localScale       = Vector3.one * (1f - (t * 0.4f));
+
+                    Color color = _color;
+                    color.a *= (1f - t);
+                    particle.Image.color = color;
+                    _particles[i] = particle;
+
+                    if (t >= 1f)
+                    {
+                        particle.RectTransform.gameObject.SetActive(false);
+                        --_activeParticleCount;
+                    }
+                }
 
                 yield return null;
             }
 
-            Destroy(go);
+            _particleUpdateLoop = null;
         }
     }
 }

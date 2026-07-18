@@ -7,12 +7,13 @@ using UnityEngine;
 using Minsung.Common;
 using Minsung.Common.Data;
 using Minsung.TimeSystem;
+using Minsung.Utility;
 
 namespace Minsung.Item
 {
     // LP(수집 재화) 전역 매니저 - 씬에 하나만 존재(없으면 자동 생성, RewindManager와 동일한 패턴). 드랍/자석 픽업/카운트를 소유하고 풀 슬롯 상태를 모두 리와인드에 태운다.
     [DefaultExecutionOrder(-90)] // RewindManager(-100) 다음으로 이르게 - Register가 같은 프레임에 걸리게
-    public class LpManager : MonoBehaviour, IRewindable
+    public class LpManager : SceneSingleton<LpManager>, IRewindable
     {
         /****************************************
         *             Inner Types
@@ -34,8 +35,6 @@ namespace Minsung.Item
         /****************************************
         *                Fields
         ****************************************/
-
-        public static LpManager Instance { get; private set; }
 
         private float _dropChance;
         private float _magnetRadius;
@@ -63,28 +62,18 @@ namespace Minsung.Item
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
-            Instance = null;
+            ResetStatic();
         }
 
         // 씬에 배치하지 않아도 동작하도록 씬 로드 후 자동 생성.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsureInstance()
         {
-            if (Instance == null)
-            {
-                new GameObject("LpManager").AddComponent<LpManager>();
-            }
+            EnsureCreated("LpManager");
         }
 
-        private void Awake()
+        protected override void OnSingletonAwake()
         {
-            if ((Instance != null) && (Instance != this))
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-
             LpDataSO lpSo = GameDB.Lp;
             _dropChance    = lpSo.DropChance;
             _magnetRadius  = lpSo.MagnetRadius;
@@ -113,7 +102,7 @@ namespace Minsung.Item
             _rewindManager?.Register(this);
         }
 
-        private void OnDestroy()
+        protected override void OnSingletonDestroy()
         {
             _rewindManager?.Unregister(this);
             _pool?.Dispose();

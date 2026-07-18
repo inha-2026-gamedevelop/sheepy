@@ -437,8 +437,9 @@ Collider2D[] hits = Physics2D.OverlapCircleAll(origin, radius);
 
 ## 18. 싱글톤
 
-**DontDestroyOnLoad 싱글톤은 `Utility/PersistentSingleton<T>`를 상속한다.**  
-Awake를 직접 만들지 말고 `OnSingletonAwake()`를 오버라이드한다.
+**DontDestroyOnLoad 싱글톤은 `Utility/PersistentSingleton<T>`, 씬 로컬 싱글톤은
+`Utility/SceneSingleton<T>`를 상속한다.** Awake를 직접 만들지 말고
+`OnSingletonAwake()`를 오버라이드한다.
 
 ```csharp
 // ✅
@@ -450,12 +451,20 @@ public class GameManager : PersistentSingleton<GameManager>
     }
 }
 
+public class RewindManager : SceneSingleton<RewindManager>
+{
+    protected override void OnSingletonAwake()
+    {
+        // 현재 씬의 최초 인스턴스 확정 후 초기화
+    }
+}
+
 // ❌ 클래스마다 Instance/Awake 중복 구현 금지
 ```
 
-- 씬 로컬 싱글톤(예: `RewindManager`)은 별도 구현 유지 — DontDestroyOnLoad 여부가 다르다
-- 씬 배치 없이도 동작해야 하면 `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]`로 자동 생성
-- 도메인 리로드 OFF 대비: static 상태는 `SubsystemRegistration`에서 초기화
+- 씬 배치 없이도 동작해야 하면 파생 클래스의 `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` 훅에서 `EnsureCreated("이름")` 호출
+- 도메인 리로드 OFF 대비: 파생 클래스의 `SubsystemRegistration` 훅에서 `ResetStatic()` 호출
+- 클래스 고유 정리는 `OnSingletonDestroy()`에서 수행한다
 
 ---
 
@@ -463,6 +472,7 @@ public class GameManager : PersistentSingleton<GameManager>
 
 - 리와인드 참여 오브젝트는 반드시 `IRewindable` 구현 + `RewindManager.Register/Unregister` 쌍 호출
 - **기록 버퍼 용량은 `RewindManager.TickCapacity` 하나만 사용** — 직접 계산 금지 (인덱스 어긋남). 기록 길이(초) 조정은 TimeDB(`GameDB.Time.RecordSeconds`)에서만
+- 리와인드 발동을 잠글 때는 `RewindManager.AcquireRewindLock(owner)`의 반환 핸들을 보관하고, 해당 연출/상태가 끝날 때 `Dispose()`한다. `bool` 토글로 전역 잠금을 켜고 끄지 않는다
 - 랜덤이 들어가는 패턴은 결정 로그에 저장해 리와인드 후 재현 (Phase1State 방식 참고)
 - 시각 연출용 오브젝트는 생성/파괴 대신 풀 활성/비활성 (스냅샷 역재생 가능해야 함)
 
@@ -511,6 +521,6 @@ Configure(i, rec.Position, rec.Scale, rec.RotationDeg, rec.Color,
 ✅ FixedUpdate         지양, 코루틴 지향 (물리 동기화 예외)
 ✅ GC                  WaitForSeconds/material/참조 캐싱, NonAlloc 쿼리
 ✅ null 체크           Unity 오브젝트 == null, 컴포넌트는 TryGetComponent
-✅ 싱글톤              PersistentSingleton<T> 상속
+✅ 싱글톤              DDOL=PersistentSingleton<T>, 씬 로컬=SceneSingleton<T>
 ✅ 리와인드 버퍼       RewindManager.TickCapacity만 사용
 ```

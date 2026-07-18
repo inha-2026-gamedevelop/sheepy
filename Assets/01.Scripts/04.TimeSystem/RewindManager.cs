@@ -1,4 +1,5 @@
 // System
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -7,18 +8,37 @@ using UnityEngine;
 
 using Minsung.Common;
 using Minsung.Common.Data;
+using Minsung.Utility;
 
 namespace Minsung.TimeSystem
 {
     // 전역 리와인드 코디네이터이자 타임라인 오너. 씬에 하나만 존재(없으면 자동 생성).
     [DefaultExecutionOrder(-100)] // 씬 배치 시에도 다른 Awake보다 먼저 Instance가 준비되게
-    public class RewindManager : MonoBehaviour
+    public class RewindManager : SceneSingleton<RewindManager>
     {
+        public readonly struct RewindLockHandle : IDisposable
+        {
+            private readonly RewindManager _manager;
+            private readonly int _lockId;
+
+            internal RewindLockHandle(RewindManager manager, int lockId)
+            {
+                _manager = manager;
+                _lockId  = lockId;
+            }
+
+            public void Dispose()
+            {
+                if (_manager != null)
+                {
+                    _manager.ReleaseRewindLock(_lockId);
+                }
+            }
+        }
+
         /****************************************
         *                Fields
         ****************************************/
-
-        public static RewindManager Instance { get; private set; }
 
         // 모든 리와인드 버퍼가 공유하는 틱 용량 - 서로 다르면 되감기 인덱스가 어긋난다.
         public static int TickCapacity => Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
@@ -30,11 +50,21 @@ namespace Minsung.TimeSystem
         private int  _capacity;      // 기록 가능한 최대 틱 수
         private int  _recordedTicks; // 마지막 리와인드 이후 기록된 틱 수
         private bool _isRewinding;
-        private bool _rewindEnabled = true; // false면 발동 잠금 (기록은 계속)
         private int  _rewindIndex;
         private int  _rewindStep;
+        private int  _nextRewindLockId;
+        private readonly Dictionary<int, UnityEngine.Object> _rewindLocks =
+            new Dictionary<int, UnityEngine.Object>();
 
         public bool IsRewinding => _isRewinding;
+        public bool IsRewindEnabled
+        {
+            get
+            {
+                PruneDestroyedRewindLocks();
+                return _rewindLocks.Count == 0;
+            }
+        }
 
         /****************************************
         *              Unity Event
@@ -44,28 +74,19 @@ namespace Minsung.TimeSystem
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
-            Instance = null;
+            ResetStatic();
         }
 
         // 씬에 배치하지 않아도 동작하도록 씬 로드 후 자동 생성.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsureInstance()
         {
-            if (Instance == null)
-            {
-                new GameObject("RewindManager").AddComponent<RewindManager>();
-            }
+            EnsureCreated("RewindManager");
         }
 
-        private void Awake()
+        protected override void OnSingletonAwake()
         {
-            if ((Instance != null) && (Instance != this))
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance  = this;
-            _capacity = TickCapacity;
+            _capacity       = TickCapacity;
             _rewindDuration = GameDB.Time.RewindDuration;
         }
 
@@ -93,16 +114,18 @@ namespace Minsung.TimeSystem
             _rewindables.Remove(rewindable);
         }
 
-        /// <summary> 리와인드 발동 잠금/해제 (보스 페이즈 종료 기믹, 4페이즈 등에서 잠금) - 기록은 계속된다 </summary>
-        public void SetRewindEnabled(bool enabled)
+        /// <summary> 리와인드 발동 잠금 획득. 반환 핸들을 해제할 때까지 기록은 계속되고 발동만 막힌다 </summary>
+        public RewindLockHandle AcquireRewindLock(UnityEngine.Object owner)
         {
-            _rewindEnabled = enabled;
+            ++_nextRewindLockId;
+            _rewindLocks.Add(_nextRewindLockId, owner);
+            return new RewindLockHandle(this, _nextRewindLockId);
         }
 
         /// <summary> 되감기 시작. 잠겨 있거나 이미 되감는 중이거나 기록이 없으면 무시. </summary>
         public void StartRewind()
         {
-            if (!_rewindEnabled || _isRewinding || (_recordedTicks == 0))
+            if (!IsRewindEnabled || _isRewinding || (_recordedTicks == 0))
             {
                 return;
             }
@@ -149,6 +172,41 @@ namespace Minsung.TimeSystem
             if (_recordedTicks < _capacity)
             {
                 ++_recordedTicks;
+            }
+        }
+
+        private void ReleaseRewindLock(int lockId)
+        {
+            _rewindLocks.Remove(lockId);
+        }
+
+        private void PruneDestroyedRewindLocks()
+        {
+            if (_rewindLocks.Count == 0)
+            {
+                return;
+            }
+
+            List<int> releasedLocks = null;
+            foreach (KeyValuePair<int, UnityEngine.Object> pair in _rewindLocks)
+            {
+                if (pair.Value != null)
+                {
+                    continue;
+                }
+
+                releasedLocks ??= new List<int>();
+                releasedLocks.Add(pair.Key);
+            }
+
+            if (releasedLocks == null)
+            {
+                return;
+            }
+
+            foreach (int lockId in releasedLocks)
+            {
+                _rewindLocks.Remove(lockId);
             }
         }
 

@@ -10,17 +10,19 @@ namespace Minsung.UI
     // 보스 감정 아이콘 위에 마우스를 올리면 현재 감정의 효과를 설명하는 정보창을 띄운다
     public class BossEmotionIconTooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
+        [SerializeField] private BossEmotionController _emotionController;
         [SerializeField] private BossController _boss;
         [SerializeField] private GameObject _tooltipPanel;
         [SerializeField] private TextMeshProUGUI _tooltipText;
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if ((_boss == null) || (_tooltipPanel == null) || (_tooltipText == null))
+            BossEmotionController emotionController = ResolveEmotionController();
+            if ((emotionController == null) || (_tooltipPanel == null) || (_tooltipText == null))
             {
                 return;
             }
-            if (!TryGetDescription(_boss.CurrentEmotion, out string description))
+            if (!TryGetDescription(emotionController.CurrentEmotion, out string description))
             {
                 return;
             }
@@ -35,6 +37,16 @@ namespace Minsung.UI
             {
                 _tooltipPanel.SetActive(false);
             }
+        }
+
+        private BossEmotionController ResolveEmotionController()
+        {
+            if (_emotionController != null)
+            {
+                return _emotionController;
+            }
+
+            return _boss != null ? _boss.EmotionController : null;
         }
 
         // 감정별 효과 설명

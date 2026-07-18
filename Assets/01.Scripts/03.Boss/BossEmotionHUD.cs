@@ -19,6 +19,7 @@ namespace Minsung.Boss
         }
 #pragma warning restore CS0649
 
+        [SerializeField] private BossEmotionController _emotionController;
         [SerializeField] private BossController _boss;
         [SerializeField] private Image _emotionIcon;          // 체력바 - 현재 감정 항상 표시
         [SerializeField] private SpriteRenderer _reflectIcon; // 머리 위 - 반사 3종만 표시
@@ -29,24 +30,38 @@ namespace Minsung.Boss
         // 반사 감정 -> 머리 위 아이콘 스프라이트 (Black/White/Navy)
         [SerializeField] private EmotionIconEntry[] _reflectIcons = Array.Empty<EmotionIconEntry>();
 
+        private BossEmotionController _subscribedEmotionController;
+
         private void OnEnable()
         {
-            if (_boss == null)
+            _subscribedEmotionController = ResolveEmotionController();
+            if (_subscribedEmotionController == null)
             {
                 HideAll();
                 return;
             }
 
-            _boss.OnEmotionChanged += Redraw;
-            Redraw(_boss.CurrentEmotion);
+            _subscribedEmotionController.OnEmotionChanged += Redraw;
+            Redraw(_subscribedEmotionController.CurrentEmotion);
         }
 
         private void OnDisable()
         {
-            if (_boss != null)
+            if (_subscribedEmotionController != null)
             {
-                _boss.OnEmotionChanged -= Redraw;
+                _subscribedEmotionController.OnEmotionChanged -= Redraw;
+                _subscribedEmotionController = null;
             }
+        }
+
+        private BossEmotionController ResolveEmotionController()
+        {
+            if (_emotionController != null)
+            {
+                return _emotionController;
+            }
+
+            return _boss != null ? _boss.EmotionController : null;
         }
 
         private void Redraw(BossEmotion emotion)

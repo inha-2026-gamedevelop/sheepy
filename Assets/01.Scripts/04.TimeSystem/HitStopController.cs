@@ -5,18 +5,17 @@ using System.Collections;
 using UnityEngine;
 
 using Minsung.Common;
+using Minsung.Utility;
 
 namespace Minsung.TimeSystem
 {
     // 타격감용 히트스톱 - 공격이 실제로 꽂힌 순간 아주 짧게 시간을 멈춘다.
     // 슬로우모션과 별개 플래그(IsActive)로 관리하고, 종료 시 슬로우모션의 목표 배율로 복원한다.
-    public class HitStopController : MonoBehaviour
+    public class HitStopController : SceneSingleton<HitStopController>
     {
         /****************************************
         *                Fields
         ****************************************/
-
-        public static HitStopController Instance { get; private set; }
 
         // 히트스톱 진행 중 여부 - SlowMotionController가 timeScale 쓰기 충돌 방지에 참조
         public static bool IsActive { get; private set; }
@@ -31,7 +30,7 @@ namespace Minsung.TimeSystem
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
-            Instance = null;
+            ResetStatic();
             IsActive = false;
         }
 
@@ -39,45 +38,33 @@ namespace Minsung.TimeSystem
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsureInstance()
         {
-            if (Instance == null)
-            {
-                new GameObject("HitStopController").AddComponent<HitStopController>();
-            }
+            EnsureCreated("HitStopController");
         }
 
-        private void Awake()
+        protected override void OnSingletonDestroy()
         {
-            if ((Instance != null) && (Instance != this))
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-        }
-
-        private void OnDestroy()
-        {
-            if (Instance != this)
-            {
-                return;
-            }
             // 진행 중이던 히트스톱 복원 보장 (씬 전환 안전망)
             if (IsActive)
             {
                 Time.timeScale = SlowMotionController.TargetTimeScale;
                 IsActive       = false;
             }
-            Instance = null;
         }
 
         /****************************************
         *                Methods
         ****************************************/
 
-        /// <summary> 히트스톱 요청. 되감기 중에는 무시, 연속 적중 시 지속시간이 새로 시작된다. </summary>
+        /// <summary> 기본 시간 히트스톱 요청. 되감기 중에는 무시, 연속 적중 시 더 긴 종료 시각을 유지한다. </summary>
         public static void Request()
         {
-            if (Instance == null)
+            Request(Constants.Combat.HIT_STOP_DURATION);
+        }
+
+        /// <summary> 지정 시간만큼 히트스톱을 요청한다. 연속 요청은 더 긴 종료 시각을 유지한다. </summary>
+        public static void Request(float duration)
+        {
+            if ((Instance == null) || (duration <= 0f))
             {
                 return;
             }
@@ -85,15 +72,15 @@ namespace Minsung.TimeSystem
             {
                 return;
             }
-            Instance.Play();
+            Instance.Play(duration);
         }
 
         // 코루틴을 정지 후 재시작하면 이전 코루틴이 복원 코드를 못 밟고 끊긴다
         // (연속 적중 시 IsActive/timeScale이 눌러앉는 버그) - 종료 목표 시각만 뒤로 미루고
         // 코루틴 자체는 하나만 계속 돌려 마지막 적중 이후 반드시 복원까지 도달하게 한다
-        private void Play()
+        private void Play(float duration)
         {
-            _stopUntil = Time.realtimeSinceStartup + Constants.Combat.HIT_STOP_DURATION;
+            _stopUntil = Mathf.Max(_stopUntil, Time.realtimeSinceStartup + duration);
 
             if (!IsActive)
             {

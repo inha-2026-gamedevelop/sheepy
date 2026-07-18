@@ -20,6 +20,20 @@ namespace Minsung.Boss
         private const float VERTICAL_ALIGNMENT_EPSILON = 0.01f;
         private const float STUCK_SPEED_EPSILON        = 0.01f;
 
+        private static readonly int PARAM_SPEED  = Animator.StringToHash(Constants.Combat.BOSS_ANIM_SPEED);
+        private static readonly int PARAM_ATTACK = Animator.StringToHash(Constants.Combat.BOSS_ANIM_ATTACK);
+        protected static readonly int PARAM_CAST = Animator.StringToHash(Constants.Combat.BOSS_ANIM_CAST);
+        private static readonly int PARAM_JUMP   = Animator.StringToHash(Constants.Combat.BOSS_ANIM_JUMP);
+        private static readonly int PARAM_DODGE  = Animator.StringToHash(Constants.Combat.BOSS_ANIM_DODGE);
+
+        private enum BossMeleeActionState
+        {
+            Idle,
+            Attack,
+            Jump,
+            Dodge,
+        }
+
         /****************************************
         *                Fields
         ****************************************/
@@ -43,9 +57,7 @@ namespace Minsung.Boss
         private ContactFilter2D _bossProximityFilter;
         private readonly Collider2D[] _nearbyBosses = new Collider2D[MAX_NEARBY_BOSSES];
         private bool _isGrounded;
-        private bool _isAttacking; // 공격 모션 중 이동 정지
-        private bool _isJumping;   // 도약 중 - 조향 정지, 착지까지 유지
-        private bool _isDodging;   // 무적 백스텝 중 - 조향 정지, 피해 무시
+        private BossMeleeActionState _actionState;
         private bool _isMovementLocked; // BossMovementLockBehaviour가 Enter/Exit로 제어
         private float _stuckEscapeElapsed;
         private float _stuckEscapeDelay;
@@ -73,12 +85,33 @@ namespace Minsung.Boss
         protected virtual bool UsesVerticalCrowdAvoidance => false;
 
         /// <summary> 무적 백스텝 중 여부 - 파생 클래스의 TakeDamage가 피해 무시 판정에 사용 </summary>
-        protected bool IsInvulnerable => _isDodging;
+        protected bool IsInvulnerable => _actionState == BossMeleeActionState.Dodge;
         public string ObjectId => _objectId;
         /// <summary> Combat/Intro/Casting/Damaged 상태 재생 중 여부 - BossMovementLockBehaviour가 Enter/Exit에서 설정 </summary>
         public void SetMovementLocked(bool locked)
         {
             _isMovementLocked = locked;
+        }
+
+        private bool IsActionActive => _actionState != BossMeleeActionState.Idle;
+
+        private bool TryEnterAction(BossMeleeActionState actionState)
+        {
+            if (IsActionActive)
+            {
+                return false;
+            }
+
+            _actionState = actionState;
+            return true;
+        }
+
+        private void ExitAction(BossMeleeActionState actionState)
+        {
+            if (_actionState == actionState)
+            {
+                _actionState = BossMeleeActionState.Idle;
+            }
         }
         /****************************************
         *              Unity Event
@@ -159,9 +192,7 @@ namespace Minsung.Boss
         /// <summary> 전투 개시 - 물리 복귀 + 히트박스 피해 설정 + 공격/도약/회피 루프 시작. Activate에서 호출한다 </summary>
         protected void BeginCombat()
         {
-            _isAttacking        = false;
-            _isJumping          = false;
-            _isDodging          = false;
+            _actionState        = BossMeleeActionState.Idle;
             _stuckEscapeElapsed = 0f;
             SetPlayerBodyCollisionIgnored(false);
             UpdatePlayerBodyCollision();
@@ -274,9 +305,7 @@ namespace Minsung.Boss
                 StopCoroutine(_obstacleEscapeLoop);
                 _obstacleEscapeLoop = null;
             }
-            _isAttacking = false;
-            _isJumping   = false;
-            _isDodging   = false;
+            _actionState = BossMeleeActionState.Idle;
             _stuckEscapeElapsed = 0f;
             if (_col != null)
             {
@@ -316,11 +345,11 @@ namespace Minsung.Boss
         }
 
         /// <summary> 트리거 파라미터 재생. Animator 미연결 시 무시 (파생 클래스/피해 처리에서 공용으로 사용) </summary>
-        protected void PlayAnimTrigger(string trigger)
+        protected void PlayAnimTrigger(int triggerHash)
         {
             if (_animator != null)
             {
-                _animator.SetTrigger(trigger);
+                _animator.SetTrigger(triggerHash);
             }
         }
 
@@ -329,7 +358,7 @@ namespace Minsung.Boss
         {
             if (_animator != null)
             {
-                _animator.SetFloat(Constants.Combat.BOSS_ANIM_SPEED, speed);
+                _animator.SetFloat(PARAM_SPEED, speed);
             }
         }
 
@@ -375,7 +404,7 @@ namespace Minsung.Boss
         // 사거리 밖이면 대상 쪽으로 수평 이동, 안이면 정지 (공격/도약/회피는 각자 코루틴이 담당)
         private void ChasePlayer()
         {
-            if ((_isJumping) || (_isDodging))
+            if ((_actionState == BossMeleeActionState.Jump) || (_actionState == BossMeleeActionState.Dodge))
             {
                 PlayAnimSpeed(Mathf.Abs(_rb.linearVelocity.x));
                 return; // 도약/회피 중에는 자체 속도를 유지하고 조향하지 않는다
@@ -386,7 +415,7 @@ namespace Minsung.Boss
 
             Transform target = GetTarget();
 
-            if ((!_isAttacking) && (!_isMovementLocked) && (target != null) && (_boss != null) &&
+            if ((_actionState != BossMeleeActionState.Attack) && (!_isMovementLocked) && (target != null) && (_boss != null) &&
             (!_boss.IsTransitioning))
             {
                 float dx = target.position.x - transform.position.x;
@@ -415,7 +444,7 @@ namespace Minsung.Boss
         private void TryEscapeObstacle()
         {
             Transform target = GetTarget();
-            if ((_isAttacking) || (_isJumping) || (_isDodging) || (_isMovementLocked) ||
+            if (IsActionActive || (_isMovementLocked) || (_obstacleEscapeLoop != null) ||
                 (!_isGrounded) || (target == null) || (_boss == null) ||
                 (_boss.IsTransitioning))
             {
@@ -507,13 +536,17 @@ namespace Minsung.Boss
                 {
                     continue; // 기믹/컷신 중에는 공격 정지
                 }
-                if ((IsActionBlocked) || (_isJumping) || (_isDodging) || (!IsPlayerInRange()))
+                if ((IsActionBlocked) || IsActionActive || (!IsPlayerInRange()))
                 {
                     continue;
                 }
 
-                _isAttacking = true;
-                PlayAnimTrigger(Constants.Combat.BOSS_ANIM_ATTACK);
+                if (!TryEnterAction(BossMeleeActionState.Attack))
+                {
+                    continue;
+                }
+
+                PlayAnimTrigger(PARAM_ATTACK);
 
                 if (_attackHitbox != null)
                 {
@@ -521,7 +554,7 @@ namespace Minsung.Boss
                     yield return _waitAttackActive;
                     _attackHitbox.gameObject.SetActive(false);
                 }
-                _isAttacking = false;
+                ExitAction(BossMeleeActionState.Attack);
             }
         }
 
@@ -552,7 +585,7 @@ namespace Minsung.Boss
                 {
                     continue; // 기믹/컷신 중에는 도약 정지
                 }
-                if ((IsActionBlocked) || (_isAttacking) || (_isDodging) || (!_isGrounded) ||
+                if ((IsActionBlocked) || IsActionActive || (!_isGrounded) ||
                     (_boss == null) || (GetTarget() == null) || (IsPlayerInRange()))
                 {
                     continue;
@@ -577,6 +610,11 @@ namespace Minsung.Boss
         /// slamOnLand면 착지 순간 공격 히트박스를 짧게 켠다 (전투 접근용). 등장 연출(분신 진입)은 false로 사용 </summary>
         protected IEnumerator CoLeapTo(float targetX, float targetY, float arcHeight, bool slamOnLand = false)
         {
+            if (!TryEnterAction(BossMeleeActionState.Jump))
+            {
+                yield break;
+            }
+
             Vector2 start = _rb.position;
             float   dx      = targetX - start.x;
             float   dy      = targetY - start.y;
@@ -595,8 +633,7 @@ namespace Minsung.Boss
             v.y = gravity * riseTime;
             _rb.linearVelocity = v;
 
-            _isJumping = true;
-            PlayAnimTrigger(Constants.Combat.BOSS_ANIM_JUMP);
+            PlayAnimTrigger(PARAM_JUMP);
 
             // 벽에 붙은 채로 도약 패턴 나오면 제자리점프해서 강제로 트리거 활성화
             _col.isTrigger = true;
@@ -614,7 +651,7 @@ namespace Minsung.Boss
                 yield return _waitJumpLandActive;
                 _attackHitbox.gameObject.SetActive(false);
             }
-            _isJumping = false;
+            ExitAction(BossMeleeActionState.Jump);
         }
 
         /****************************************
@@ -633,7 +670,7 @@ namespace Minsung.Boss
                 {
                     continue;
                 }
-                if ((IsActionBlocked) || (_isAttacking) || (_isJumping) || (!IsPlayerWithinDodgeRange()))
+                if ((IsActionBlocked) || IsActionActive || (!IsPlayerWithinDodgeRange()))
                 {
                     continue;
                 }
@@ -657,21 +694,25 @@ namespace Minsung.Boss
         private IEnumerator CoDodge()
         {
             Transform target = GetTarget();
+            if ((target == null) || (!TryEnterAction(BossMeleeActionState.Dodge)))
+            {
+                yield break;
+            }
+
             float dir = -Mathf.Sign(target.position.x - transform.position.x);
 
             Vector2 v = _rb.linearVelocity;
             v.x = dir * (GameDB.Boss.DodgeBackDistance / GameDB.Boss.DodgeDuration);
             _rb.linearVelocity = v;
 
-            _isDodging = true;
-            PlayAnimTrigger(Constants.Combat.BOSS_ANIM_DODGE);
+            PlayAnimTrigger(PARAM_DODGE);
 
             yield return _waitDodgeDuration;
 
             v = _rb.linearVelocity;
             v.x = 0f;
             _rb.linearVelocity = v;
-            _isDodging = false;
+            ExitAction(BossMeleeActionState.Dodge);
         }
     }
 }
