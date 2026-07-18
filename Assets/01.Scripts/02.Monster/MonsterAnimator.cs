@@ -14,9 +14,11 @@ namespace Minsung.Monster
         ****************************************/
 
         private static readonly int PARAM_SPEED      = Animator.StringToHash("Speed");
-        private static readonly int PARAM_ATTACK     = Animator.StringToHash("Attack");
-        private static readonly int PARAM_HIT        = Animator.StringToHash("Hit");
         private static readonly int PARAM_ANIM_SPEED = Animator.StringToHash("AnimSpeedMultiplier");
+        private static readonly int STATE_IDLE       = Animator.StringToHash("Idle");
+        private static readonly int STATE_ATTACK     = Animator.StringToHash("Attack");
+        private static readonly int STATE_HIT        = Animator.StringToHash("Hit");
+        private static readonly int STATE_DEATH      = Animator.StringToHash("Death");
 
         private Animator _animator;
 
@@ -42,13 +44,19 @@ namespace Minsung.Monster
         /// <summary> 공격 모션 재생. </summary>
         public void TriggerAttack()
         {
-            _animator.SetTrigger(PARAM_ATTACK);
+            _animator.Play(STATE_ATTACK, Constants.Player.ANIM_LAYER_BASE, 0f);
         }
 
         /// <summary> 피격 모션 재생. </summary>
         public void TriggerHit()
         {
-            _animator.SetTrigger(PARAM_HIT);
+            _animator.Play(STATE_HIT, Constants.Player.ANIM_LAYER_BASE, 0f);
+        }
+
+        /// <summary> 사망 모션 재생. </summary>
+        public void TriggerDeath()
+        {
+            _animator.Play(STATE_DEATH, Constants.Player.ANIM_LAYER_BASE, 0f);
         }
 
         /// <summary> true면 모든 모션을 역재생(되감기), false면 정상 재생. </summary>
@@ -56,6 +64,12 @@ namespace Minsung.Monster
         {
             float dir = reversed ? Constants.Player.ANIM_DIR_REVERSE : Constants.Player.ANIM_DIR_FORWARD;
             _animator.SetFloat(PARAM_ANIM_SPEED, dir);
+        }
+
+        /// <summary> 되감기 부활 시 Idle로 즉시 복귀. Death처럼 되돌아오는 전이가 없는 상태에 갇히는 것을 막는다 </summary>
+        public void ResetToIdle()
+        {
+            _animator.Play(STATE_IDLE, Constants.Player.ANIM_LAYER_BASE, 0f);
         }
     }
 }
