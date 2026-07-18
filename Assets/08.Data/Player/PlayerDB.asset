@@ -32,6 +32,11 @@ MonoBehaviour:
   _knockbackStunTime: 0.15
   _hitFlashDuration: 0.15
   _hitFlashColor: {r: 1, g: 0.25, b: 0.25, a: 0.6}
+  _hitShakeForce: 0.5
+  _hitShakeDuration: 0.25
+  _hitVignetteAlpha: 0.35
+  _hitVignetteDuration: 0.4
+  _hitStopOnDamagedDuration: 0.08
   _orbAttackRange: 2.5
   _orbFollowSmooth: 0.15
   _orbAnchorOffset: {x: -0.05, y: 0.15}

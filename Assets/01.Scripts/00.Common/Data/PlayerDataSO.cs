@@ -41,6 +41,13 @@ namespace Minsung.Common.Data
 
         [SerializeField] private Color _hitFlashColor = new Color(1f, 0.25f, 0.25f, 0.6f); // 피격 글로우 색
 
+        [Header("피격 화면 연출")]
+        [SerializeField] private float _hitShakeForce          = 0.5f;  // 카메라 임펄스 세기
+        [SerializeField] private float _hitShakeDuration       = 0.25f; // 카메라 임펄스 감쇠 시간(초)
+        [SerializeField] private float _hitVignetteAlpha       = 0.35f; // 피격 빨간 화면 최대 알파(0~1)
+        [SerializeField] private float _hitVignetteDuration    = 0.4f;  // 피격 빨간 화면 감쇠 시간(실시간, 초)
+        [SerializeField] private float _hitStopOnDamagedDuration = 0.08f; // 피격 히트스톱 시간(실시간, 초)
+
         [Header("오브")]
         [SerializeField] private float _orbAttackRange  = 2.5f;  // 공격 대상 탐지 반경
         [SerializeField] private float _orbFollowSmooth = 0.15f; // 따라다니기 스무딩 시간(초)
@@ -102,6 +109,11 @@ namespace Minsung.Common.Data
         public float KnockbackStunTime => _knockbackStunTime;
         public float HitFlashDuration  => _hitFlashDuration;
         public Color HitFlashColor     => _hitFlashColor;
+        public float HitShakeForce           => _hitShakeForce;
+        public float HitShakeDuration        => _hitShakeDuration;
+        public float HitVignetteAlpha        => _hitVignetteAlpha;
+        public float HitVignetteDuration     => _hitVignetteDuration;
+        public float HitStopOnDamagedDuration => _hitStopOnDamagedDuration;
 
         public float   OrbAttackRange   => _orbAttackRange;
         public float   OrbFollowSmooth  => _orbFollowSmooth;

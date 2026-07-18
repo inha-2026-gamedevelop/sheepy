@@ -52322,6 +52322,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1227360901}
   - component: {fileID: 1227360902}
+  - component: {fileID: 1227360903}
   m_Layer: 0
   m_Name: FocusCamera
   m_TagString: Untagged
@@ -52387,6 +52388,30 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &1227360903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227360900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &1227699487
 GameObject:
   m_ObjectHideFlags: 0
@@ -53307,6 +53332,11 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &1252202533 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7871254499066966236, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
+  m_PrefabInstance: {fileID: 1870881603}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1252491520
 GameObject:
   m_ObjectHideFlags: 0
@@ -77479,6 +77509,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89872e71c62c2df4aa0f25f3164f909e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerController
+--- !u!114 &1817820828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252202533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2c4ca739c2e8a342a1c264854e353d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerHitFeedback
+  _useCameraShake: 1
+  _useVignetteFlash: 1
+  _useHitStop: 1
+  _impulseSource: {fileID: 0}
 --- !u!1 &1818512061
 GameObject:
   m_ObjectHideFlags: 0
@@ -79769,7 +79815,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7871254499066966236, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1817820828}
   m_SourcePrefab: {fileID: 100100000, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
 --- !u!1 &1873517354
 GameObject:
@@ -87565,6 +87614,7 @@ GameObject:
   - component: {fileID: 2053844239}
   - component: {fileID: 2053844241}
   - component: {fileID: 2053844240}
+  - component: {fileID: 2053844242}
   m_Layer: 0
   m_Name: PlayerCamera
   m_TagString: Untagged
@@ -87661,6 +87711,30 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &2053844242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2053844238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &2054786369
 GameObject:
   m_ObjectHideFlags: 0

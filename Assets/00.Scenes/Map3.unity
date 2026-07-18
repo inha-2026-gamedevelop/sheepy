@@ -25003,6 +25003,7 @@ GameObject:
   m_Component:
   - component: {fileID: 706131017}
   - component: {fileID: 706131018}
+  - component: {fileID: 706131019}
   m_Layer: 0
   m_Name: FocusCamera
   m_TagString: Untagged
@@ -25068,6 +25069,30 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &706131019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706131016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &709596951
 GameObject:
   m_ObjectHideFlags: 0
@@ -42250,6 +42275,7 @@ GameObject:
   - component: {fileID: 1151963188}
   - component: {fileID: 1151963190}
   - component: {fileID: 1151963189}
+  - component: {fileID: 1151963191}
   m_Layer: 0
   m_Name: PlayerCamera
   m_TagString: Untagged
@@ -42346,6 +42372,30 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &1151963191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1151963187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &1155760930
 GameObject:
   m_ObjectHideFlags: 0
@@ -44894,11 +44944,19 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7555024310287007918, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1830379434}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7871254499066966236, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1540819922}
   m_SourcePrefab: {fileID: 100100000, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
 --- !u!224 &1227388005 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7555024310287007918, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
+  m_PrefabInstance: {fileID: 1227388004}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1227388006 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7871254499066966236, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
   m_PrefabInstance: {fileID: 1227388004}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1230163010
@@ -56604,6 +56662,22 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3062819898327440988, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
   m_PrefabInstance: {fileID: 1227388004}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1540819922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227388006}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2c4ca739c2e8a342a1c264854e353d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerHitFeedback
+  _useCameraShake: 1
+  _useVignetteFlash: 1
+  _useHitStop: 1
+  _impulseSource: {fileID: 0}
 --- !u!1 &1541318885
 GameObject:
   m_ObjectHideFlags: 0

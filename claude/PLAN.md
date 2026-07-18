@@ -116,6 +116,7 @@
 | 씬전환 / 체크포인트 / 런타이머 | GameManager.cs |
 | Constants 10개 파일 (camera/interactive 추가) | Constants.*.cs |
 | DontDestroyOnLoad 싱글톤 베이스 | Utility/PersistentSingleton.cs |
+| 씬 로컬 싱글톤 베이스 | Utility/SceneSingleton.cs |
 | 코루틴 교체/정지 유틸 | Utility/UtilCoroutine.cs |
 | URP Post Processing | SheepyVisualSetup.cs |
 | 캐릭터 글로우 / 그림자 / 스피드라인 | CharaGlow.cs / ShadowLayer.cs / SpeedlineEffect.cs |
@@ -217,7 +218,7 @@
 - [x] **1페이즈** — 분신 2체(각 8,000) 근접전 + 즉사 레이저 기믹 (빨/파/초 랜덤 3회, 안전구역 슬로우 중에만 표시 + 발사 시점까지, 5초 후 재발사, 색 불일치 즉사)
 - [x] **2페이즈 골격** — 본체 등장 + 장풍(아래->위, 결정 로그 리와인드 재현)
 - [x] **3페이즈** — Angry 고정(주기 혼란) + 맵 가로지르는 레이저(경고 1.5초 깜빡임 + 발사 1초 + 높이 랜덤, 풀 스냅샷+결정 로그 리와인드)
-- [x] **4페이즈 골격** — 리와인드 전역 잠금(SetRewindEnabled) + 2페이즈 패턴 임시 유지
+- [x] **4페이즈 골격** — 리와인드 주체별 잠금(RewindLockHandle) + 2페이즈 패턴 임시 유지
 
 **남은 작업 - HIGH (기능 부재)**
 
@@ -370,7 +371,40 @@
 
 ---
 
+## 🧹 리팩토링 이력 — 2026-07-19
+
+**기능 — 플레이어 피격 화면 피드백 (코드·기본 런타임 검증 완료, 실전 체감 검증 대기)**
+- `PlayerHitFeedback`이 `PlayerHealth.OnDamaged`만 구독해 카메라 Impulse, 전체 화면 빨간 플래시, 피격 전용 히트스톱을 조율한다. 기존 `PlayerController` 글로우 플래시·넉백은 변경하지 않았고, PlayerController가 컴포넌트를 자동 보장한다
+- `PlayerDataSO`/`PlayerDB.asset`에 셰이크 세기·지속시간, 비네트 알파·지속시간, 피격 히트스톱 시간을 추가. 빨간 오버레이는 `ScreenFade` 아래 정렬(998)의 비차단 Canvas에서 unscaled로 감쇠하며 재피격 시 최대 알파와 종료 시각만 갱신
+- `HitStopController.Request(float)`을 추가하고, 중첩 요청은 기존 종료 시각보다 길 때만 연장하게 수정. Map1~3의 PlayerCamera/FocusCamera 모두 `CinemachineImpulseListener`를 연결
+- Unity·`dotnet build Assembly-CSharp.csproj --no-restore`를 통과. Play 모드에서 직접 피해 1회를 줘 체력 감소, ImpulseSource/비네트 생성, 히트스톱 시작과 timeScale·비네트 복구를 확인
+- 후속 수정: 런타임에 추가한 `CinemachineImpulseSource`는 `Reset()` 프리셋이 적용되지 않아 `Custom + Legacy`(RawSignal 없음)로 이벤트를 만들지 못했다. `Bump + Uniform` 정의를 코드에서 명시해, Play 모드 플레이어 피격 시 활성 Impulse 1개 생성까지 재검증
+
 ## 🧹 리팩토링 이력 — 2026-07-18
+
+**성능 — Animator 해시 캐싱, UI 클릭 버스트 풀화, 셰이더 접근 감사 (코드 구현 완료, 일부 실게임 검증 대기)**
+- `BossController`의 Roar/Death 트리거와 DeathBody 상태 재생, `BossMeleeUnitBase`의 Speed/Attack/Cast/Jump/Dodge 파라미터를 `Animator.StringToHash` 정적 캐시와 int 오버로드로 전환. `PlayerAnimator`/`MonsterAnimator`는 기존부터 해시를 사용하고 있어 변경하지 않음
+- `UiClickBurst`는 Awake에 직렬화된 수만큼 `RectTransform`/`Image` 슬롯을 만들고 비활성 보관한다. 클릭마다 GameObject·코루틴을 만들지 않고, 빈 슬롯만 활성화해 단일 unscaled 코루틴이 위치·크기·알파를 갱신한다. 컴포넌트 비활성 시 슬롯과 코루틴도 정리
+- Visual 계열을 재감사한 결과 반복 문자열 셰이더 프로퍼티 접근은 없었다. `OrbController`는 이미 ID 캐싱을 사용하고, `CharaGlow`의 `"_Mode"` 설정은 생성 시 1회라 과잉 수정 없이 유지
+- Unity 스크립트 컴파일과 `dotnet build Assembly-CSharp.csproj --no-restore`를 통과. 보스 모션과 메뉴 연타·일시정지 중 클릭 버스트·GC.Alloc은 수동 확인 대기
+
+**구조 — 근접 보스 행동 상태 통합, 사운드 분리 보류 (코드 구현 완료, 실게임 검증 대기)**
+- `BossMeleeUnitBase`의 공격/도약/회피별 불리언 3개를 내부 `BossMeleeActionState(Idle/Attack/Jump/Dodge)`로 통합. 각 코루틴은 `TryEnterAction`으로 진입을 얻고 종료 시에만 자기 상태를 해제하므로, 같은 프레임에 둘 이상이 실행되는 경쟁을 막는다
+- 장애물 탈출 도약도 같은 상태 경로를 사용하며, 실행 중인 탈출 코루틴을 다시 시작하지 않는다. `StopCombatLoops`/전투 재개/되감기는 상태를 Idle로 초기화하는 기존 정리 지점을 유지
+- `SoundManager`는 BGM·일회성 SFX·지속 SFX가 볼륨/일시정지/풀 수명주기를 함께 쓰는 구조라 현재 분리 이득이 없다. 새 독립 채널 또는 세 번째 소비자 요구 전까지 분리하지 않기로 결정
+- Unity 스크립트 컴파일과 `dotnet build Assembly-CSharp.csproj --no-restore`를 통과. 실제 보스전에서 공격·도약·회피가 순차 전환되고 도약 착지 뒤 Idle로 복귀하는 확인은 대기
+
+**구조 — 보스 공용 감정 모듈 + 주체별 리와인드 잠금 (코드 구현 완료, 런타임 검증 대기)**
+- `BossEmotionController`/`BossEmotionSnapshot` 신설 - 감정 상태, 자동 전환, 결정 로그, Angry 혼란, Blue 하트 생성, 반사 판정을 보스 본체에서 분리. `BossController`는 기존 공개 API와 이벤트를 위임으로 유지
+- 감정 모듈은 플레이어/하트 픽업/`BossDataSO`/아레나 문맥을 `Configure(...)`로 주입받아 두 번째 보스도 조립 가능. HUD/툴팁은 모듈 직접 참조를 우선하되 기존 `BossController` 인스펙터 참조는 폴백으로 유지
+- `RewindManager.SetRewindEnabled(bool)` 제거 -> `AcquireRewindLock(owner)`/`RewindLockHandle.Dispose()`로 전환. 입장 연출, 페이즈 종료 기믹, Phase4가 각각의 잠금만 보유/해제하며, 잠금 중에도 기록은 계속
+- Unity 컴파일 및 `dotnet build Assembly-CSharp.csproj --no-restore` 통과. 런타임에서 감정 컴포넌트 자동 연결, 감정 파사드 위임, 중첩 잠금 해제 순서를 확인
+
+**구조 — 씬 로컬 싱글톤 보일러플레이트 통합 (코드 구현 완료, 런타임 검증 대기)**
+- `Utility/SceneSingleton<T>` 신설 - 씬 로컬 `Instance`, Awake 중복 가드, OnDestroy 해제, `OnSingletonAwake`/`OnSingletonDestroy`, `ResetStatic`/`EnsureCreated`를 공통화
+- `RewindManager`/`HitStopController`/`LpManager`/`SlowMotionController`를 이관. `HitStopController`의 timeScale 복원과 `LpManager`의 리와인드 등록 해제/풀 Dispose는 `OnSingletonDestroy()` 훅으로 유지
+- `PauseController`는 DDOL 영속성을 유지하기 위해 `PersistentSingleton<T>` 상속을 보존하고, 같은 베이스에 추가한 정적 헬퍼로 `ResetStatics`/`EnsureInstance` 몸체만 공통화
+- Unity 컴파일에서 이번 변경 관련 신규 오류는 없으나 기존 `PotionManager.cs:95`의 `PotionDataSO`/`GameDB.Potion` 누락 오류 2건으로 Play 검증은 대기
 
 **구조 — `Ex/` 샘플 폴더 완전 제거**
 - `Assets/01.Scripts/Ex/`(BossManager/BossUIManager/BossConditionSlotUI/SO/ExBossDataSO) 전부 삭제. 정식 `Minsung.*` 코드(BossController/BossHealthBarUI 등)로 승격이 끝나 더 이상 참조되지 않던 샘플 코드 정리 - 이제 `01.Scripts/`는 전부 `Minsung.*` 네임스페이스 프로덕션 코드만 남음(총 131개 스크립트)

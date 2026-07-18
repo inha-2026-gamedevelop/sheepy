@@ -69,6 +69,10 @@ namespace Minsung.Player
             {
                 _statusEffects = gameObject.AddComponent<PlayerStatusEffectController>();
             }
+            if (!TryGetComponent(out PlayerHitFeedback hitFeedback))
+            {
+                gameObject.AddComponent<PlayerHitFeedback>();
+            }
             TryGetComponent(out _health);
 
             if (_renderer != null)
