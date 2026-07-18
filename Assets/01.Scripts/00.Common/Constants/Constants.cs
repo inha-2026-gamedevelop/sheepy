@@ -36,6 +36,7 @@ namespace Minsung.Common
             public const string PAUSE     = "Pause";
             public const string MAP_1     = "Map1";
             public const string MAP_2     = "Map2";
+            public const string MAP_3     = "Map3";
             public const string BOSS      = "Boss";
         }
 

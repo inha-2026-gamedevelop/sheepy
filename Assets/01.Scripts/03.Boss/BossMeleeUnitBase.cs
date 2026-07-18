@@ -15,6 +15,9 @@ namespace Minsung.Boss
     [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
     public abstract class BossMeleeUnitBase : MonoBehaviour, IDamageable, IRewindable
     {
+        private const int   MAX_NEARBY_BOSSES          = 8;
+        private const float VERTICAL_ALIGNMENT_EPSILON = 0.01f;
+
         /****************************************
         *                Fields
         ****************************************/
@@ -25,11 +28,18 @@ namespace Minsung.Boss
         [SerializeField] private DamageHazard _attackHitbox; // 공격/도약 슬램 판정 (자식 오브젝트, 평소 비활성)
 
         [SerializeField] private BoxCollider2D _attackHitboxCollider;
+
         [SerializeField] private LayerMask _groundLayer;     // 도약 착지 판정용 지면 레이어
 
         protected Rigidbody2D _rb;
         protected bool _isRewinding;
         private Collider2D _col;
+        private Collider2D _playerCollider;
+        private bool _isIgnoringPlayerBodyCollision;
+        private float _verticalAvoidHorizontalRange;
+        private float _verticalAvoidHeight;
+        private ContactFilter2D _bossProximityFilter;
+        private readonly Collider2D[] _nearbyBosses = new Collider2D[MAX_NEARBY_BOSSES];
         private bool _isGrounded;
         private bool _isAttacking; // 공격 모션 중 이동 정지
         private bool _isJumping;   // 도약 중 - 조향 정지, 착지까지 유지
@@ -54,6 +64,7 @@ namespace Minsung.Boss
 
         // 추격/공격을 멈춰야 하는 파생별 추가 조건 (분신 = 사망 상태, 본체 = 없음)
         protected virtual bool IsActionBlocked => false;
+        protected virtual bool UsesVerticalCrowdAvoidance => false;
 
         /// <summary> 무적 백스텝 중 여부 - 파생 클래스의 TakeDamage가 피해 무시 판정에 사용 </summary>
         protected bool IsInvulnerable => _isDodging;
@@ -71,6 +82,10 @@ namespace Minsung.Boss
             _rb  = GetComponent<Rigidbody2D>();
             _col = GetComponent<Collider2D>();
             _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            _verticalAvoidHorizontalRange = GameDB.Boss.CloneCrowdAvoidHorizontalRange;
+            _verticalAvoidHeight          = GameDB.Boss.CloneCrowdAvoidVerticalRange;
+            _bossProximityFilter = ContactFilter2D.noFilter;
+            _bossProximityFilter.useTriggers = false;
 
             _waitAttackCooldown = new WaitForSeconds(AttackCooldown);
             _waitAttackActive   = new WaitForSeconds(AttackActiveTime);
@@ -101,6 +116,9 @@ namespace Minsung.Boss
             {
                 return;
             }
+
+            UpdatePlayerBodyCollision();
+
             _isGrounded = CheckGrounded();
             ChasePlayer();
         }
@@ -130,6 +148,8 @@ namespace Minsung.Boss
             _isAttacking       = false;
             _isJumping         = false;
             _isDodging         = false;
+            SetPlayerBodyCollisionIgnored(false);
+            UpdatePlayerBodyCollision();
             _rb.bodyType       = RigidbodyType2D.Dynamic;
             _rb.linearVelocity = Vector2.zero;
 
@@ -143,6 +163,55 @@ namespace Minsung.Boss
             _attackLoop = StartCoroutine(CoAttackLoop());
             _jumpLoop   = StartCoroutine(CoJumpLoop());
             _dodgeLoop  = StartCoroutine(CoDodgeLoop());
+        }
+
+        // 보스의 옆/아래는 막되, 플레이어가 보스 위에 있을 때는 발판처럼 고정되지 않고 아래로 빠진다.
+        // 위에서 진입한 뒤에는 완전히 빠져나갈 때까지 충돌 무시를 유지해 몸통 중간에서 다시 걸리지 않게 한다.
+        private void UpdatePlayerBodyCollision()
+        {
+            if ((_col == null) || (_boss == null) || (_boss.Player == null))
+            {
+                return;
+            }
+
+            if ((_playerCollider == null) && (!_boss.Player.TryGetComponent(out _playerCollider)))
+            {
+                return;
+            }
+
+            Bounds bossBounds = _col.bounds;
+            Bounds playerBounds = _playerCollider.bounds;
+
+            if (_isIgnoringPlayerBodyCollision)
+            {
+                if (!bossBounds.Intersects(playerBounds))
+                {
+                    SetPlayerBodyCollisionIgnored(false);
+                }
+                return;
+            }
+
+            bool isPlayerAboveBoss = playerBounds.min.y >= bossBounds.max.y;
+            if (isPlayerAboveBoss)
+            {
+                SetPlayerBodyCollisionIgnored(true);
+            }
+        }
+
+        private void SetPlayerBodyCollisionIgnored(bool ignored)
+        {
+            if ((_col == null) || (_boss == null) || (_boss.Player == null))
+            {
+                return;
+            }
+
+            if ((_playerCollider == null) && (!_boss.Player.TryGetComponent(out _playerCollider)))
+            {
+                return;
+            }
+
+            Physics2D.IgnoreCollision(_col, _playerCollider, ignored);
+            _isIgnoringPlayerBodyCollision = ignored;
         }
 
         private void ConfigureAttackHitboxRange()
@@ -272,13 +341,56 @@ namespace Minsung.Boss
                 {
                     v.x = Mathf.Sign(dx) * MoveSpeed;
                 }
+                // 두 분신이 상하로 겹치면 플레이어 추적을 잠시 양보해 좌우로 분리한다.
+                if (UsesVerticalCrowdAvoidance)
+                {
+                    float avoidDirection = GetVerticalCrowdAvoidDirection();
+                    if (!Mathf.Approximately(avoidDirection, 0f))
+                    {
+                        v.x = avoidDirection * MoveSpeed;
+                    }
+                }
             }
 
             _rb.linearVelocity = v;
             PlayAnimSpeed(Mathf.Abs(v.x));
         }
 
-        // 바라보는 방향으로 스케일 반전 - 자식 히트박스도 같이 뒤집힌다 (원본 아트 응시 방향은 BOSS_ART_FACING_SIGN 참조)
+        private float GetVerticalCrowdAvoidDirection()
+        {
+            Vector2 center = _col.bounds.center;
+            float searchRadius = Mathf.Max(_verticalAvoidHorizontalRange, _verticalAvoidHeight);
+            int count = Physics2D.OverlapCircle(center, searchRadius, _bossProximityFilter, _nearbyBosses);
+            float direction = 0f;
+
+            for (int i = 0; i < count; ++i)
+            {
+                Collider2D nearby = _nearbyBosses[i];
+                if ((nearby == null) || (nearby == _col) ||
+                    (!nearby.TryGetComponent(out BossCloneController other)))
+                {
+                    continue;
+                }
+
+                Vector2 offset = center - (Vector2)nearby.bounds.center;
+                if ((Mathf.Abs(offset.x) > _verticalAvoidHorizontalRange)
+                    || (Mathf.Abs(offset.y) < VERTICAL_ALIGNMENT_EPSILON)
+                    || (Mathf.Abs(offset.y) > _verticalAvoidHeight))
+                {
+                    continue;
+                }
+
+                // X가 완전히 같을 때도 두 분신이 반대 방향을 선택하도록 안정적으로 나눈다.
+                float side = Mathf.Abs(offset.x) > VERTICAL_ALIGNMENT_EPSILON
+                    ? Mathf.Sign(offset.x)
+                    : (GetHashCode() < other.GetHashCode() ? -1f : 1f);
+                direction += side;
+            }
+
+            return Mathf.Clamp(direction, -1f, 1f);
+        }
+
+        // 바라보는 방향으로 스케일 반전 - 자식 히트박스도 같이 뒤집힌다
         private void FaceTo(float dx)
         {
             if (Mathf.Approximately(dx, 0f))
@@ -309,7 +421,6 @@ namespace Minsung.Boss
                 _isAttacking = true;
                 PlayAnimTrigger(Constants.Combat.BOSS_ANIM_ATTACK);
 
-                // TODO: 애니메이션 이벤트 시점에 히트박스를 켜고 모션 종료 시 끄는 방식으로 교체
                 if (_attackHitbox != null)
                 {
                     _attackHitbox.gameObject.SetActive(true);
@@ -320,6 +431,7 @@ namespace Minsung.Boss
             }
         }
 
+        // 플레이어가 범위 밖으로 많이 벗어났을 경우 도약하게 하기 위한 판정
         private bool IsPlayerInRange()
         {
             if ((_boss == null) || (_boss.Player == null))
@@ -327,14 +439,14 @@ namespace Minsung.Boss
                 return false;
             }
             float sqr = ((Vector2)_boss.Player.transform.position - (Vector2)transform.position).sqrMagnitude;
-            return sqr <= (AttackRange * AttackRange);
+            return sqr <= (AttackRange * AttackRange) * 3;
         }
 
         /****************************************
         *                도약
         ****************************************/
 
-        // 도약 루프: 쿨다운마다 사거리가 JumpTriggerRange보다 멀면 도약 슬램으로 단숨에 접근한다
+        // 도약 루프: 쿨다운마다 공격 사거리 밖이면(=걷기로 못 붙는 지형에 막혀도) 도약으로 단숨에 접근한다
         private IEnumerator CoJumpLoop()
         {
             while (true)
@@ -345,7 +457,8 @@ namespace Minsung.Boss
                 {
                     continue; // 기믹/컷신 중에는 도약 정지
                 }
-                if ((IsActionBlocked) || (_isAttacking) || (_isDodging) || (!_isGrounded) || (!IsPlayerBeyondJumpRange()))
+                if ((IsActionBlocked) || (_isAttacking) || (_isDodging) || (!_isGrounded) ||
+                    (_boss == null) || (_boss.Player == null) || (IsPlayerInRange()))
                 {
                     continue;
                 }
@@ -354,36 +467,48 @@ namespace Minsung.Boss
             }
         }
 
-        private bool IsPlayerBeyondJumpRange()
-        {
-            if ((_boss == null) || (_boss.Player == null))
-            {
-                return false;
-            }
-            float dx = Mathf.Abs(_boss.Player.transform.position.x - transform.position.x);
-            return dx > GameDB.Boss.JumpTriggerRange;
-        }
-
-        // 플레이어 방향으로 뛰어올라 접근 - 착지 순간 기존 공격 히트박스로 슬램 판정을 짧게 켠다
+        // 플레이어 위치로 도약 접근 - 착지 순간 공격 히트박스로 슬램 판정을 짧게 켠다
         private IEnumerator CoJump()
         {
-            float dir = Mathf.Sign(_boss.Player.transform.position.x - transform.position.x);
+            yield return CoLeapTo(_boss.Player.transform.position.x, _boss.Player.transform.position.y, GameDB.Boss.JumpArcHeight, slamOnLand: true);
+        }
+
+        /// <summary> 목표 지점(targetX, targetY)에 정확히 착지하는 포물선 도약 - 거리와 무관하게 지정한 정점 높이로 넘어간다.
+        /// slamOnLand면 착지 순간 공격 히트박스를 짧게 켠다 (전투 접근용). 등장 연출(분신 진입)은 false로 사용 </summary>
+        protected IEnumerator CoLeapTo(float targetX, float targetY, float arcHeight, bool slamOnLand = false)
+        {
+            Vector2 start = _rb.position;
+            float   dx      = targetX - start.x;
+            float   dy      = targetY - start.y;
+            float   gravity = Mathf.Abs(Physics2D.gravity.y * _rb.gravityScale);
+
+            float peakHeight = Mathf.Max(arcHeight, dy) + Constants.Combat.BOSS_LEAP_HEIGHT_MARGIN; // 정점이 도착지보다 낮으면 못 넘어가므로 최소 여유를 둔다
+            float riseTime   = Mathf.Sqrt((2f * peakHeight) / gravity);
+            float fallTime   = Mathf.Sqrt((2f * (peakHeight - dy)) / gravity);
+            float totalTime  = riseTime + fallTime;
+
+            float dir = Mathf.Sign(dx);
             FaceTo(dir);
 
             Vector2 v = _rb.linearVelocity;
-            v.x = dir * GameDB.Boss.JumpForwardSpeed;
-            v.y = GameDB.Boss.JumpForce;
+            v.x = dx / totalTime;
+            v.y = gravity * riseTime;
             _rb.linearVelocity = v;
 
             _isJumping = true;
             PlayAnimTrigger(Constants.Combat.BOSS_ANIM_JUMP);
+
+            // 벽에 붙은 채로 도약 패턴 나오면 제자리점프해서 강제로 트리거 활성화
+            _col.isTrigger = true;
 
             while ((!_isGrounded) || (_rb.linearVelocity.y > 0f))
             {
                 yield return null;
             }
 
-            if (_attackHitbox != null)
+            _col.isTrigger = false;
+
+            if (slamOnLand && (_attackHitbox != null))
             {
                 _attackHitbox.gameObject.SetActive(true);
                 yield return _waitJumpLandActive;
@@ -403,9 +528,10 @@ namespace Minsung.Boss
             {
                 yield return _waitDodgeCooldown;
 
+                // 기믹/컷신 중에는 회피 정지
                 if ((_boss != null) && (_boss.IsTransitioning))
                 {
-                    continue; // 기믹/컷신 중에는 회피 정지
+                    continue;
                 }
                 if ((IsActionBlocked) || (_isAttacking) || (_isJumping) || (!IsPlayerWithinDodgeRange()))
                 {
@@ -426,7 +552,7 @@ namespace Minsung.Boss
             return dx <= GameDB.Boss.DodgeTriggerRange;
         }
 
-        // 플레이어 반대 방향으로 짧게 후퇴하며 그동안 피해를 받지 않는다 (IsInvulnerable - 파생 TakeDamage가 참조)
+        // 플레이어 반대 방향으로 짧게 후퇴하며 그동안 피해를 받지 않는다
         private IEnumerator CoDodge()
         {
             float dir = -Mathf.Sign(_boss.Player.transform.position.x - transform.position.x);

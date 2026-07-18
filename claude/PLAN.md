@@ -180,6 +180,9 @@
 
 ### Boss
 
+- [x] **1페이즈 분신 상하 겹침 회피** (2026-07-18) — `BossCloneController` 두 체만 대상. 같은 X축에서 위아래로 1.25m 이내 겹치면 반대 방향으로 이동해 분리한다. 판정 범위는 `BossDataSO`/`BossDB.asset`의 `CloneCrowdAvoidHorizontalRange`(0.75), `CloneCrowdAvoidVerticalRange`(1.25)로 조절.
+- [x] **1페이즈 해저드 하단 확장** (2026-07-18) — `ArenaGroundY`는 낙뢰·장풍 등 기존 기준으로 유지하고, 기믹 레이저/안전구역만 씬별 `GimmickHazardBottomY`까지 확장한다. Map2는 보스 등장 움푹한 바닥까지 포함하도록 `-36.5`로 설정 (좌/우 구덩이 전경 장식물 최저점 약 -35.98까지 커버, 최초 설정값 -33.5는 부족해 구덩이 하단이 안 보이는 버그로 재수정).
+
 > 기준 스펙: `claude/README.md`의 "보스 - Azathoth" 섹션 (2026-07-11 상세 기획 반영)
 > 아래 남은 작업은 스펙-코드 전수 대조 감사(2026-07-11, 6개 영역)로 도출 - 근거 라인은 각 항목 참고
 

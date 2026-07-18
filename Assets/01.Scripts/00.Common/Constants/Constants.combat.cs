@@ -38,6 +38,9 @@ namespace Minsung.Common
             // 근접 유닛 착지 판정 - Player.GROUND_CHECK_EXTRA와 같은 값이지만 계약 대상이 달라 독립 유지
             public const float GROUND_CHECK_EXTRA = 0.05f;
 
+            // 등장 도약 포물선 최대 높이
+            public const float BOSS_LEAP_HEIGHT_MARGIN = 0.5f;
+
             // 보스 계열 스프라이트 원본 아트 응시 방향 (-1 = 왼쪽) - 시트 교체로 기본 방향이 바뀌면 이 값만 수정
             public const float BOSS_ART_FACING_SIGN = -1f;
         }

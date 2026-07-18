@@ -13,10 +13,10 @@ EditorBuildSettings:
     guid: 918d76e1e54a34843a5964495fba75bf
   - enabled: 1
     path: Assets/00.Scenes/Map1.unity
-    guid: 93b79f443de64894b815bab140a3626b
+    guid: 5026853f31f9fda44b22e3636cd4662f
   - enabled: 1
     path: Assets/00.Scenes/MapC3.unity
-    guid: c3914045139b31542977a0c4801c4419
+    guid: 00000000000000000000000000000000
   - enabled: 1
     path: Assets/00.Scenes/Pause.unity
     guid: cad81d0c1e72f6b4ab79ab1523f39249
@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/00.Scenes/Test.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
+  - enabled: 1
+    path: Assets/00.Scenes/Map3.unity
+    guid: d85795f48bf854e4cb5b7400cb662fa1
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 99f9c9493070a9d4c979a8fec7c5a8d3, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

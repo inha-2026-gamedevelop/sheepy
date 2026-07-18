@@ -10,12 +10,14 @@ namespace Minsung.Boss
     // 보스 감정을 두 곳에 표시 - 감정 아이콘(체력바 좌하단, 항상 표시) / 반사 아이콘(머리 위, 반사 감정일 때만)
     public class BossEmotionHUD : MonoBehaviour
     {
+#pragma warning disable CS0649 // Unity serializes these Inspector mapping fields.
         [Serializable]
         private struct EmotionIconEntry
         {
             public BossEmotion Emotion;
             public Sprite Icon;
         }
+#pragma warning restore CS0649
 
         [SerializeField] private BossController _boss;
         [SerializeField] private Image _emotionIcon;          // 체력바 - 현재 감정 항상 표시

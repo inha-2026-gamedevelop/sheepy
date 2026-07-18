@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cecac0579d4201428448f0a1ed527f1, type: 3}
   m_Name: BossDB
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.BossDataSO
-  _totalHealth: 32000
-  _phaseCount: 4
+  _totalHealth: 400
   _timeLimit: 600
   _attackHalves: 2
   _cloneAttackHalves: 1
@@ -23,21 +22,22 @@ MonoBehaviour:
   _attackCooldown: 2.5
   _attackActiveTime: 0.25
   _jumpCooldown: 4
-  _jumpTriggerRange: 6
-  _jumpForce: 8
-  _jumpForwardSpeed: 7
+  _jumpArcHeight: 2
   _jumpLandActiveTime: 0.2
   _dodgeCooldown: 5
   _dodgeTriggerRange: 1.5
   _dodgeBackDistance: 3
   _dodgeDuration: 0.3
-  _cloneHealth: 4000
+  _cloneHealth: 400
   _cloneCount: 2
   _cloneAttackRange: 0.7
   _cloneAttackCooldown: 2
   _cloneAttackActiveTime: 0.2
   _cloneMoveSpeed: 1.8
-  _lightningInterval: 4
+  _cloneEntranceLeapHeight: 2
+  _cloneCrowdAvoidHorizontalRange: 0.75
+  _cloneCrowdAvoidVerticalRange: 1.25
+  _lightningInterval: 8
   _lightningTelegraphTime: 0.8
   _lightningTelegraphHeight: 0.15
   _lightningActiveTime: 0.15
@@ -71,14 +71,13 @@ MonoBehaviour:
   _heartPickupHeight: 0.5
   _emotionInterval: 8
   _gimmickLaserCount: 3
-  _gimmickSafeZoneWidth: 3
-  _gimmickSafeZoneAlpha: 0.1
+  _gimmickSafeZoneAlpha: 0.45
   _gimmickTelegraphTime: 3
   _gimmickLaserActiveTime: 3
   _gimmickLaserHeight: 6
   _gimmickRefireDelay: 5
   _gimmickJudgeInterval: 2
-  _phase2WaveInterval: 3
+  _phase2WaveInterval: 6
   _phase2WaveWidth: 2.5
   _phase2WaveHeight: 2.5
   _phase2WaveGroundEmbed: 0.75
