@@ -13,14 +13,16 @@ namespace Minsung.Common
             // 히트스톱 (타격감을 위한거)
             public const float HIT_STOP_DURATION   = 0.05f;
 
-            // 몬스터 기본값 (BT 노드/컴포넌트 SerializeField 초기값 - 배치별 인스펙터 튜닝 전제)
+            // 몬스터 기본값 (FSM/컴포넌트 SerializeField 초기값 - 배치별 인스펙터 튜닝 전제)
             public const float ENEMY_BASE_HEALTH      = 30f;
             public const float ENEMY_PATROL_SPEED     = 2f;
             public const float ENEMY_DETECT_RANGE     = 5f;
-            public const float ENEMY_ATTACK_RANGE     = 1.2f;
+            // 몬스터와 대상의 콜라이더 경계 사이에 허용하는 공격 여유 거리.
+            public const float ENEMY_ATTACK_RANGE     = 0.1f;
             public const float ENEMY_ATTACK_COOLDOWN  = 1.5f;
             public const float ENEMY_CHASE_SPEED_MULT = 1.5f;
             public const float ENEMY_PATROL_DISTANCE  = 3f;   // 스폰 지점 기준 좌우 순찰 거리
+            public const float ENEMY_ART_FACING_SIGN  = -1f;  // 원본 몬스터 아트가 왼쪽을 봄 (-1 = 오른쪽을 볼 때 좌우 반전)
 
             // 1페이즈 즉사 기믹 - LaserColor enum 개수와 일치해야 하는 구조 상수
             public const int GIMMICK_LASER_COLOR_COUNT = 3;
