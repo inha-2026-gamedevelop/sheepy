@@ -1,0 +1,507 @@
+fileFormatVersion: 2
+guid: f17b3de382c4b1746ac602fa99838187
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6651692889990681770
+    second: SheepyBossHPGage_0
+  - first:
+      213: 8142791730761399181
+    second: SheepyBossHPGage_1
+  - first:
+      213: -9029220409504792389
+    second: SheepyBossHPGage_2
+  - first:
+      213: 2520967905403974418
+    second: SheepyBossHPGage_3
+  - first:
+      213: -2377077532631957501
+    second: SheepyBossHPGage_4
+  - first:
+      213: 6000090914423327002
+    second: SheepyBossHPGage_5
+  - first:
+      213: 411204151516598772
+    second: SheepyBossHPGage_6
+  - first:
+      213: 1511413987230748984
+    second: SheepyBossHPGage_7
+  - first:
+      213: -7403818331633138501
+    second: SheepyBossHPGage_8
+  - first:
+      213: 4873825193088481526
+    second: SheepyBossHPGage_9
+  - first:
+      213: -1113906230328525395
+    second: SheepyBossHPGage_10
+  - first:
+      213: -1570824896837094058
+    second: SheepyBossHPGage_11
+  - first:
+      213: 8008722507770696379
+    second: SheepyBossHPGage_12
+  - first:
+      213: 5261405323197920153
+    second: SheepyBossHPGage_13
+  - first:
+      213: 8656733458113993602
+    second: SheepyBossHPGage_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SheepyBossHPGage_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1536
+        height: 1024
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa4d2e6f07f8f4c50800000000000000
+      internalID: 6651692889990681770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_1
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 694
+        width: 45
+        height: 330
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8b7500dfe1010170800000000000000
+      internalID: 8142791730761399181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_2
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 1008
+        width: 507
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb082cc50e3c1b280800000000000000
+      internalID: -9029220409504792389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_3
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 976
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 213b3cb04f64cf220800000000000000
+      internalID: 2520967905403974418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_4
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 864
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30009ef049ce20fd0800000000000000
+      internalID: -2377077532631957501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_5
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 720
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a19404695ea944350800000000000000
+      internalID: 6000090914423327002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_6
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 415
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f110554ff3e4b500800000000000000
+      internalID: 411204151516598772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_7
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 407
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8311279730f99f410800000000000000
+      internalID: 1511413987230748984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_8
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 399
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb44b79547a504990800000000000000
+      internalID: -7403818331633138501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_9
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 400
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f87363c03e43a340800000000000000
+      internalID: 4873825193088481526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_10
+      rect:
+        serializedVersion: 2
+        x: 995
+        y: 376
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dad7c2c6f2c9a80f0800000000000000
+      internalID: -1113906230328525395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_11
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 360
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6557fa3341f433ae0800000000000000
+      internalID: -1570824896837094058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_12
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 200
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb2195450b2b42f60800000000000000
+      internalID: 8008722507770696379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_13
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 104
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 993bf8ce344440940800000000000000
+      internalID: 5261405323197920153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SheepyBossHPGage_14
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 95
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28b9f1ef635e22870800000000000000
+      internalID: 8656733458113993602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SheepyBossHPGage_0: 6651692889990681770
+      SheepyBossHPGage_1: 8142791730761399181
+      SheepyBossHPGage_10: -1113906230328525395
+      SheepyBossHPGage_11: -1570824896837094058
+      SheepyBossHPGage_12: 8008722507770696379
+      SheepyBossHPGage_13: 5261405323197920153
+      SheepyBossHPGage_14: 8656733458113993602
+      SheepyBossHPGage_2: -9029220409504792389
+      SheepyBossHPGage_3: 2520967905403974418
+      SheepyBossHPGage_4: -2377077532631957501
+      SheepyBossHPGage_5: 6000090914423327002
+      SheepyBossHPGage_6: 411204151516598772
+      SheepyBossHPGage_7: 1511413987230748984
+      SheepyBossHPGage_8: -7403818331633138501
+      SheepyBossHPGage_9: 4873825193088481526
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

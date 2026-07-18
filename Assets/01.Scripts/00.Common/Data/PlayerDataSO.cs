@@ -63,6 +63,18 @@ namespace Minsung.Common.Data
         [SerializeField] private Color _chargingColor    = new Color(1f, 0.75f, 0.4f); // 차지 진행 중 (주황)
         [SerializeField] private Color _chargeReadyColor = new Color(1f, 0.9f, 0.2f);  // 풀차지 완료 (골드)
 
+        [Header("오브 비주얼")]
+        [SerializeField] private Color _orbGlowColor       = new Color(0.08f, 0.48f, 1f, 1f); // 오브 발광 색상
+        [SerializeField] private float _orbGlowIntensity   = 3.5f;   // 오브 HDR 발광 강도
+        [SerializeField] private float _orbPulseSpeed       = 2f;    // 오브 발광 맥동 속도
+        [SerializeField] private float _orbPulseAmount      = 0.15f; // 오브 발광 맥동 폭
+
+        [Header("오브 궤적")]
+        [SerializeField] private Color _orbTrailColor              = new Color(0.08f, 0.55f, 1f, 0.85f); // 궤적 색상
+        [SerializeField] private float _orbTrailDuration           = 0.3f;   // 궤적이 남아있는 시간(초)
+        [SerializeField] private float _orbTrailWidth              = 0.045f; // 궤적 기본 너비(유닛)
+        [SerializeField] private float _orbTrailMinVertexDistance  = 0.015f; // 궤적 꼭짓점 추가 최소 거리(유닛)
+
         /****************************************
         *              Properties
         ****************************************/
@@ -104,6 +116,15 @@ namespace Minsung.Common.Data
         public float OrbSize         => _orbSize;
 
         public Color OrbColor => _orbColor;
+
+        public Color OrbGlowColor              => _orbGlowColor;
+        public float OrbGlowIntensity          => _orbGlowIntensity;
+        public float OrbPulseSpeed              => _orbPulseSpeed;
+        public float OrbPulseAmount             => _orbPulseAmount;
+        public Color OrbTrailColor              => _orbTrailColor;
+        public float OrbTrailDuration           => _orbTrailDuration;
+        public float OrbTrailWidth              => _orbTrailWidth;
+        public float OrbTrailMinVertexDistance  => _orbTrailMinVertexDistance;
 
         public Color RewindTintColor  => _rewindTintColor;
         public Color ChargingColor    => _chargingColor;

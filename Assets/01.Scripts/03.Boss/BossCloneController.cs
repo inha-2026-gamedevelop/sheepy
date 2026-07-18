@@ -56,6 +56,7 @@ namespace Minsung.Boss
         protected override int   AttackHalves     => GameDB.Boss.CloneAttackHalves; // 분신 공격은 반 칸
 
         protected override bool IsActionBlocked => !_isAlive; // 사망 중에는 추격/공격 정지
+        protected override bool UsesVerticalCrowdAvoidance => true;
 
         /****************************************
         *             수명 관리
@@ -79,6 +80,13 @@ namespace Minsung.Boss
             RewindManager.Instance?.Register(this);
 
             BeginCombat();
+
+            // 등장 연출 - 파인 스폰 지점에서 본체가 서 있는 중앙 평지로 한 번 도약해 진입한다
+            if ((_boss != null) && (_boss.Body != null))
+            {
+                Vector2 landingPoint = _boss.Body.transform.position;
+                StartCoroutine(CoLeapTo(landingPoint.x, landingPoint.y, GameDB.Boss.CloneEntranceLeapHeight));
+            }
         }
 
         /// <summary> 퇴장 + 타임라인 이탈. 페이즈 정리(Phase1State.Exit)에서 호출한다 </summary>
@@ -105,8 +113,6 @@ namespace Minsung.Boss
             {
                 return false; // 감정 반사 - 분신 피통 유지
             }
-
-            PlayAnimTrigger(Constants.Combat.BOSS_ANIM_HIT);
 
             _health -= dmg;
             OnHealthChanged?.Invoke(Mathf.Max(0f, _health), GameDB.Boss.CloneHealth);

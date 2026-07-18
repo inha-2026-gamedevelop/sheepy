@@ -14,6 +14,7 @@ using Minsung.Common.Data;
 using Minsung.Player;
 using Minsung.TimeSystem;
 using Minsung.UI;
+using Minsung.Visual;
 
 namespace Minsung.Boss
 {
@@ -54,6 +55,20 @@ namespace Minsung.Boss
         [SerializeField] private float _arenaMinX = -10f;
         [SerializeField] private float _arenaMaxX = 10f;
         [SerializeField] private float _arenaGroundY = 0f;
+        [SerializeField] private float _gimmickHazardBottomY = 0f;
+
+        [Header("1페이즈 즉사 기믹 지형 3섹터 (좌측 구덩이 / 중앙 단상 / 우측 구덩이, x min-max)")]
+        [SerializeField] private Vector2 _gimmickSectorLeft   = new Vector2(-10f, -3.33f);
+        [SerializeField] private Vector2 _gimmickSectorCenter = new Vector2(-3.33f, 3.33f);
+        [SerializeField] private Vector2 _gimmickSectorRight  = new Vector2(3.33f, 10f);
+
+        [Header("페이즈 진행 범위 - 이 씬이 담당하는 구간만(총 피통은 GameDB.Boss.TotalHealth, 다른 구간은 별도 씬/오브젝트+DB에서 독립 설정)")]
+        [SerializeField] private int _finalPhaseIndex = 3; // 이 인덱스(0=1페이즈)까지 진행 후 아래 종료 방식 실행
+
+        [Header("구간 종료 방식 - true면 영상 재생 후 다음 씬 로드, false면 기존 보스 격파 처리")]
+        [SerializeField] private bool _transitionToNextScene;
+        [SerializeField] private BossOutroVideoUI _outroVideo;      // _transitionToNextScene일 때 재생할 풀스크린 영상
+        [SerializeField] private string _nextSceneName = Constants.Scene.MAP_3;
 
         private BossState[] _states;       // 페이즈별 상태 객체 (인덱스 = 페이즈)
         private int _phaseIndex;           // 현재 페이즈 인덱스 (0부터)
@@ -87,6 +102,8 @@ namespace Minsung.Boss
         public BossBodyController Body => _body;                // 2페이즈부터 페이즈 상태가 활성/비활성 관리
         public int PhaseIndex => _phaseIndex;
         public bool IsTransitioning => _transitioning;
+        // 현재 페이즈가 이 씬이 담당하는 마지막 페이즈인지 - true면 이번 종료 기믹 뒤 씬 전환(또는 격파 처리)이 온다
+        public bool IsFinalPhase => _phaseIndex >= _finalPhaseIndex;
         public BossEmotion CurrentEmotion => _emotion;
         public float CurrentHealth => _currentHealth;
         public float BattleElapsed => _battleElapsed;           // 보스전 UI 타이머용
@@ -94,10 +111,19 @@ namespace Minsung.Boss
         public float ArenaMinX => _arenaMinX;
         public float ArenaMaxX => _arenaMaxX;
         public float ArenaGroundY => _arenaGroundY;
+        public float GimmickHazardBottomY => Mathf.Min(_gimmickHazardBottomY, _arenaGroundY);
+
+        // 1페이즈 즉사 기믹 색 배정용 지형 3섹터 (인덱스 순서 고정 - 좌측 구덩이/중앙 단상/우측 구덩이)
+        public Vector2[] GimmickSectors => new[] { _gimmickSectorLeft, _gimmickSectorCenter, _gimmickSectorRight };
+
+        public float TotalHealth => GameDB.Boss.TotalHealth; // Minsung.UI.BossHealthBarUI가 정규화 기준으로 구독
+
+        // 이 씬이 담당하는 페이즈 수(=_finalPhaseIndex+1)로 총 피통을 균등 분할한 페이즈 1개 분량 - 페이즈 경계 노치 표시에도 쓰인다
+        public float PhaseHealthSpan => GameDB.Boss.TotalHealth / (_finalPhaseIndex + 1);
 
         // 현재 페이즈의 피통 경계. 하한에 닿으면 동결 + 종료 기믹
-        private float PhaseFloorHealth => GameDB.Boss.TotalHealth - (GameDB.Boss.PhaseHealth * (_phaseIndex + 1));
-        private float PhaseCeilHealth => GameDB.Boss.TotalHealth - (GameDB.Boss.PhaseHealth * _phaseIndex);
+        private float PhaseFloorHealth => GameDB.Boss.TotalHealth - (PhaseHealthSpan * (_phaseIndex + 1));
+        private float PhaseCeilHealth => GameDB.Boss.TotalHealth - (PhaseHealthSpan * _phaseIndex);
 
         public event Action<int> OnPhaseChanged;             // 새 페이즈 진입 시 (int = 새 페이즈 인덱스)
         public event Action OnBossDefeated;                  // 마지막 페이즈 피통이 0이 되었을 때
@@ -234,11 +260,12 @@ namespace Minsung.Boss
         /// <summary>
         /// 자동 감정 전환 루프 시작 (2페이즈 진입 시 CoPhaseEnd가 1회 호출). 이미 돌고 있으면 무시
         /// </summary>
-        private void StartEmotionLoop()
+        // applyImmediately면 대기 없이 첫 감정을 즉시 적용한다 (페이즈 시작). 되감기 재개 시엔 ApplyFrame이 이미 복원했으므로 false로 호출
+        private void StartEmotionLoop(bool applyImmediately = false)
         {
             if (_emotionLoop == null)
             {
-                _emotionLoop = StartCoroutine(CoEmotionLoop());
+                _emotionLoop = StartCoroutine(CoEmotionLoop(applyImmediately));
             }
         }
 
@@ -258,8 +285,13 @@ namespace Minsung.Boss
         }
 
         // EmotionInterval마다 Black/White/Navy/Pink/Blue 중 하나로 랜덤 전환. 전환/기믹 중에는 건너뛴다
-        private IEnumerator CoEmotionLoop()
+        private IEnumerator CoEmotionLoop(bool applyImmediately)
         {
+            if (applyImmediately && !_autoEmotionSuspended)
+            {
+                SetEmotion(GetOrMakeAutoEmotion());
+            }
+
             while (true)
             {
                 yield return _waitEmotionInterval;
@@ -507,13 +539,27 @@ namespace Minsung.Boss
 
             RewindManager.Instance?.SetRewindEnabled(true);
 
-            if (_phaseIndex >= _states.Length - 1)
+            if (_phaseIndex >= _finalPhaseIndex)
             {
+                StopEmotionLoop();
+
+                if (_transitionToNextScene)
+                {
+                    // 이 씬이 담당하는 구간은 여기서 끝 - 격파 연출 대신 컷씬 재생 후 다음 페이즈 구간 씬으로 전환
+                    // Phase2State.CoPhaseEndGimmick가 이미 검게 페이드해 둔 상태 - 그 위에 영상을 재생하고
+                    // 페이드아웃 없이(직전 씬 깜빡임 방지) 바로 다음 씬 로드 후 페이드인만 한다
+                    if (_outroVideo != null)
+                    {
+                        yield return _outroVideo.CoPlay();
+                    }
+                    GameManager.Instance?.LoadSceneFadeInOnly(_nextSceneName);
+                    yield break;
+                }
+
                 AchievementManager.Instance?.Unlock(AchievementIds.BOSS_DEFEATED);
                 PlayAnimTrigger(Constants.Combat.BOSS_ANIM_DEATH);
                 StartCoroutine(CoActivateDeathLightFx());
                 CameraManager.Instance?.ResetPlayerZoom();
-                StopEmotionLoop();
                 OnBossDefeated?.Invoke();
                 yield break;
             }
@@ -522,7 +568,7 @@ namespace Minsung.Boss
             if (_phaseIndex == 1)
             {
                 AchievementManager.Instance?.Unlock(AchievementIds.BOSS_PHASE1_CLEAR);
-                StartEmotionLoop(); // 2페이즈부터 자동 감정 전환 시작 (3페이즈는 SetAutoEmotionSuspended로 정지)
+                StartEmotionLoop(applyImmediately: true); // 2페이즈 시작과 동시에 첫 감정 즉시 적용 (3페이즈는 SetAutoEmotionSuspended로 정지)
             }
 
             // 새 페이즈 상한으로 피통을 스냅한다. 1페이즈(분신 별도 피통)를 지나 2페이즈에 진입하면

@@ -54,6 +54,8 @@ namespace Minsung.Boss
         *                Fields
         ****************************************/
 
+        private const int HAZARD_SORTING_ORDER = 100; // 지형 sortingOrder(대개 0)보다 높게 고정 - 파티클 렌더러(100)와 동일 기준
+
         private static Sprite  _squareSprite;  // 공용 1x1 흰 사각 스프라이트 (지연 생성 후 재사용)
         private static Texture2D _circleTexture; // 공용 원형 알파 텍스처 (파티클용, 지연 생성 후 재사용)
 
@@ -87,6 +89,7 @@ namespace Minsung.Boss
                 go.SetActive(false); // 비활성 상태로 생성해야 ParticleSystem의 playOnAwake 자동 재생을 막을 수 있다 (재생 중 duration 변경 시 예외 발생)
 
                 SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+                sr.sortingOrder = HAZARD_SORTING_ORDER; // 지형(구덩이 벽 등) sortingOrder가 더 높으면 판정 구역이 가려져 안 보이는 문제 방지
 
                 if (customSprite != null)
                 {
@@ -147,12 +150,12 @@ namespace Minsung.Boss
                     }
 
                     var emission = ps.emission;
-                    emission.rateOverTime = particleRate; // 바닥에서 스멀스멀 올라오며 튀는 연출 (흐름 모드는 밀도를 별도 지정 가능)
+                    emission.rateOverTime = particleRate; // 바닥에서 스멀스멀 올라오며 튀는 연출
 
                     var psr = go.GetComponent<ParticleSystemRenderer>();
-                    psr.material = new Material(Shader.Find("Sprites/Default")); // URP 에러(핑크색) 방지를 위해 2D 기본 쉐이더 사용
+                    psr.material = new Material(Shader.Find("Sprites/Default"));
                     psr.material.mainTexture = CircleTexture(); // 기본 사각 파티클 대신 원형으로 렌더링
-                    psr.sortingOrder = 100; // 배경 위에 확실히 렌더링되게 보장
+                    psr.sortingOrder = HAZARD_SORTING_ORDER;    // 배경 위에 확실히 렌더링되게 보장
                 }
 
                 _slots[i] = new PoolSlot { Go = go, Renderer = sr };

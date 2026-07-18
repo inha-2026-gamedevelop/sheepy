@@ -123,9 +123,22 @@ namespace Minsung.Boss
             _wavePool.FreeAll();
 
             // TODO: 컷신 연출(보스 대사/카메라) 기획 확정 후 교체
-            // TODO: 씬 전환으로 맵 변경 - FadeOutIn의 onMidpoint에서 GameManager 씬 전환 호출
-            //       보스 상태(피통/페이즈/타이머) 이관 구조 설계 후 연결한다
-            if (ScreenFade.Instance != null)
+            if (ScreenFade.Instance == null)
+            {
+                yield break;
+            }
+
+            if (Boss.IsFinalPhase)
+            {
+                // 이 씬은 여기서 끝 - 다음은 영상+씬 전환이라 다시 밝아질 필요 없이 어두운 채로 넘긴다
+                bool faded = false;
+                ScreenFade.Instance.FadeOut(onComplete: () => faded = true);
+                while (!faded)
+                {
+                    yield return null;
+                }
+            }
+            else
             {
                 bool midpointReached = false;
                 ScreenFade.Instance.FadeOutIn(() => midpointReached = true);
@@ -185,6 +198,10 @@ namespace Minsung.Boss
                 yield break; // 풀 고갈 - 이번 장풍은 생략
             }
             yield return _waitTelegraph;
+            if (_wavePool == null)
+            {
+                yield break; // 대기 중 페이즈 전환으로 풀이 정리됨 - 더 진행하지 않는다
+            }
             _wavePool.Free(telegraphSlot);
 
             if (Boss.IsTransitioning)
@@ -212,6 +229,10 @@ namespace Minsung.Boss
                     }
                     _wavePool.SetSprite(strikeSlot, _strikeSprites[frameIndex]);
                     yield return _waitFrame;
+                    if (_wavePool == null)
+                    {
+                        yield break; // 프레임 대기 중 페이즈 전환으로 풀이 정리됨
+                    }
                     elapsed += _frameInterval;
 
                     ++frameIndex;
@@ -224,6 +245,10 @@ namespace Minsung.Boss
             else if (_wavePool.IsActive(strikeSlot))
             {
                 yield return _waitActive;
+                if (_wavePool == null)
+                {
+                    yield break;
+                }
             }
             _wavePool.Free(strikeSlot);
         }

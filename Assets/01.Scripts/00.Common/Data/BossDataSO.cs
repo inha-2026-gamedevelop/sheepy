@@ -8,13 +8,16 @@ namespace Minsung.Common.Data
     [CreateAssetMenu(fileName = "BossDB", menuName = "TheLastRewind/GameDB/BossDB")]
     public class BossDataSO : ScriptableObject
     {
+        [Header("클론 설정")]
+        [SerializeField] private float _cloneCrowdAvoidHorizontalRange = 0.75f;
+        [SerializeField] private float _cloneCrowdAvoidVerticalRange   = 1.25f;
+
         /****************************************
-        *                Fields
+        *                F
         ****************************************/
 
         [Header("공통")]
-        [SerializeField] private float _totalHealth = 64000f; // 보스 총 피통
-        [SerializeField] private int   _phaseCount  = 4;      // 페이즈 수
+        [SerializeField] private float _totalHealth = 16000f; // 이 씬이 담당하는 페이즈 구간 총 피통 (BossController._finalPhaseIndex+1로 균등 분할)
         [SerializeField] private float _timeLimit   = 600f;   // 보스전 제한시간(초) - 초과 시 플레이어 즉사, 리와인드/슬로우 무관 실시간
 
         [SerializeField] private int _attackHalves      = 2; // 보스 공격 하트 차감(반칸 단위, 2 = 한 칸)
@@ -29,9 +32,7 @@ namespace Minsung.Common.Data
 
         [Header("근접 유닛 공통 - 점프/회피 (본체·분신 공용, 개별 스탯 아님)")]
         [SerializeField] private float _jumpCooldown       = 4f;   // 최소 재사용 대기시간(초) TODO: 밸런싱
-        [SerializeField] private float _jumpTriggerRange   = 6f;   // 이 거리보다 멀면 도약으로 접근 (각 유닛 AttackRange보다 커야 함)
-        [SerializeField] private float _jumpForce          = 8f;   // 도약 수직 임펄스
-        [SerializeField] private float _jumpForwardSpeed   = 7f;   // 도약 중 수평 속도
+        [SerializeField] private float _jumpArcHeight      = 2f;   // 도약 최대 높이
         [SerializeField] private float _jumpLandActiveTime = 0.2f; // 착지 슬램 판정 유지 시간(초) - 각 유닛 AttackHalves 재사용
 
         [SerializeField] private float _dodgeCooldown     = 5f;   // 최소 재사용 대기시간(초) TODO: 밸런싱
@@ -46,6 +47,7 @@ namespace Minsung.Common.Data
         [SerializeField] private float _cloneAttackCooldown   = 2f;    // 근거리 공격 간격(초) TODO: 밸런싱
         [SerializeField] private float _cloneAttackActiveTime = 0.2f;  // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
         [SerializeField] private float _cloneMoveSpeed        = 2.6f;  // 추격 이동 속도 - 플레이어 MoveSpeed(2)보다 느리게 잡아 도망 가능하게 함
+        [SerializeField] private float _cloneEntranceLeapHeight = 2f;  // 등장 도약 최대 높이
 
         [Header("낙뢰 (전 페이즈 공통 패턴 - 예고 후 즉발 강타, 플레이어 주변 낙하)")]
         [SerializeField] private float _lightningInterval        = 4f;    // 기본 발생 간격(초)
@@ -96,7 +98,6 @@ namespace Minsung.Common.Data
 
         [Header("1페이즈 즉사 기믹 (레이저 색 순서 암기)")]
         [SerializeField] private int   _gimmickLaserCount      = 3;     // 발사 횟수(색 시퀀스 길이)
-        [SerializeField] private float _gimmickSafeZoneWidth   = 3f;    // 안전구역 폭
         [SerializeField] private float _gimmickSafeZoneAlpha   = 0.35f; // 안전구역 표시 반투명도
         [SerializeField] private float _gimmickTelegraphTime   = 3f;    // 안전구역 표시~레이저 발사까지(초)
         [SerializeField] private float _gimmickLaserActiveTime = 3f;  // 레이저 연출 지속(초)
@@ -156,11 +157,7 @@ namespace Minsung.Common.Data
         ****************************************/
 
         public float TotalHealth => _totalHealth;
-        public int   PhaseCount  => _phaseCount;
         public float TimeLimit   => _timeLimit;
-
-        // 페이즈당 피통 (총 피통 / 페이즈 수)
-        public float PhaseHealth => _totalHealth / _phaseCount;
 
         public int AttackHalves      => _attackHalves;
         public int CloneAttackHalves => _cloneAttackHalves;
@@ -172,9 +169,7 @@ namespace Minsung.Common.Data
         public float AttackActiveTime => _attackActiveTime;
 
         public float JumpCooldown      => _jumpCooldown;
-        public float JumpTriggerRange  => _jumpTriggerRange;
-        public float JumpForce         => _jumpForce;
-        public float JumpForwardSpeed  => _jumpForwardSpeed;
+        public float JumpArcHeight     => _jumpArcHeight;
         public float JumpLandActiveTime => _jumpLandActiveTime;
 
         public float DodgeCooldown     => _dodgeCooldown;
@@ -188,6 +183,9 @@ namespace Minsung.Common.Data
         public float CloneAttackCooldown   => _cloneAttackCooldown;
         public float CloneAttackActiveTime => _cloneAttackActiveTime;
         public float CloneMoveSpeed        => _cloneMoveSpeed;
+        public float CloneEntranceLeapHeight => _cloneEntranceLeapHeight;
+        public float CloneCrowdAvoidHorizontalRange => _cloneCrowdAvoidHorizontalRange;
+        public float CloneCrowdAvoidVerticalRange   => _cloneCrowdAvoidVerticalRange;
 
         public float LightningInterval        => _lightningInterval;
         public float LightningTelegraphTime   => _lightningTelegraphTime;
@@ -227,7 +225,6 @@ namespace Minsung.Common.Data
         public float EmotionInterval   => _emotionInterval;
 
         public int   GimmickLaserCount      => _gimmickLaserCount;
-        public float GimmickSafeZoneWidth   => _gimmickSafeZoneWidth;
         public float GimmickSafeZoneAlpha   => _gimmickSafeZoneAlpha;
         public float GimmickTelegraphTime   => _gimmickTelegraphTime;
         public float GimmickLaserActiveTime => _gimmickLaserActiveTime;

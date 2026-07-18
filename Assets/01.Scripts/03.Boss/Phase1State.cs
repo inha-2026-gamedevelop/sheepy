@@ -24,9 +24,9 @@ namespace Minsung.Boss
         private readonly WaitForSeconds _waitJudgeInterval = new WaitForSeconds(GameDB.Boss.GimmickJudgeInterval);
 
         private BossHazardPool _pool;
-        private LaserColor[] _sequence;   // 즉사 기믹 색 순서 (실전 발사 때 같은 순서 재사용)
-        private float[] _safeZoneCenters; // 색(enum 인덱스)별 안전구역 중심 x
-        private int[]   _safeZoneSlots;   // 색(enum 인덱스)별 안전구역 풀 슬롯 (예고 단계에서만 할당)
+        private LaserColor[] _sequence;    // 즉사 기믹 색 순서 (실전 발사 때 같은 순서 재사용)
+        private Vector2[] _safeZoneRanges; // 색(enum 인덱스)별 안전구역 x 범위(min,max) - 지형 3섹터 배정 결과
+        private int[]   _safeZoneSlots;    // 색(enum 인덱스)별 안전구역 풀 슬롯 (예고 단계에서만 할당)
         private bool _gimmickFailed;      // 판정 실패로 보스전 재시작이 이미 트리거됐는지 - 남은 판정 스킵 + 중복 트리거 방지
 
         /****************************************
@@ -45,8 +45,8 @@ namespace Minsung.Boss
 
         public override void Enter()
         {
-            Material wavyMat = Resources.Load<Material>("WavyGimmickMat");
-            _pool = new BossHazardPool(POOL_SIZE, "Phase1_Gimmick", null, wavyMat);
+            Material fogMat = Resources.Load<Material>("BossHazardFogMat");
+            _pool = new BossHazardPool(POOL_SIZE, "Phase1_Gimmick", null, fogMat);
 
             // 분신 2체 등장. 전멸 감지는 각 분신의 OnCloneDied 이벤트로 직접 추적한다
             BossCloneController[] clones = Boss.Phase1Clones;
@@ -148,7 +148,7 @@ namespace Minsung.Boss
                 _sequence[i] = (LaserColor)Random.Range(0, Constants.Combat.GIMMICK_LASER_COLOR_COUNT);
             }
 
-            BuildSafeZoneCenters();
+            BuildSafeZoneRanges();
 
             _safeZoneSlots = new int[Constants.Combat.GIMMICK_LASER_COLOR_COUNT];
             for (int i = 0; i < _safeZoneSlots.Length; ++i)
@@ -157,20 +157,13 @@ namespace Minsung.Boss
             }
         }
 
-        // 색별 안전구역 중심 x를 결정한다 - 아레나 중앙 구역 기준 좌우 밀착 배치(경계 맞닿음), 색 배정만 셔플한다
-        private void BuildSafeZoneCenters()
+        // 색별 안전구역을 지형 3섹터(좌측 구덩이/중앙 단상/우측 구덩이)에 배정한다 - 색 -> 섹터 배정만 셔플, 섹터 자체는 지형 그대로
+        private void BuildSafeZoneRanges()
         {
-            int   colorCount   = Constants.Combat.GIMMICK_LASER_COLOR_COUNT;
-            float zoneWidth    = GameDB.Boss.GimmickSafeZoneWidth;
-            float arenaCenterX = (Boss.ArenaMinX + Boss.ArenaMaxX) * 0.5f;
+            Vector2[] sectors    = Boss.GimmickSectors; // 인덱스 고정: 0=좌측 구덩이, 1=중앙 단상, 2=우측 구덩이
+            int       colorCount = Constants.Combat.GIMMICK_LASER_COLOR_COUNT;
 
-            if ((zoneWidth * colorCount) > (Boss.ArenaMaxX - Boss.ArenaMinX))
-            {
-                // 세 구역 합산 폭이 아레나보다 넓으면 가장자리 구역이 아레나를 벗어난다 - 배치는 그대로 진행
-                Debug.LogWarning("Phase1 안전구역 합산 폭이 아레나보다 넓습니다 - 가장자리 구역이 벗어날 수 있음");
-            }
-
-            // 색 -> 지점 배정 셔플 (Fisher-Yates) - 어느 색이 어느 지점에 올지는 매번 달라진다
+            // 색 -> 섹터 배정 셔플 (Fisher-Yates) - 어느 색이 어느 섹터에 올지는 매번 달라진다
             int[] segmentOrder = new int[colorCount];
             for (int i = 0; i < colorCount; ++i)
             {
@@ -184,11 +177,10 @@ namespace Minsung.Boss
                 segmentOrder[j] = temp;
             }
 
-            // 지점 = 아레나 중앙 기준 좌/중/우 - 중심 간격을 구역 폭과 같게 잡아 경계가 딱 맞닿는다
-            _safeZoneCenters = new float[colorCount];
+            _safeZoneRanges = new Vector2[colorCount];
             for (int i = 0; i < colorCount; ++i)
             {
-                _safeZoneCenters[i] = arenaCenterX + ((segmentOrder[i] - ((colorCount - 1) * 0.5f)) * zoneWidth);
+                _safeZoneRanges[i] = sectors[segmentOrder[i]];
             }
         }
 
@@ -218,23 +210,26 @@ namespace Minsung.Boss
             yield return CoFireLaser(color);
         }
 
-        // 아레나 전체를 덮는 레이저 연출. 즉사 판정은 위치 검사로 별도 처리하므로 콜라이더는 없다
+        // 3섹터(좌측 구덩이~우측 구덩이) 전체를 덮는 레이저 연출 - 일반 아레나(ArenaMinX/MaxX, 중앙 단상)보다 넓다
+        // 즉사 판정은 위치 검사로 별도 처리하므로 콜라이더는 없다
         private IEnumerator CoFireLaser(LaserColor color)
         {
-            float   width   = Boss.ArenaMaxX - Boss.ArenaMinX;
-            float   centerX = (Boss.ArenaMinX + Boss.ArenaMaxX) * 0.5f;
-            Vector2 pos     = new Vector2(centerX, Boss.ArenaGroundY + (GameDB.Boss.GimmickLaserHeight * 0.5f));
-            Vector2 scale   = new Vector2(width, GameDB.Boss.GimmickLaserHeight);
+            Vector2[] sectors = Boss.GimmickSectors;
+            float   width   = sectors[2].y - sectors[0].x;
+            float   centerX = (sectors[0].x + sectors[2].y) * 0.5f;
+            Vector2 pos     = GimmickHazardPosition(centerX);
+            Vector2 scale   = GimmickHazardScale(width);
 
             int slot = _pool.Alloc(pos, scale, ColorOf(color), false);
 
-            // 예고 단계에선 레이저 연출 중에도 안전구역 표시가 끊기지 않도록 프레임 루프로 대기한다
-            // 실전 단계에선 안전구역이 미할당(SLOT_NONE)이라 표시 갱신이 무시된다
+            // 레이저는 3섹터 전체 폭이라 안전구역(색별 1섹터)과 겹쳐 보이면 색이 섞여 보인다
+            // 안전구역은 발사 전까지만 표시하고 발사 중엔 숨긴다 (실전 단계는 이미 미할당이라 무시됨)
+            HideAllSafeZones();
+
             float elapsed = 0f;
             while (elapsed < GameDB.Boss.GimmickLaserActiveTime)
             {
                 elapsed += Time.deltaTime;
-                UpdateSafeZoneVisibility();
                 yield return null;
             }
             _pool.Free(slot);
@@ -271,25 +266,54 @@ namespace Minsung.Boss
             }
         }
 
+        // 안전구역을 슬로우 여부와 무관하게 강제로 숨긴다
+        // 레이저 발사 중 색 겹침 방지용
+        private void HideAllSafeZones()
+        {
+            for (int i = 0; i < _safeZoneSlots.Length; ++i)
+            {
+                _pool.SetVisible(_safeZoneSlots[i], false);
+            }
+        }
+
         private int AllocSafeZone(LaserColor color)
         {
-            float   centerX = _safeZoneCenters[(int)color];
-            Vector2 pos     = new Vector2(centerX, Boss.ArenaGroundY + (GameDB.Boss.GimmickLaserHeight * 0.5f));
-            Vector2 scale   = new Vector2(GameDB.Boss.GimmickSafeZoneWidth, GameDB.Boss.GimmickLaserHeight);
+            Vector2 range   = _safeZoneRanges[(int)color];
+            float   centerX = (range.x + range.y) * 0.5f;
+            float   width   = range.y - range.x;
+            Vector2 pos     = GimmickHazardPosition(centerX);
+            Vector2 scale   = GimmickHazardScale(width);
 
             return _pool.Alloc(pos, scale, SafeZoneColorOf(color), false);
         }
 
-        // 판정은 x축만 사용한다 (안전구역은 세로 전체를 덮는 기둥)
+        private Vector2 GimmickHazardPosition(float centerX)
+        {
+            float height = GimmickHazardHeight();
+            return new Vector2(centerX, Boss.GimmickHazardBottomY + (height * 0.5f));
+        }
+
+        private Vector2 GimmickHazardScale(float width)
+        {
+            return new Vector2(width, GimmickHazardHeight());
+        }
+
+        private float GimmickHazardHeight()
+        {
+            float topY = Boss.ArenaGroundY + GameDB.Boss.GimmickLaserHeight;
+            return topY - Boss.GimmickHazardBottomY;
+        }
+
+        // 판정은 x축만 사용한다 (안전구역은 세로 전체를 덮는 기둥) - 섹터 범위 안이면 생존
         private bool IsPlayerInSafeZone(LaserColor color)
         {
             if (Boss.Player == null)
             {
                 return true;
             }
-            float px     = Boss.Player.transform.position.x;
-            float center = _safeZoneCenters[(int)color];
-            return Mathf.Abs(px - center) <= (GameDB.Boss.GimmickSafeZoneWidth * 0.5f);
+            float   px    = Boss.Player.transform.position.x;
+            Vector2 range = _safeZoneRanges[(int)color];
+            return (px >= range.x) && (px <= range.y);
         }
 
         /****************************************
@@ -298,15 +322,20 @@ namespace Minsung.Boss
 
         private static Color ColorOf(LaserColor color)
         {
+            Color pure;
             switch (color)
             {
                 case LaserColor.Red:
-                    return Color.red;
+                    pure = Color.red;
+                    break;
                 case LaserColor.Blue:
-                    return Color.blue;
+                    pure = Color.blue;
+                    break;
                 default:
-                    return Color.green;
+                    pure = Color.green;
+                    break;
             }
+            return Color.Lerp(pure, Color.white, 0.35f);
         }
 
         private static Color SafeZoneColorOf(LaserColor color)

@@ -65,6 +65,21 @@ namespace Minsung.Common
             }
         }
 
+        /// <summary> 이미 화면이 가려진 상태에서 호출 - 페이드아웃 없이 즉시 씬 로드 후 새 씬에서 페이드인만 한다. </summary>
+        public void LoadSceneFadeInOnly(string sceneName)
+        {
+            static void OnLoaded(Scene scene, LoadSceneMode mode)
+            {
+                SceneManager.sceneLoaded -= OnLoaded;
+                if (ScreenFade.Instance != null)
+                {
+                    ScreenFade.Instance.FadeIn();
+                }
+            }
+            SceneManager.sceneLoaded += OnLoaded;
+            SceneManager.LoadScene(sceneName);
+        }
+
         /// <summary> 로딩씬(Constants.Scene.LOADING)을 경유해 씬 전환 - 무거운 씬 전환에 사용 (프로그레스바는 LoadingController 담당) </summary>
         public void LoadSceneWithLoading(string sceneName)
         {

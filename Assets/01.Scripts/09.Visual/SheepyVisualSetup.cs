@@ -5,7 +5,6 @@ using UnityEngine.Rendering.Universal;
 
 namespace Minsung
 {
-    // 씬의 빈 오브젝트에 붙이면 셰이더 없이 Bloom/Color Grading/Vignette만으로 Sheepy 비주얼 전체를 한 번에 세팅 (2D URP)
     [AddComponentMenu("Minsung/Sheepy Visual Setup")]
     public class SheepyVisualSetup : MonoBehaviour
     {
@@ -78,7 +77,7 @@ namespace Minsung
                 return;
             }
 
-            _globalVolume = FindObjectOfType<Volume>();
+            _globalVolume = FindAnyObjectByType<Volume>();
             if (_globalVolume != null)
             {
                 return;

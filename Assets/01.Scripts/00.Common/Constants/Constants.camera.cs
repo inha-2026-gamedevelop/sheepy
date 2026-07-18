@@ -16,7 +16,7 @@ namespace Minsung.Common
             // Lens Orthographic Size (카메라 줌 정도)
             public const float PLAYER_ORTHOGRAPHIC_SIZE = 1.3f;
             public const float FOCUS_ORTHOGRAPHIC_SIZE  = 1.0f;
-            public const float BOSS_ORTHOGRAPHIC_SIZE   = 5.2f; // 보스전 줌아웃 - 아레나가 한 화면에 들어오는 값
+            public const float BOSS_ORTHOGRAPHIC_SIZE   = 3.2f; // 보스전 줌아웃 - 아레나가 한 화면에 들어오는 값
         }
     }
 }

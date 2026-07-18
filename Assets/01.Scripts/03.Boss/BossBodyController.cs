@@ -122,13 +122,8 @@ namespace Minsung.Boss
             {
                 return false;
             }
-
-            bool applied = (_boss != null) && _boss.TakeDamage(dmg, source, attacker);
-            if (applied)
-            {
-                PlayAnimTrigger(Constants.Combat.BOSS_ANIM_HIT);
-            }
-            return applied;
+            
+            return (_boss != null) && _boss.TakeDamage(dmg, source, attacker);
         }
 
         /// <summary> 원거리 패턴(장풍/레이저) 발사 시 캐스팅 모션 재생. Phase2/3 상태가 발사 시점마다 호출한다 </summary>
