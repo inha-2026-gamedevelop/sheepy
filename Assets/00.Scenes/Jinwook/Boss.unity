@@ -439,6 +439,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6116d159cee225e41afff1a383c3c51c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.UI.BossCloneHealthBarUI
+  _boss: {fileID: 0}
   _clone: {fileID: 2090449621}
   _slider: {fileID: 301360831}
 --- !u!114 &301360831
@@ -2389,6 +2390,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6116d159cee225e41afff1a383c3c51c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.UI.BossCloneHealthBarUI
+  _boss: {fileID: 0}
   _clone: {fileID: 245254553}
   _slider: {fileID: 1141953829}
 --- !u!114 &1141953829
@@ -3289,6 +3291,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Boss.BossController
   _player: {fileID: 357306871}
   _animator: {fileID: 1736076472}
+  _deathLightFx: {fileID: 0}
+  _deathCircleFx: {fileID: 0}
   _phase1Clones:
   - {fileID: 2090449621}
   - {fileID: 245254553}
@@ -3301,6 +3305,14 @@ MonoBehaviour:
   _arenaMinX: -10
   _arenaMaxX: 10
   _arenaGroundY: 0
+  _gimmickHazardBottomY: 0
+  _gimmickSectorLeft: {x: -10, y: -3.33}
+  _gimmickSectorCenter: {x: -3.33, y: 3.33}
+  _gimmickSectorRight: {x: 3.33, y: 10}
+  _finalPhaseIndex: 3
+  _transitionToNextScene: 0
+  _outroVideo: {fileID: 0}
+  _nextSceneName: Map3
 --- !u!114 &1658625133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3683,6 +3695,7 @@ MonoBehaviour:
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
+  _visual: {fileID: 0}
 --- !u!4 &1736076471
 Transform:
   m_ObjectHideFlags: 0
