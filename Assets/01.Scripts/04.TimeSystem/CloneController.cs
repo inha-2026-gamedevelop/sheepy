@@ -23,9 +23,13 @@ namespace Minsung.TimeSystem
         [Header("분신")]
         [SerializeField] private Renderer _renderer;
 
+        [Header("판정")]
+        [SerializeField] private LayerMask _groundLayer; // 클립 종료 시 공중이면 바닥으로 스냅하는 판정용 (Player.prefab의 _groundLayer와 동일하게 설정)
+
         private Color _color; // 분신 틴트 - TimeDB(GameDB.Time)에서 Awake 때 로드
 
         private Rigidbody2D _rb;
+        private Collider2D  _col;
         private PlayerHealth _health; // 본체와 동일한 하트 체력
         private PlayerOrbs _orbs; // 본체와 같은 오브 공격 대행
         private PlayerAnimator _playerAnimator; // 프리팹에 본체와 같은 Animator + PlayerAnimator를 달면 자동 연결(선택)
@@ -92,10 +96,16 @@ namespace Minsung.TimeSystem
             }
             _health.OnDeath += HandleDeath;
 
-            Collider2D col = GetComponent<Collider2D>();
-            if (col != null)
+            _col = GetComponent<Collider2D>();
+            if (_col != null)
             {
-                col.isTrigger = true;
+                _col.isTrigger = true;
+            }
+
+            // 프리팹에 인스펙터로 설정 안 해도 동작하도록 기본값(Nothing)이면 Ground 레이어로 대체
+            if (_groundLayer.value == 0)
+            {
+                _groundLayer = LayerMask.GetMask(Constants.Layer.GROUND);
             }
         }
 
@@ -244,6 +254,12 @@ namespace Minsung.TimeSystem
             _isRewinding = false;
             _rewindBuffer.Clear();
 
+            // 클립 끝(공중일 수 있음)에서 되감기가 끝났으면 다시 바닥으로 스냅
+            if (_finished)
+            {
+                SnapToGroundIfAirborne();
+            }
+
             // 기록이 비워졌으니 이 분신은 더는 부활할 수 없다
             if (!gameObject.activeSelf)
             {
@@ -312,7 +328,32 @@ namespace Minsung.TimeSystem
             if (_index >= _clip.Count)
             {
                 _finished = true;
+                SnapToGroundIfAirborne();
             }
+        }
+
+        // 클립이 공중에서 끝난 경우(예: 기록 중 점프 도중 되감기 발동) 바닥에 붙여 영구히 뜬 채로 남지 않게 한다.
+        private void SnapToGroundIfAirborne()
+        {
+            if (_col == null)
+            {
+                return;
+            }
+
+            float shortDist = _col.bounds.extents.y + Constants.Player.GROUND_CHECK_EXTRA;
+            if (Physics2D.Raycast(_col.bounds.center, Vector2.down, shortDist, _groundLayer))
+            {
+                return; // 이미 접지 상태
+            }
+
+            RaycastHit2D hit = Physics2D.Raycast(_col.bounds.center, Vector2.down, Mathf.Infinity, _groundLayer);
+            if (hit.collider == null)
+            {
+                return; // 아래에 바닥이 없으면(구덩이 등) 그대로 둔다
+            }
+
+            float delta = hit.point.y - _col.bounds.min.y;
+            _rb.position += new Vector2(0f, delta);
         }
 
         public void SetPose(Vector2 position, Vector2 velocity, bool grounded)
