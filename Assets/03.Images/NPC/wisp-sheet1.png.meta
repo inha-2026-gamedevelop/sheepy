@@ -3,14 +3,32 @@ guid: 4932b2aaaee7f4741ae6e462b39552eb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2879587122732893346
+      213: -8159121017809063136
     second: wisp-sheet1_0
   - first:
-      213: -2958140680112173347
+      213: -4956356967045288903
     second: wisp-sheet1_1
   - first:
-      213: 5858269703409167669
+      213: -372570621861073079
     second: wisp-sheet1_2
+  - first:
+      213: 7757302581631511032
+    second: wisp-sheet1_3
+  - first:
+      213: -8035577737073320924
+    second: wisp-sheet1_4
+  - first:
+      213: -9217491299147201138
+    second: wisp-sheet1_5
+  - first:
+      213: 6469952008462004350
+    second: wisp-sheet1_6
+  - first:
+      213: -1818220750547733675
+    second: wisp-sheet1_7
+  - first:
+      213: -7306153848842250171
+    second: wisp-sheet1_8
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -43,7 +61,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -81,7 +99,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -123,19 +141,19 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 22
-        width: 162
-        height: 490
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        y: 341
+        width: 171
+        height: 171
+      alignment: 9
+      pivot: {x: 0.4695, y: 0.523}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e5b77b1c4c6a908d0800000000000000
-      internalID: -2879587122732893346
+      spriteID: ea7806f424acb54afa6d5a693225704c
+      internalID: -8159121017809063136
       vertices: []
       indices: 
       edges: []
@@ -144,20 +162,20 @@ TextureImporter:
       name: wisp-sheet1_1
       rect:
         serializedVersion: 2
-        x: 160
-        y: 22
-        width: 165
-        height: 490
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 171
+        y: 341
+        width: 171
+        height: 171
+      alignment: 9
+      pivot: {x: 0.4247, y: 0.5225}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: dde084e69b292f6d0800000000000000
-      internalID: -2958140680112173347
+      spriteID: c5f2dafc153975710c198bf6a4ce154d
+      internalID: -4956356967045288903
       vertices: []
       indices: 
       edges: []
@@ -166,20 +184,152 @@ TextureImporter:
       name: wisp-sheet1_2
       rect:
         serializedVersion: 2
-        x: 323
-        y: 22
-        width: 167
-        height: 490
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 342
+        y: 341
+        width: 170
+        height: 171
+      alignment: 9
+      pivot: {x: 0.3794, y: 0.5226}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 53de22eb141cc4150800000000000000
-      internalID: 5858269703409167669
+      spriteID: c2c58dfcbe94f46e404b2f31d1b934c1
+      internalID: -372570621861073079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wisp-sheet1_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 170
+        width: 171
+        height: 171
+      alignment: 9
+      pivot: {x: 0.4698, y: 0.5679}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96eee52942e9bd691edf3950ac78b377
+      internalID: 7757302581631511032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wisp-sheet1_4
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 170
+        width: 171
+        height: 171
+      alignment: 9
+      pivot: {x: 0.4247, y: 0.5679}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b775515febb60481d2165cfaecb2c57
+      internalID: -8035577737073320924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wisp-sheet1_5
+      rect:
+        serializedVersion: 2
+        x: 342
+        y: 170
+        width: 170
+        height: 171
+      alignment: 9
+      pivot: {x: 0.3797, y: 0.5676}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35e6f47cc44fccb27355eeca93a76b62
+      internalID: -9217491299147201138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wisp-sheet1_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 171
+        height: 170
+      alignment: 9
+      pivot: {x: 0.4697, y: 0.613}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f05dcad9d088105662d5df17c6e384cd
+      internalID: 6469952008462004350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wisp-sheet1_7
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 0
+        width: 171
+        height: 170
+      alignment: 9
+      pivot: {x: 0.425, y: 0.6128}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ab1738fb18a6d521c9b8c6684f2e1ea
+      internalID: -1818220750547733675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wisp-sheet1_8
+      rect:
+        serializedVersion: 2
+        x: 342
+        y: 0
+        width: 170
+        height: 170
+      alignment: 9
+      pivot: {x: 0.3775, y: 0.6133}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b65355f87707c8f99e37f1f1581a4d8
+      internalID: -7306153848842250171
       vertices: []
       indices: 
       edges: []
@@ -198,9 +348,15 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      wisp-sheet1_0: -2879587122732893346
-      wisp-sheet1_1: -2958140680112173347
-      wisp-sheet1_2: 5858269703409167669
+      wisp-sheet1_0: -8159121017809063136
+      wisp-sheet1_1: -4956356967045288903
+      wisp-sheet1_2: -372570621861073079
+      wisp-sheet1_3: 7757302581631511032
+      wisp-sheet1_4: -8035577737073320924
+      wisp-sheet1_5: -9217491299147201138
+      wisp-sheet1_6: 6469952008462004350
+      wisp-sheet1_7: -1818220750547733675
+      wisp-sheet1_8: -7306153848842250171
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

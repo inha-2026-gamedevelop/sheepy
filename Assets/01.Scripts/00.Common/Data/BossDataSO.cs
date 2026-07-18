@@ -78,6 +78,18 @@ namespace Minsung.Common.Data
             new Color(0.48f, 0.17f, 0.75f), // 진보라
         };
 
+        [Header("사망 연출 (DeathBody+DeathLightFx+DeathCircleFx 순차 재생)")]
+        [SerializeField] private float _deathLightDelay = 0.4f; // DeathBody 트리거 후 DeathLightFx를 켜기까지 대기(초) - DeathBody.anim의 patches_sprites-sheet0_21 프레임 등장 시점(0.4초)과 맞춤
+
+        [SerializeField] private float   _deathCircleDelay          = 1.275f; // DeathBody 트리거 후 DeathCircleFx를 켜기까지 대기(초) - DeathLightFx의 8번째 프레임(0.875초) 등장 시점과 맞춤(DeathLightDelay + 0.875)
+        [SerializeField] private Vector2 _deathCircleLaunchDirection = new Vector2(-1f, 1f); // 사출 방향(정규화해서 사용) - 2사분면(좌상단)
+        [SerializeField] private float   _deathCircleLaunchSpeed    = 8f;   // 사출 단계 이동 속도(유닛/초) TODO: 밸런싱
+        [SerializeField] private float   _deathCircleLaunchDuration = 0.3f; // 사출 단계 지속시간(초) TODO: 밸런싱
+        [SerializeField] private float   _deathCircleFloatDuration  = 2f;   // 부유 단계 지속시간(초) TODO: 밸런싱
+        [SerializeField] private float   _deathCircleFloatAmplitude = 0.15f; // 부유 단계 상하 흔들림 폭(유닛)
+        [SerializeField] private float   _deathCircleFloatFrequency = 1.5f;  // 부유 단계 흔들림 주기(라디안/초)
+        [SerializeField] private float   _deathCircleReturnSpeed    = 3f;   // 귀환 단계(CircleAim으로) 이동 속도(유닛/초) TODO: 밸런싱
+
         [Header("감정 - 화남(혼란) / 파랑(하트 픽업)")]
         [SerializeField] private float _confusionInterval = 10f;  // 키반전 발동 주기(초)
         [SerializeField] private float _confusionDuration = 1f;   // 키반전 지속 시간(초)
@@ -195,6 +207,17 @@ namespace Minsung.Common.Data
 
         public float   LightningParticleSize   => _lightningParticleSize;
         public Color[] LightningParticleColors => _lightningParticleColors;
+
+        public float DeathLightDelay => _deathLightDelay;
+
+        public float   DeathCircleDelay          => _deathCircleDelay;
+        public Vector2 DeathCircleLaunchDirection => _deathCircleLaunchDirection;
+        public float   DeathCircleLaunchSpeed    => _deathCircleLaunchSpeed;
+        public float   DeathCircleLaunchDuration => _deathCircleLaunchDuration;
+        public float   DeathCircleFloatDuration  => _deathCircleFloatDuration;
+        public float   DeathCircleFloatAmplitude => _deathCircleFloatAmplitude;
+        public float   DeathCircleFloatFrequency => _deathCircleFloatFrequency;
+        public float   DeathCircleReturnSpeed    => _deathCircleReturnSpeed;
 
         public float ConfusionInterval => _confusionInterval;
         public float ConfusionDuration => _confusionDuration;
