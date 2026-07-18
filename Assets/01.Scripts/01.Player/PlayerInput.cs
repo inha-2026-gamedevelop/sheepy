@@ -5,6 +5,7 @@ using System;
 using UnityEngine;
 
 using Minsung.Common;
+using Minsung.Item;
 
 namespace Minsung.Player
 {
@@ -70,6 +71,15 @@ namespace Minsung.Player
             {
                 _rewind?.RequestClearClones();
             }
+            if (Input.GetKeyDown(Constants.Player.KEY_USE_POTION))
+            {
+                RequestUsePotion();
+            }
+        }
+
+        public void RequestUsePotion()
+        {
+            PotionManager.Instance?.TryUsePotion();
         }
 
         /// <summary> 혼란(키반전) 상태 설정. 화남 감정이 10초마다 1초간 건다. </summary>

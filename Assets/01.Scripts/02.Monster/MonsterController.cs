@@ -165,6 +165,7 @@ namespace Minsung.Monster
         private void HandleDeath()
         {
             LpManager.Instance?.TryDropLp(transform.position);
+            PotionManager.Instance?.TryDropPotion(transform.position);
         }
 
         // IRewindable

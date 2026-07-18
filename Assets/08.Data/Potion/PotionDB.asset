@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85570da862cd4296a2829e5c5749818c, type: 3}
+  m_Name: PotionDB
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.PotionDataSO
+  _dropChance: 0.15
+  _magnetRadius: 2.5
+  _magnetSpeed: 8
+  _collectRadius: 0.3
+  _poolSize: 8
+  _maxCarryCount: 3
+  _healHalves: 2

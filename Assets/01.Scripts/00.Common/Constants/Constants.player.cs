@@ -14,6 +14,7 @@ namespace Minsung.Common
             public const KeyCode KEY_ATTACK        = KeyCode.X;
             public const KeyCode KEY_REWIND        = KeyCode.R;
             public const KeyCode KEY_CLEAR_CLONES  = KeyCode.T;
+            public const KeyCode KEY_USE_POTION    = KeyCode.Q;
 
             public const string  AXIS_HORIZONTAL   = "Horizontal";
 
