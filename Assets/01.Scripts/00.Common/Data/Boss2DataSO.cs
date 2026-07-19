@@ -20,7 +20,15 @@ public class Boss2DataSO : ScriptableObject
     [SerializeField] private float _maxHeightMargin     = 1f;   // _maxHeightAnchor(BossFloatMovement) 기준 오브젝트 위로 허용하는 여유 높이(유닛)
 
     [Header("플레이어 추적")]
-    [SerializeField] private float _followSpeed = 0.6f; // 배회 중심(_origin)이 플레이어를 따라가는 속도(유닛/초) - 실제 이동 속도(MoveSpeed)보다 훨씬 느리게
+    [SerializeField] private float _followSpeed = 1f; // 배회 중심(_origin)이 플레이어를 따라가는 속도(유닛/초) - 실제 이동 속도(MoveSpeed)보단 느리게
+
+    [Header("몸통박치기 (돌진 공격)")]
+    [SerializeField] private float _chargeCooldown        = 6f;   // 재사용 대기시간(초)
+    [SerializeField] private float _chargeRange           = 6f;   // 목표가 이 거리 안에 있어야 돌진을 시도(유닛)
+    [SerializeField] private float _chargeTelegraphTime   = 0.4f; // 돌진 전 예고 정지 시간(초)
+    [SerializeField] private float _chargeSpeed           = 9f;   // 돌진 속도(유닛/초) - 평소 이동(MoveSpeed)보다 훨씬 빠르게
+    [SerializeField] private float _chargeDuration        = 1.2f; // 돌진 최대 지속시간(초) - 목표에 못 미쳐도 이 시간 지나면 종료
+    [SerializeField] private float _chargeArriveThreshold = 0.2f; // 돌진 도달 판정 거리(유닛)
 
     [Header("체력")]
     [SerializeField] private float _maxHealth = 5000f; // 보스 최대 체력 TODO: 밸런싱/페이즈 확정 전 임시값
@@ -47,6 +55,13 @@ public class Boss2DataSO : ScriptableObject
 
     public float FollowSpeed => _followSpeed;
     public float MaxHealth   => _maxHealth;
+
+    public float ChargeCooldown        => _chargeCooldown;
+    public float ChargeRange           => _chargeRange;
+    public float ChargeTelegraphTime   => _chargeTelegraphTime;
+    public float ChargeSpeed           => _chargeSpeed;
+    public float ChargeDuration        => _chargeDuration;
+    public float ChargeArriveThreshold => _chargeArriveThreshold;
 
     public float VerticalAmplitude   => _verticalAmplitude;
     public float VerticalPeriod      => _verticalPeriod;

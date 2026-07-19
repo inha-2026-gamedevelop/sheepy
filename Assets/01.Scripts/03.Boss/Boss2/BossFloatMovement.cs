@@ -4,9 +4,9 @@ using System.Collections;
 // Unity
 using UnityEngine;
 
-// 부유체 보스(Boss2, 3~4페이즈)의 자유 이동 - 스폰 지점 주변 랜덤 지점을 골라 SmoothDamp로 감속 이동하다 도착하면 잠시 멈추고,
-// 그 동안에도 상하/좌우로 둥실둥실 흔들린다. 플레이어 위치와는 무관하게 동작하며, _maxHeightAnchor 위로는 올라가지 않는다
-// TODO: 리와인드 타임라인 미연동 - 이동 패턴이 확정되면 IRewindable 구현 + Register/Unregister 추가 (배회 랜덤도 결정 로그 필요)
+// 부유체 보스(Boss2, 3~4페이즈)의 이동 - 스폰 지점 주변을 배회하며 플레이어를 느슨하게 추적하고,
+// 주기적으로 플레이어를 향해 빠르게 돌진하는 몸통박치기를 시도한다 (AttackHitBox 활성화 - DamageHazard가 판정)
+// TODO: 리와인드 타임라인 미연동 - 이동 패턴이 확정되면 IRewindable 구현 + Register/Unregister 추가 (배회/돌진 랜덤도 결정 로그 필요)
 public class BossFloatMovement : MonoBehaviour
 {
     /****************************************
@@ -14,7 +14,8 @@ public class BossFloatMovement : MonoBehaviour
     ****************************************/
 
     [Header("참조")]
-    [SerializeField] private Transform _target; // 배회 중심(_origin)이 느슨하게 따라갈 대상(플레이어) - 미연결 시 스폰 지점에 고정
+    [SerializeField] private Transform   _target;      // 배회 중심(_origin)이 느슨하게 따라갈 대상(플레이어) - 미연결 시 스폰 지점에 고정
+    [SerializeField] private GameObject  _attackHitBox; // 돌진 중 활성화할 판정(AttackHitBox 자식, DamageHazard 보유) - 미연결 시 판정 없이 이동만
 
     [Header("데이터")]
     [SerializeField] private Boss2DataSO _dataSo;
@@ -26,14 +27,17 @@ public class BossFloatMovement : MonoBehaviour
     [SerializeField] private Transform _maxHeightAnchor; // 이 오브젝트 y + Boss2DataSO.MaxHeightMargin보다 위로 못 올라간다 (미연결 시 제한 없음)
 
     private Rigidbody2D _rb;
-    private Vector2     _origin;   // 배회 반경의 중심 - Start 시점 위치
-    private Vector2     _waypoint; // 현재 목표 지점
-    private Vector2     _velocity; // SmoothDamp 내부 속도 상태
-    private float       _baseX;    // 배회로 이동하는 수평 기준선 - 흔들림의 중심
-    private float       _baseY;    // 배회로 이동하는 수직 기준선 - 흔들림의 중심
-    private float       _baseZ;    // Rigidbody2D 미보유 시 transform.position에 유지할 z값(정렬 순서 등)
-    private float       _elapsed;  // 사인파 위상 계산용 경과 시간(초)
-    private Coroutine   _roamLoop;
+    private Vector2     _origin;        // 배회 반경의 중심 - Start 시점 위치
+    private Vector2     _waypoint;      // 현재 목표 지점
+    private Vector2     _velocity;      // SmoothDamp 내부 속도 상태
+    private float       _baseX;         // 배회/돌진으로 이동하는 수평 기준선 - 흔들림의 중심
+    private float       _baseY;         // 배회/돌진으로 이동하는 수직 기준선 - 흔들림의 중심
+    private float       _baseZ;         // Rigidbody2D 미보유 시 transform.position에 유지할 z값(정렬 순서 등)
+    private float       _elapsed;       // 사인파 위상 계산용 경과 시간(초)
+    private bool         _isCharging;   // 몸통박치기 돌진 중 - true면 배회/추적/흔들림을 멈추고 직선 돌진만 수행
+    private Vector2      _chargeTarget; // 돌진 시작 시점에 스냅샷한 목표 지점 (도중 방향을 바꾸지 않는다)
+    private Coroutine    _roamLoop;
+    private Coroutine    _chargeLoop;
 
     /****************************************
     *              Unity Event
@@ -46,6 +50,11 @@ public class BossFloatMovement : MonoBehaviour
         {
             _rb.bodyType      = RigidbodyType2D.Kinematic;                  // 부유체는 자체 힘으로만 움직인다
             _rb.interpolation = RigidbodyInterpolation2D.Interpolate;       // FixedUpdate 틱 사이를 렌더 프레임에 맞춰 보간 - 없으면 계단식으로 끊겨 보인다
+        }
+
+        if (_attackHitBox != null)
+        {
+            _attackHitBox.SetActive(false); // 평소 비활성 - 돌진 중에만 켠다
         }
     }
 
@@ -69,7 +78,8 @@ public class BossFloatMovement : MonoBehaviour
 
         if (_dataSo != null)
         {
-            _roamLoop = StartCoroutine(CoRoamLoop());
+            _roamLoop   = StartCoroutine(CoRoamLoop());
+            _chargeLoop = StartCoroutine(CoChargeLoop());
         }
     }
 
@@ -79,6 +89,11 @@ public class BossFloatMovement : MonoBehaviour
         {
             StopCoroutine(_roamLoop);
             _roamLoop = null;
+        }
+        if (_chargeLoop != null)
+        {
+            StopCoroutine(_chargeLoop);
+            _chargeLoop = null;
         }
     }
 
@@ -90,15 +105,24 @@ public class BossFloatMovement : MonoBehaviour
         }
 
         _elapsed += Time.fixedDeltaTime;
-        FollowTarget();
-        MoveTowardWaypoint();
-
-        float offsetY = Mathf.Sin(_elapsed * PeriodToAngularSpeed(_dataSo.VerticalPeriod)) * _dataSo.VerticalAmplitude;
 
         float offsetX = 0f;
-        if (_dataSo.HorizontalAmplitude > 0f)
+        float offsetY = 0f;
+
+        if (_isCharging)
         {
-            offsetX = Mathf.Sin(_elapsed * PeriodToAngularSpeed(_dataSo.HorizontalPeriod)) * _dataSo.HorizontalAmplitude;
+            UpdateCharge();
+        }
+        else
+        {
+            FollowTarget();
+            MoveTowardWaypoint();
+
+            offsetY = Mathf.Sin(_elapsed * PeriodToAngularSpeed(_dataSo.VerticalPeriod)) * _dataSo.VerticalAmplitude;
+            if (_dataSo.HorizontalAmplitude > 0f)
+            {
+                offsetX = Mathf.Sin(_elapsed * PeriodToAngularSpeed(_dataSo.HorizontalPeriod)) * _dataSo.HorizontalAmplitude;
+            }
         }
 
         Vector2 targetPosition = new Vector2(_baseX + offsetX, _baseY + offsetY);
@@ -163,7 +187,74 @@ public class BossFloatMovement : MonoBehaviour
         }
     }
 
-    // _maxHeightAnchor가 있으면 그 y + MaxHeightMargin을 상한으로 클램프한다 (미연결 시 무제한)
+    // 돌진 루프: 쿨다운마다 목표가 ChargeRange 안에 있으면 몸통박치기 시도
+    private IEnumerator CoChargeLoop()
+    {
+        WaitForSeconds waitCooldown = new WaitForSeconds(_dataSo.ChargeCooldown);
+
+        while (true)
+        {
+            yield return waitCooldown;
+
+            if (_target == null)
+            {
+                continue;
+            }
+
+            float dist = Vector2.Distance(new Vector2(_baseX, _baseY), _target.position);
+            if (dist > _dataSo.ChargeRange)
+            {
+                continue;
+            }
+
+            yield return CoBodySlam();
+        }
+    }
+
+    // 목표 위치를 스냅샷해 방향을 고정한 뒤(예고 정지 -> 직선 돌진), 도달하거나 최대 시간을 넘기면 종료
+    // 돌진 중에는 AttackHitBox를 켜서 DamageHazard 판정이 들어가게 한다
+    private IEnumerator CoBodySlam()
+    {
+        _chargeTarget = _target.position;
+        FaceTo(_chargeTarget.x - _baseX);
+
+        yield return new WaitForSeconds(_dataSo.ChargeTelegraphTime); // 예고 - 제자리에서 잠깐 멈춤
+
+        _isCharging = true;
+        if (_attackHitBox != null)
+        {
+            _attackHitBox.SetActive(true);
+        }
+
+        float elapsed = 0f;
+        while ((elapsed < _dataSo.ChargeDuration) &&
+            (Vector2.Distance(new Vector2(_baseX, _baseY), _chargeTarget) > _dataSo.ChargeArriveThreshold))
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (_attackHitBox != null)
+        {
+            _attackHitBox.SetActive(false);
+        }
+        _isCharging = false;
+
+        // 돌진이 끝난 위치를 새 배회 중심으로 - 원래 자리로 순간이동하지 않는다
+        _origin   = new Vector2(_baseX, _baseY);
+        _waypoint = _origin;
+    }
+
+    // 돌진 중 매 틱 목표 스냅샷 지점으로 직선 이동 (ChargeSpeed, 등속 - 회피 여지를 주기 위해 감속 없이 일정 속도)
+    private void UpdateCharge()
+    {
+        Vector2 current = new Vector2(_baseX, _baseY);
+        Vector2 next = Vector2.MoveTowards(current, _chargeTarget, _dataSo.ChargeSpeed * Time.fixedDeltaTime);
+        _baseX = next.x;
+        _baseY = next.y;
+    }
+
+    // _maxHeightAnchor가 있으면 그 y + MaxHeightMargin을 상한으로 클램프한다 (미연결 시 제한 없음)
     private void ClampHeightCeiling(ref Vector2 point)
     {
         if (_maxHeightAnchor == null)
