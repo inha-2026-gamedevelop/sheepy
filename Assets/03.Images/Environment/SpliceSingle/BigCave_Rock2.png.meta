@@ -1,0 +1,637 @@
+fileFormatVersion: 2
+guid: e57a34cae84926f459147655f5df5385
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6671930070449518065
+    second: BigCave_Rock2_0
+  - first:
+      213: 5608504941351463974
+    second: BigCave_Rock2_1
+  - first:
+      213: -6180773321838342332
+    second: BigCave_Rock2_2
+  - first:
+      213: -3937742894568514338
+    second: BigCave_Rock2_3
+  - first:
+      213: 3001546121022967135
+    second: BigCave_Rock2_4
+  - first:
+      213: 1591994030565718064
+    second: BigCave_Rock2_5
+  - first:
+      213: -7790749398400011446
+    second: BigCave_Rock2_6
+  - first:
+      213: -2483912445281572272
+    second: BigCave_Rock2_7
+  - first:
+      213: 1892096394494743625
+    second: BigCave_Rock2_8
+  - first:
+      213: -2056645212740719511
+    second: BigCave_Rock2_9
+  - first:
+      213: -2510512685566549550
+    second: BigCave_Rock2_10
+  - first:
+      213: -315012661385671616
+    second: BigCave_Rock2_11
+  - first:
+      213: -6912881596470731485
+    second: BigCave_Rock2_12
+  - first:
+      213: -6449947133082418245
+    second: BigCave_Rock2_13
+  - first:
+      213: 8162943276209361979
+    second: BigCave_Rock2_14
+  - first:
+      213: 7090347879636135123
+    second: BigCave_Rock2_15
+  - first:
+      213: 2743862234146488345
+    second: BigCave_Rock2_16
+  - first:
+      213: 1008461165035350181
+    second: BigCave_Rock2_17
+  - first:
+      213: 2964505039711877817
+    second: BigCave_Rock2_18
+  - first:
+      213: -2415659217232477562
+    second: BigCave_Rock2_19
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: BigCave_Rock2_0
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 288
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0a0c9843fa8863a0800000000000000
+      internalID: -6671930070449518065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_1
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 185
+        width: 30
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62ce64e678965dd40800000000000000
+      internalID: 5608504941351463974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_2
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 219
+        width: 10
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44f4d92396b793aa0800000000000000
+      internalID: -6180773321838342332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_3
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 166
+        width: 39
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edcdc6053b35a59c0800000000000000
+      internalID: -3937742894568514338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_4
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 169
+        width: 49
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5d86805b42a7a920800000000000000
+      internalID: 3001546121022967135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_5
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 182
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0387964d226e71610800000000000000
+      internalID: 1591994030565718064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_6
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 106
+        width: 56
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a43774603b2b1e390800000000000000
+      internalID: -7790749398400011446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_7
+      rect:
+        serializedVersion: 2
+        x: 47
+        y: 135
+        width: 25
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05ae1d59ace578dd0800000000000000
+      internalID: -2483912445281572272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_8
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 145
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94418a265a3124a10800000000000000
+      internalID: 1892096394494743625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_9
+      rect:
+        serializedVersion: 2
+        x: 60
+        y: 145
+        width: 6
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96ce49953145573e0800000000000000
+      internalID: -2056645212740719511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_10
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 65
+        width: 82
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d1a1b4830ed82dd0800000000000000
+      internalID: -2510512685566549550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_11
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 54
+        width: 8
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04c4b5a47a9d0abf0800000000000000
+      internalID: -315012661385671616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_12
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 83
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32dd60460d28010a0800000000000000
+      internalID: -6912881596470731485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_13
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 87
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb3c298714f2d76a0800000000000000
+      internalID: -6449947133082418245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_14
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 88
+        width: 30
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b345f1c19a9984170800000000000000
+      internalID: 8162943276209361979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_15
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 25
+        width: 42
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3dce7ab84d9f56260800000000000000
+      internalID: 7090347879636135123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_16
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 43
+        width: 11
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91049e21a28241620800000000000000
+      internalID: 2743862234146488345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_17
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 50
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a865b72616cefd00800000000000000
+      internalID: 1008461165035350181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_18
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 0
+        width: 23
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bab1e280a9042920800000000000000
+      internalID: 2964505039711877817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigCave_Rock2_19
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 20
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 682c57a9dbad97ed0800000000000000
+      internalID: -2415659217232477562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      BigCave_Rock2_0: -6671930070449518065
+      BigCave_Rock2_1: 5608504941351463974
+      BigCave_Rock2_10: -2510512685566549550
+      BigCave_Rock2_11: -315012661385671616
+      BigCave_Rock2_12: -6912881596470731485
+      BigCave_Rock2_13: -6449947133082418245
+      BigCave_Rock2_14: 8162943276209361979
+      BigCave_Rock2_15: 7090347879636135123
+      BigCave_Rock2_16: 2743862234146488345
+      BigCave_Rock2_17: 1008461165035350181
+      BigCave_Rock2_18: 2964505039711877817
+      BigCave_Rock2_19: -2415659217232477562
+      BigCave_Rock2_2: -6180773321838342332
+      BigCave_Rock2_3: -3937742894568514338
+      BigCave_Rock2_4: 3001546121022967135
+      BigCave_Rock2_5: 1591994030565718064
+      BigCave_Rock2_6: -7790749398400011446
+      BigCave_Rock2_7: -2483912445281572272
+      BigCave_Rock2_8: 1892096394494743625
+      BigCave_Rock2_9: -2056645212740719511
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
