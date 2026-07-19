@@ -24,6 +24,7 @@ namespace Minsung.Visual
 
         private Image _fadeImage;   // 자동 생성되는 전체 화면 이미지
         private Coroutine _coFade;  // 진행 중 페이드 (새 요청이 오면 교체해 겹침 방지)
+        private Action _pendingOnComplete; // 진행 중 페이드의 완료 콜백 - 새 요청에 밀려도 반드시 한 번은 불러줘야 이를 기다리는 코루틴이 멈추지 않는다
 
         /****************************************
         *              Unity Event
@@ -41,15 +42,32 @@ namespace Minsung.Visual
         /// <summary> 화면이 어두워짐 (알파 0 -> 1) </summary>
         public void FadeOut(float duration = -1f, Action onComplete = null)
         {
-            UtilCoroutine.CheckRunCoroutine(ref _coFade,
-                StartCoroutine(FadeRoutine(0f, 1f, duration < 0f ? _defaultDuration : duration, onComplete)), this);
+            StartFade(0f, 1f, duration, onComplete);
         }
 
         /// <summary> 화면이 밝아짐 (알파 1 -> 0) </summary>
         public void FadeIn(float duration = -1f, Action onComplete = null)
         {
-            UtilCoroutine.CheckRunCoroutine(ref _coFade,
-                StartCoroutine(FadeRoutine(1f, 0f, duration < 0f ? _defaultDuration : duration, onComplete)), this);
+            StartFade(1f, 0f, duration, onComplete);
+        }
+
+        // 진행 중이던 페이드를 교체 - 밀려난 콜백을 유실하면 그 완료를 기다리던 코루틴(CoFadeOut 등)이 영원히 멈춘다
+        private void StartFade(float from, float to, float duration, Action onComplete)
+        {
+            float d = duration < 0f ? _defaultDuration : duration;
+
+            Action interrupted = null;
+            if (_coFade != null)
+            {
+                StopCoroutine(_coFade);
+                interrupted = _pendingOnComplete;
+            }
+
+            _pendingOnComplete = onComplete;
+            _coFade            = StartCoroutine(FadeRoutine(from, to, d, onComplete));
+
+            // 새 페이드 상태를 먼저 확정한 뒤에 호출 - 콜백이 재진입으로 또 다른 페이드를 걸어도 방금 만든 상태를 덮어쓰지 않는다
+            interrupted?.Invoke();
         }
 
         /// <summary> 어두워짐 -> onMidpoint 콜백 -> 밝아짐. 씬 전환에 사용. </summary>
@@ -78,7 +96,8 @@ namespace Minsung.Visual
 
             SetAlpha(to);
             _fadeImage.raycastTarget = (to > 0.01f); // 투명하면 클릭 통과
-            _coFade = null;
+            _coFade             = null;
+            _pendingOnComplete  = null; // 정상 완료 - StartFade의 인터럽트 처리기가 중복 호출하지 않도록 정리
             onComplete?.Invoke();
         }
 

@@ -19,6 +19,7 @@ namespace Minsung.Boss
 
         private Collider2D _selfCollider; // 본체 자신의 물리 충돌 - 비활성 시 꺼서 플레이어가 그냥 통과
         private RingBuffer<Vector2> _rewindBuffer; // 위치 기록
+        private float _nextCastTime;
 
         private bool _isPresent; // 필드 등장 여부 - IsActionBlocked가 참조
 
@@ -129,6 +130,12 @@ namespace Minsung.Boss
         /// <summary> 원거리 패턴(장풍/레이저) 발사 시 캐스팅 모션 재생. Phase2/3 상태가 발사 시점마다 호출한다 </summary>
         public void PlayCastTrigger()
         {
+            if (Time.time < _nextCastTime)
+            {
+                return;
+            }
+            _nextCastTime = Time.time + GameDB.Boss.CastCooldown;
+            LogLogic("Casting");
             PlayAnimTrigger(PARAM_CAST);
         }
 

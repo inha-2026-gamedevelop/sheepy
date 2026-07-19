@@ -54,9 +54,10 @@ namespace Minsung.Common
 
         public static void Unregister(RespawnPoint point)
         {
-            EnsureInstance();
             if (Instance == null)
             {
+                // 씬/플레이 모드 종료 중에는 RespawnManager가 먼저 파괴될 수 있다.
+                // 등록 해제를 위해 새 영속 오브젝트를 만들면 Unity의 미정리 GameObject 오류가 발생한다.
                 return;
             }
 

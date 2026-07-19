@@ -19,6 +19,8 @@ namespace Minsung.Boss
         private const int   MAX_NEARBY_BOSSES          = 8;
         private const float VERTICAL_ALIGNMENT_EPSILON = 0.01f;
         private const float STUCK_SPEED_EPSILON        = 0.01f;
+        private const float LEAP_LANDING_TIMEOUT_MARGIN = 1f;
+        private const int   LEAP_GROUND_SEARCH_STEPS    = 8;
 
         private static readonly int PARAM_SPEED  = Animator.StringToHash(Constants.Combat.BOSS_ANIM_SPEED);
         private static readonly int PARAM_ATTACK = Animator.StringToHash(Constants.Combat.BOSS_ANIM_ATTACK);
@@ -57,6 +59,7 @@ namespace Minsung.Boss
         private ContactFilter2D _bossProximityFilter;
         private readonly Collider2D[] _nearbyBosses = new Collider2D[MAX_NEARBY_BOSSES];
         private bool _isGrounded;
+        private bool _isRunning;
         private BossMeleeActionState _actionState;
         private bool _isMovementLocked; // BossMovementLockBehaviour가 Enter/Exit로 제어
         private float _stuckEscapeElapsed;
@@ -71,6 +74,7 @@ namespace Minsung.Boss
         private WaitForSeconds _waitJumpLandActive;
         private WaitForSeconds _waitDodgeCooldown;
         private WaitForSeconds _waitDodgeDuration;
+        private WaitForSeconds _waitActionStartOffset;
         private string _objectId;
 
         // 파생 클래스가 결정하는 수치 (Constants.Combat의 개체별 상수를 돌려준다)
@@ -103,6 +107,10 @@ namespace Minsung.Boss
             }
 
             _actionState = actionState;
+            _isRunning = false;
+            LogLogic(actionState == BossMeleeActionState.Attack
+                ? "Combat"
+                : actionState.ToString());
             return true;
         }
 
@@ -144,8 +152,8 @@ namespace Minsung.Boss
             {
                 if (!_attackHitbox.TryGetComponent(out _attackHitboxCollider))
                 {
-                    // 콜라이더 타입이 바뀌는 등의 이유로 캐싱에 실패하면, 판정 사거리 자동 보정이 조용히 무효화되므로 경고로 남긴다
-                    Debug.LogWarning("AttackHitbox에 BoxCollider2D가 없어 공격 판정 사거리를 자동으로 맞출 수 없다", this);
+                    // 콜라이더 타입이 바뀌는 등의 이유로 캐싱에 실패하면 Combat 모션 범위 자동 보정이 무효화된다.
+                    Debug.LogWarning("AttackHitbox에 BoxCollider2D가 없어 Combat 모션 범위를 적용할 수 없다", this);
                 }
             }
         }
@@ -190,10 +198,14 @@ namespace Minsung.Boss
         ****************************************/
 
         /// <summary> 전투 개시 - 물리 복귀 + 히트박스 피해 설정 + 공격/도약/회피 루프 시작. Activate에서 호출한다 </summary>
-        protected void BeginCombat()
+        protected void BeginCombat(float actionStartOffset = 0f)
         {
             _actionState        = BossMeleeActionState.Idle;
             _stuckEscapeElapsed = 0f;
+            float safeActionStartOffset = Mathf.Max(0f, actionStartOffset);
+            _waitActionStartOffset = (safeActionStartOffset > 0f)
+                ? new WaitForSeconds(safeActionStartOffset)
+                : null;
             SetPlayerBodyCollisionIgnored(false);
             UpdatePlayerBodyCollision();
             _rb.bodyType       = RigidbodyType2D.Dynamic;
@@ -202,7 +214,7 @@ namespace Minsung.Boss
             if (_attackHitbox != null)
             {
                 _attackHitbox.Configure(AttackHalves);
-                ConfigureAttackHitboxRange();
+                ConfigureCombatHitbox();
                 _attackHitbox.gameObject.SetActive(false);
             }
 
@@ -260,25 +272,21 @@ namespace Minsung.Boss
             _isIgnoringPlayerBodyCollision = ignored;
         }
 
-        private void ConfigureAttackHitboxRange()
+        private void ConfigureCombatHitbox()
         {
             if (_attackHitboxCollider == null)
             {
                 return;
             }
 
-            ApplyRangeToHitboxCollider(_attackHitboxCollider, AttackRange);
+            ApplyCombatMotionToHitboxCollider(_attackHitboxCollider);
         }
 
-        private void ApplyRangeToHitboxCollider(BoxCollider2D hitboxCollider, float range)
+        private void ApplyCombatMotionToHitboxCollider(BoxCollider2D hitboxCollider)
         {
-            Vector2 colliderSize = hitboxCollider.size;
-            colliderSize.x = range;
-            hitboxCollider.size = colliderSize;
-
-            Vector2 colliderOffset = hitboxCollider.offset;
-            colliderOffset.x = (colliderSize.x * 0.5f) * Constants.Combat.BOSS_ART_FACING_SIGN;
-            hitboxCollider.offset = colliderOffset;
+            hitboxCollider.size = GameDB.Boss.CombatHitboxSize;
+            hitboxCollider.offset = GameDB.Boss.CombatHitboxCenter
+                                    - (Vector2)hitboxCollider.transform.localPosition;
         }
 
 
@@ -353,6 +361,11 @@ namespace Minsung.Boss
             }
         }
 
+        protected void LogLogic(string logicName)
+        {
+            Debug.Log($"{name}: {logicName}", this);
+        }
+
         // Idle <-> Run 로코모션 구동
         private void PlayAnimSpeed(float speed)
         {
@@ -371,6 +384,42 @@ namespace Minsung.Boss
         {
             float dist = _col.bounds.extents.y + Constants.Combat.GROUND_CHECK_EXTRA;
             return Physics2D.Raycast(_col.bounds.center, Vector2.down, dist, _groundLayer);
+        }
+
+        // 도약 착지 지점의 지형이 끊긴 경우 현재/목표 지점 주변에서 가장 가까운 지면을 찾아 복구한다.
+        private bool TrySnapToNearbyGround(Vector2 start, float targetX, float targetY, float arcHeight)
+        {
+            Bounds bounds = _col.bounds;
+            float bottomOffset = _rb.position.y - bounds.min.y;
+            float searchStep = Mathf.Max(bounds.extents.x, Constants.Combat.GROUND_CHECK_EXTRA);
+            float probeY = Mathf.Max(start.y, targetY, _rb.position.y) + arcHeight + bounds.size.y;
+            float probeDistance = (probeY - Mathf.Min(start.y, targetY, _rb.position.y)) + arcHeight + bounds.size.y;
+
+            for (int step = 0; step <= LEAP_GROUND_SEARCH_STEPS; ++step)
+            {
+                float offset = step * searchStep;
+                int directionCount = (step == 0) ? 1 : 2;
+
+                for (int directionIndex = 0; directionIndex < directionCount; ++directionIndex)
+                {
+                    float direction = (directionIndex == 0) ? 1f : -1f;
+                    float probeX = targetX + (offset * direction);
+                    RaycastHit2D hit = Physics2D.Raycast(new Vector2(probeX, probeY), Vector2.down,
+                                                        probeDistance, _groundLayer);
+                    if (hit.collider == null)
+                    {
+                        continue;
+                    }
+
+                    _rb.position = new Vector2(probeX, hit.point.y + bottomOffset);
+                    Physics2D.SyncTransforms();
+                    return true;
+                }
+            }
+
+            _rb.position = start;
+            Physics2D.SyncTransforms();
+            return CheckGrounded();
         }
 
         // 추격/공격 대상 - 플레이어 본체와 활성 상태인 모든 분신(CloneController) 중 가장 가까운 쪽을 선택한다
@@ -437,6 +486,12 @@ namespace Minsung.Boss
             }
 
             _rb.linearVelocity = v;
+            bool isRunningNow = Mathf.Abs(v.x) > STUCK_SPEED_EPSILON;
+            if (isRunningNow && (!_isRunning))
+            {
+                LogLogic("Run");
+            }
+            _isRunning = isRunningNow;
             PlayAnimSpeed(Mathf.Abs(v.x));
         }
 
@@ -528,6 +583,10 @@ namespace Minsung.Boss
         // 근거리 공격 루프: 쿨다운마다 사거리 안이면 공격 모션 + 판정을 짧게 켠다
         private IEnumerator CoAttackLoop()
         {
+            if (_waitActionStartOffset != null)
+            {
+                yield return _waitActionStartOffset;
+            }
             while (true)
             {
                 yield return _waitAttackCooldown;
@@ -574,9 +633,13 @@ namespace Minsung.Boss
         *                도약
         ****************************************/
 
-        // 도약 루프: 쿨다운마다 공격 사거리 밖이면(=걷기로 못 붙는 지형에 막혀도) 도약으로 단숨에 접근한다
+        // 도약 루프: 쿨다운마다 공격 사거리 밖이면(걷기로 못 붙는 지형에 막혀도) 도약으로 단숨에 접근한다
         private IEnumerator CoJumpLoop()
         {
+            if (_waitActionStartOffset != null)
+            {
+                yield return _waitActionStartOffset;
+            }
             while (true)
             {
                 yield return _waitJumpCooldown;
@@ -638,14 +701,29 @@ namespace Minsung.Boss
             // 벽에 붙은 채로 도약 패턴 나오면 제자리점프해서 강제로 트리거 활성화
             _col.isTrigger = true;
 
+            float landingWait = 0f;
+            float landingTimeout = Mathf.Max(totalTime + LEAP_LANDING_TIMEOUT_MARGIN,
+                                            LEAP_LANDING_TIMEOUT_MARGIN);
             while ((!_isGrounded) || (_rb.linearVelocity.y > 0f))
             {
+                landingWait += Time.deltaTime;
+                if (landingWait >= landingTimeout)
+                {
+                    break;
+                }
                 yield return null;
             }
 
+            bool landingTimedOut = landingWait >= landingTimeout;
+            if (landingTimedOut)
+            {
+                _rb.linearVelocity = Vector2.zero;
+                _isGrounded = TrySnapToNearbyGround(start, targetX, targetY, arcHeight);
+                Debug.LogWarning($"{name} 도약 착지 시간이 초과되어 가까운 지면으로 복구했습니다.", this);
+            }
             _col.isTrigger = false;
 
-            if (slamOnLand && (_attackHitbox != null))
+            if ((!landingTimedOut) && slamOnLand && (_attackHitbox != null))
             {
                 _attackHitbox.gameObject.SetActive(true);
                 yield return _waitJumpLandActive;
@@ -661,6 +739,10 @@ namespace Minsung.Boss
         // 회피 루프: 쿨다운마다 플레이어가 DodgeTriggerRange 안으로 붙으면 무적 백스텝으로 거리를 벌린다
         private IEnumerator CoDodgeLoop()
         {
+            if (_waitActionStartOffset != null)
+            {
+                yield return _waitActionStartOffset;
+            }
             while (true)
             {
                 yield return _waitDodgeCooldown;

@@ -17,7 +17,13 @@ MonoBehaviour:
   - _clips:
     - {fileID: 8300000, guid: fd495982740c6e84a95cd5dc9026b792, type: 3}
   - _clips: []
-  - _clips: []
+  - _clips:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   - _clips: []
   - _clips: []
   - _clips:
@@ -29,6 +35,8 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 96e9c657c378d4b4386aa72783308226, type: 3}
     - {fileID: 8300000, guid: 364b085e152ed5c4ab441653e9dcbdac, type: 3}
     - {fileID: 8300000, guid: 9e7fa5492d1db57439abb1af08ec2a77, type: 3}
+    - {fileID: 0}
+    - {fileID: 0}
     - {fileID: 0}
   - _sfxName: Time
     _clips: []
