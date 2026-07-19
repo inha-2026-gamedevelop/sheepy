@@ -4,10 +4,12 @@ using System.Collections;
 // Unity
 using UnityEngine;
 
+using Minsung.TimeSystem;
+
 // 부유체 보스(Boss2, 3~4페이즈)의 이동 - 스폰 지점 주변을 배회하며 플레이어를 느슨하게 추적하고,
 // 주기적으로 플레이어를 향해 빠르게 돌진하는 몸통박치기를 시도한다 (AttackHitBox 활성화 - DamageHazard가 판정)
-// TODO: 리와인드 타임라인 미연동 - 이동 패턴이 확정되면 IRewindable 구현 + Register/Unregister 추가 (배회/돌진 랜덤도 결정 로그 필요)
-public class BossFloatMovement : MonoBehaviour
+// 리와인드: 매 틱 위치만 기록/복원한다 (배회/돌진 랜덤은 결정 로그가 없어 되감기 종료 시 그 자리에서 새로 시작)
+public class BossFloatMovement : MonoBehaviour, IRewindable
 {
     /****************************************
     *                Fields
@@ -36,8 +38,10 @@ public class BossFloatMovement : MonoBehaviour
     private float       _elapsed;       // 사인파 위상 계산용 경과 시간(초)
     private bool         _isCharging;   // 몸통박치기 돌진 중 - true면 배회/추적/흔들림을 멈추고 직선 돌진만 수행
     private Vector2      _chargeTarget; // 돌진 시작 시점에 스냅샷한 목표 지점 (도중 방향을 바꾸지 않는다)
+    private bool         _isRewinding;  // 되감기 중 - true면 배회/추적/돌진 로직을 멈추고 기록된 위치만 따른다
     private Coroutine    _roamLoop;
     private Coroutine    _chargeLoop;
+    private RingBuffer<Vector2> _rewindBuffer; // 틱마다 최종 위치(흔들림 포함) 기록
 
     /****************************************
     *              Unity Event
@@ -78,28 +82,22 @@ public class BossFloatMovement : MonoBehaviour
 
         if (_dataSo != null)
         {
-            _roamLoop   = StartCoroutine(CoRoamLoop());
-            _chargeLoop = StartCoroutine(CoChargeLoop());
+            _roamLoop      = StartCoroutine(CoRoamLoop());
+            _chargeLoop    = StartCoroutine(CoChargeLoop());
+            _rewindBuffer  = new RingBuffer<Vector2>(RewindManager.TickCapacity);
+            RewindManager.Instance?.Register(this);
         }
     }
 
     private void OnDestroy()
     {
-        if (_roamLoop != null)
-        {
-            StopCoroutine(_roamLoop);
-            _roamLoop = null;
-        }
-        if (_chargeLoop != null)
-        {
-            StopCoroutine(_chargeLoop);
-            _chargeLoop = null;
-        }
+        StopMovementLoops();
+        RewindManager.Instance?.Unregister(this);
     }
 
     private void FixedUpdate()
     {
-        if (_dataSo == null)
+        if ((_dataSo == null) || (_isRewinding))
         {
             return;
         }
@@ -136,6 +134,57 @@ public class BossFloatMovement : MonoBehaviour
         {
             transform.position = new Vector3(targetPosition.x, targetPosition.y, _baseZ);
         }
+    }
+
+    /****************************************
+    *            IRewindable
+    ****************************************/
+
+    // 흔들림까지 포함한 최종 위치를 그대로 기록한다 - 배회/돌진 결정 로그는 아직 없어 위치만 되감는다
+    public void RecordTick()
+    {
+        Vector2 pos;
+        if (_rb != null)
+        {
+            pos = _rb.position;
+        }
+        else
+        {
+            pos = transform.position;
+        }
+        _rewindBuffer.Push(pos);
+    }
+
+    public void OnRewindStart()
+    {
+        _isRewinding = true;
+        StopMovementLoops();
+    }
+
+    public void ApplyRewindTick(int orderedIndex)
+    {
+        if (_rewindBuffer.TryGetOrdered(orderedIndex, out Vector2 pos))
+        {
+            ApplyPosition(pos);
+        }
+    }
+
+    // 되감기 종료 - 복원된 위치를 새 배회 기준으로 삼고 코루틴을 그 자리에서 재시작한다
+    public void OnRewindEnd(int orderedIndex)
+    {
+        if (_rewindBuffer.TryGetOrdered(orderedIndex, out Vector2 pos))
+        {
+            ApplyPosition(pos);
+            _origin   = pos;
+            _waypoint = pos;
+            _baseX    = pos.x;
+            _baseY    = pos.y;
+        }
+        _rewindBuffer.Clear();
+
+        _isRewinding = false;
+        _roamLoop     = StartCoroutine(CoRoamLoop());
+        _chargeLoop   = StartCoroutine(CoChargeLoop());
     }
 
     /****************************************
@@ -252,6 +301,39 @@ public class BossFloatMovement : MonoBehaviour
         Vector2 next = Vector2.MoveTowards(current, _chargeTarget, _dataSo.ChargeSpeed * Time.fixedDeltaTime);
         _baseX = next.x;
         _baseY = next.y;
+    }
+
+    // 배회/돌진 코루틴을 정지하고 진행 중이던 돌진 판정을 끈다 (되감기 시작/파괴 공용)
+    private void StopMovementLoops()
+    {
+        if (_roamLoop != null)
+        {
+            StopCoroutine(_roamLoop);
+            _roamLoop = null;
+        }
+        if (_chargeLoop != null)
+        {
+            StopCoroutine(_chargeLoop);
+            _chargeLoop = null;
+        }
+        if (_attackHitBox != null)
+        {
+            _attackHitBox.SetActive(false);
+        }
+        _isCharging = false;
+    }
+
+    // 기록된 위치를 그대로 적용 (되감기 스크럽용 - 보간 없이 즉시 이동)
+    private void ApplyPosition(Vector2 pos)
+    {
+        if (_rb != null)
+        {
+            _rb.position = pos;
+        }
+        else
+        {
+            transform.position = new Vector3(pos.x, pos.y, _baseZ);
+        }
     }
 
     // _maxHeightAnchor가 있으면 그 y + MaxHeightMargin을 상한으로 클램프한다 (미연결 시 제한 없음)
