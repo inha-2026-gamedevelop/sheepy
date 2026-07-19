@@ -12,6 +12,93 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1293e1cad738a7642858bccf7a77bb77, type: 3}
   m_Name: Boss2DB
   m_EditorClassIdentifier: Assembly-CSharp::BossFloatDataSO
+  _moveSpeed: 1.5
+  _moveSmoothTime: 0.8
+  _roamRadius: 4
+  _roamArriveThreshold: 0.1
+  _roamWaitMin: 1
+  _roamWaitMax: 3
+  _maxHeightMargin: 1
+  _followSpeed: 1
+  _chargeCooldown: 6
+  _chargeRange: 6
+  _chargeTelegraphTime: 0.4
+  _chargeSpeed: 9
+  _chargeDuration: 1.2
+  _chargeArriveThreshold: 0.2
+  _maxHealth: 5000
+  _lightningInterval: 4
+  _lightningTelegraphTime: 0.8
+  _lightningTelegraphHeight: 0.15
+  _lightningActiveTime: 0.15
+  _lightningStunDuration: 0.5
+  _lightningDamageHalves: 2
+  _lightningWidth: 0.5
+  _lightningHeight: 9
+  _lightningGroundEmbed: 0.4
+  _lightningPlayerRadius: 3
+  _lightningColor: {r: 1, g: 1, b: 1, a: 1}
+  _lightningTelegraphColor: {r: 1, g: 0.9, b: 0.2, a: 0.35}
+  _lightningStrikeSprites:
+  - {fileID: -530220433616798097, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -6709968699995684228, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -4193954744895643152, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -304178918399891003, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: 5139785824930045123, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -9046904694837190012, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -3060881671242500184, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  _lightningFrameInterval: 0.02
+  _lightningParticleSize: 0.08
+  _lightningParticleColors:
+  - {r: 0.88, g: 0.67, b: 1, a: 1}
+  - {r: 0.78, g: 0.49, b: 1, a: 1}
+  - {r: 0.61, g: 0.31, b: 0.87, a: 1}
+  - {r: 0.48, g: 0.17, b: 0.75, a: 1}
+  _waveInterval: 3
+  _waveWidth: 2.5
+  _waveHeight: 2.5
+  _waveGroundEmbed: 0.75
+  _waveTelegraphTime: 1
+  _waveActiveTime: 0.3
+  _waveFrameInterval: 0.0333
+  _waveActiveFrameCount: 5
+  _waveDamageHalves: 2
+  _waveColor: {r: 1, g: 1, b: 1, a: 1}
+  _waveStrikeSprites:
+  - {fileID: -7406319767457403300, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -6654237375344072925, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 6172060048188541369, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -4167454115604662804, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -3729304322876100191, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 8631984227614518045, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 887840995679485666, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 3894408046235524746, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -8365498243248456781, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  _waveParticleSize: 0.1
+  _waveParticleColors:
+  - {r: 0.88, g: 0.67, b: 1, a: 1}
+  - {r: 0.78, g: 0.49, b: 1, a: 1}
+  - {r: 0.61, g: 0.31, b: 0.87, a: 1}
+  - {r: 0.48, g: 0.17, b: 0.75, a: 1}
+  _laserInterval: 5
+  _laserWarningTime: 1.5
+  _laserBlinkInterval: 0.1
+  _laserActiveTime: 1
+  _laserRetractTime: 0.25
+  _laserThickness: 0.5
+  _laserWarningThickness: 0.05
+  _laserMaxHeight: 6
+  _laserDamageHalves: 2
+  _laserWarningColor: {r: 1, g: 0.05, b: 0.05, a: 0.6}
+  _laserColor: {r: 0.95, g: 0, b: 0.02, a: 1}
+  _laserFlowParticleSize: 0.12
+  _laserFlowSpeed: 14
+  _laserFlowRate: 80
+  _laserFlowColors:
+  - {r: 1, g: 0.15, b: 0.15, a: 1}
+  - {r: 0.85, g: 0, b: 0.05, a: 1}
+  - {r: 1, g: 0.35, b: 0.05, a: 1}
+  - {r: 0.55, g: 0, b: 0.12, a: 1}
   _verticalAmplitude: 0.3
   _verticalPeriod: 2
   _horizontalAmplitude: 0.15

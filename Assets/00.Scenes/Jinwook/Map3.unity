@@ -62533,6 +62533,7 @@ GameObject:
   - component: {fileID: 1684505829}
   - component: {fileID: 1684505830}
   - component: {fileID: 1684505833}
+  - component: {fileID: 1684505834}
   m_Layer: 0
   m_Name: Boss
   m_TagString: Untagged
@@ -62602,6 +62603,23 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &1684505834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684505828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f99aec6e535479740990643159a67040, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Boss2AttackPatterns
+  _target: {fileID: 1540819921}
+  _dataSo: {fileID: 11400000, guid: 7744d4dd47f44a34b823a2cea6d4e593, type: 2}
+  _arenaMinX: -10
+  _arenaMaxX: 10
+  _arenaGroundY: -3
 --- !u!1 &1686737292
 GameObject:
   m_ObjectHideFlags: 0
@@ -73032,7 +73050,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 7.163289
+  orthographic size: 2.4
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -73057,7 +73075,7 @@ Transform:
   m_GameObject: {fileID: 1936869355}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.79678476, y: -1.6353465, z: -14.389551}
+  m_LocalPosition: {x: -5.689999, y: -0.5, z: -6}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
