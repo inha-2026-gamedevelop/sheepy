@@ -1,3 +1,6 @@
+// System
+using System;
+
 // Unity
 using UnityEngine;
 
@@ -41,6 +44,12 @@ namespace Minsung.Player
 
         public Vector2 Position => _rb.position;
         public Vector2 Velocity => _rb.linearVelocity;
+
+        /// <summary> 점프 입력이 실제로 반영된 순간 (더블점프 포함, SFX 훅용) </summary>
+        public event Action OnJumped;
+
+        /// <summary> 공중 -> 접지 전이 순간 1회 (SFX 훅용) </summary>
+        public event Action OnLanded;
 
         /****************************************
         *              Unity Event
@@ -143,7 +152,12 @@ namespace Minsung.Player
         // 코디네이터의 FixedUpdate가 (되감기 중이 아닐 때) 호출한다.
         public void Tick()
         {
+            bool wasGrounded = _grounded;
             _grounded = CheckGrounded();
+            if (_grounded && !wasGrounded)
+            {
+                OnLanded?.Invoke();
+            }
             if (_grounded && _rb.linearVelocity.y <= 0f)
             {
                 _jumpCount = 0; // 상승 중 접지 오탐으로 점프 횟수가 풀리지 않게 하강/정지 시에만 리셋
@@ -184,6 +198,7 @@ namespace Minsung.Player
 
                 // 이륙 틱에 접지가 true로 남아 있으면 착지 전이(IsGrounded 조건)가 점프 상태를 즉시 끊어버린다
                 _grounded = false;
+                OnJumped?.Invoke();
             }
             _rb.linearVelocity = v;
 

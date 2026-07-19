@@ -105,7 +105,7 @@ namespace Minsung.Player
                 HitStopController.Request(_playerSo.HitStopOnDamagedDuration);
             }
 
-            // TODO: 피격 SFX 에셋 확정 후 SoundManager.PlaySFX 호출을 연결한다.
+            // 피격 SFX는 PlayerSoundController가 PlayerHealth.OnDamaged를 구독해 재생한다.
         }
 
         private void PlayVignetteFlash()

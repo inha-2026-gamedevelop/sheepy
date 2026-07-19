@@ -73,6 +73,10 @@ namespace Minsung.Player
             {
                 gameObject.AddComponent<PlayerHitFeedback>();
             }
+            if (!TryGetComponent(out PlayerSoundController soundController))
+            {
+                gameObject.AddComponent<PlayerSoundController>();
+            }
             TryGetComponent(out _health);
 
             if (_renderer != null)

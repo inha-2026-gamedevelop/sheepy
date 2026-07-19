@@ -1,4 +1,5 @@
 // System
+using System;
 using System.Collections;
 
 // Unity
@@ -42,6 +43,9 @@ namespace Minsung.Player
 
         public bool IsCharging    => _isCharging;
         public bool IsChargeReady => _isCharging && ((Time.time - _chargeStartTime) >= GameDB.Player.ChargeTime);
+
+        /// <summary> 실제 공격 실행 순간(charged 여부 포함). 되감기 역재생(모션만)에서는 발생하지 않는다 (SFX 훅용) </summary>
+        public event Action<bool> OnAttacked;
 
         /****************************************
         *              Unity Event
@@ -145,6 +149,8 @@ namespace Minsung.Player
                 {
                     AttackHitbox.Spawn(_rb.position, damage, DamageSource.Player, _health);
                 }
+
+                OnAttacked?.Invoke(charged);
             }
         }
 
