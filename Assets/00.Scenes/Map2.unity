@@ -11074,6 +11074,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e8f1bea37624d84eac1482d6cb7b2bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.UI.BossEmotionIconTooltip
+  _emotionController: {fileID: 0}
   _boss: {fileID: 1047445313}
   _tooltipPanel: {fileID: 692278897}
   _tooltipText: {fileID: 53116239}
@@ -17717,7 +17718,7 @@ GameObject:
   m_Component:
   - component: {fileID: 423190836}
   - component: {fileID: 423190837}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile1_Corner_17629
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -26213,7 +26214,7 @@ GameObject:
   m_Component:
   - component: {fileID: 626007858}
   - component: {fileID: 626007859}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile_17638
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27123,7 +27124,7 @@ GameObject:
   m_Component:
   - component: {fileID: 644963847}
   - component: {fileID: 644963848}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile_17636
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40774,7 +40775,7 @@ Transform:
   m_GameObject: {fileID: 955675416}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.06, y: -28.3, z: -6}
+  m_LocalPosition: {x: 0.79678476, y: -1.6353465, z: -14.389551}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -40899,7 +40900,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 3.2
+  orthographic size: 7.163289
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -45303,6 +45304,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f13b3f40da34ab8a9a32f86518c7764, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Boss.BossEmotionHUD
+  _emotionController: {fileID: 0}
   _boss: {fileID: 1047445313}
   _emotionIcon: {fileID: 258586312}
   _reflectIcon: {fileID: 1009109585}
@@ -64175,7 +64177,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1524477488}
   - component: {fileID: 1524477489}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile_17627
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -64630,7 +64632,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1527899472}
   - component: {fileID: 1527899473}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile1_Corner_17630
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -66735,7 +66737,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1567259905}
   - component: {fileID: 1567259906}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile_17631
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -74733,7 +74735,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1735835498}
   m_Layer: 0
-  m_Name: '--------Manager-------------- '
+  m_Name: --------Manager-----------------
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -77503,7 +77505,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4847524576369976158, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
   m_PrefabInstance: {fileID: 1870881603}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1252202533}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 89872e71c62c2df4aa0f25f3164f909e, type: 3}
@@ -77525,6 +77527,42 @@ MonoBehaviour:
   _useVignetteFlash: 1
   _useHitStop: 1
   _impulseSource: {fileID: 0}
+--- !u!114 &1817820844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252202533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efca24a95a4976e409cad5f879496d17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerSoundController
+  _jumpSfx:
+    _enabled: 1
+    _sfx: 0
+    _pitch: 1
+  _landSfx:
+    _enabled: 1
+    _sfx: 1
+    _pitch: 1
+  _attackSfx:
+    _enabled: 1
+    _sfx: 2
+    _pitch: 1
+  _chargeAttackSfx:
+    _enabled: 1
+    _sfx: 3
+    _pitch: 1
+  _hitSfx:
+    _enabled: 1
+    _sfx: 4
+    _pitch: 1
+  _deathSfx:
+    _enabled: 1
+    _sfx: 5
+    _pitch: 1
 --- !u!1 &1818512061
 GameObject:
   m_ObjectHideFlags: 0
@@ -79030,7 +79068,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1854742045}
   - component: {fileID: 1854742046}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile_17635
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -79804,6 +79842,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5053386531594375549, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
+      propertyPath: _pulseAmplitude
+      value: 0.4
+      objectReference: {fileID: 0}
     - target: {fileID: 7871254499066966236, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
       propertyPath: m_Name
       value: Player
@@ -79819,6 +79861,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7871254499066966236, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1817820828}
+    - targetCorrespondingSourceObject: {fileID: 7871254499066966236, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1817820844}
   m_SourcePrefab: {fileID: 100100000, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
 --- !u!1 &1873517354
 GameObject:
@@ -81378,7 +81423,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1900518465}
   - component: {fileID: 1900518466}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile_17632
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -90706,7 +90751,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2132323472}
   - component: {fileID: 2132323473}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crystal_Tile_17637
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -90839,7 +90884,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 795d8a71299b4ba398e73000c98698a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.UI.PotionCounterUI
-  _countText: {fileID: 455067367}
 --- !u!114 &2134698874
 MonoBehaviour:
   m_ObjectHideFlags: 0
