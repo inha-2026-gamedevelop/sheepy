@@ -16,6 +16,6 @@ MonoBehaviour:
   _magnetRadius: 2.5
   _magnetSpeed: 8
   _collectRadius: 0.3
-  _maxCarryCount: 3
+  _maxCarryCount: 999
   _healHalves: 2
   _poolSize: 16

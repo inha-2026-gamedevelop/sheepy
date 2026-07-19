@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: PlayerDB
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.PlayerDataSO
   _moveSpeed: 1.5
-  _jumpForce: 2.5
+  _jumpForce: 3.5
   _maxJumps: 2
-  _gravityScale: 0.9
+  _gravityScale: 1.2
   _attackDamage: 20
   _chargeDamageMult: 2.5
   _chargeTime: 1.2
@@ -49,14 +49,14 @@ MonoBehaviour:
   _orbDashTimeout: 0.6
   _orbSize: 0.05
   _orbColor: {r: 1, g: 1, b: 1, a: 1}
+  _rewindTintColor: {r: 0.6, g: 0.6, b: 1, a: 1}
+  _chargingColor: {r: 1, g: 0.75, b: 0.4, a: 1}
+  _chargeReadyColor: {r: 1, g: 0.9, b: 0.2, a: 1}
   _orbGlowColor: {r: 0.08, g: 0.48, b: 1, a: 1}
   _orbGlowIntensity: 3.5
   _orbPulseSpeed: 2
   _orbPulseAmount: 0.15
   _orbTrailColor: {r: 0.08, g: 0.55, b: 1, a: 0.85}
-  _orbTrailDuration: 0.3
+  _orbTrailDuration: 0.15
   _orbTrailWidth: 0.045
   _orbTrailMinVertexDistance: 0.015
-  _rewindTintColor: {r: 0.6, g: 0.6, b: 1, a: 1}
-  _chargingColor: {r: 1, g: 0.75, b: 0.4, a: 1}
-  _chargeReadyColor: {r: 1, g: 0.9, b: 0.2, a: 1}
