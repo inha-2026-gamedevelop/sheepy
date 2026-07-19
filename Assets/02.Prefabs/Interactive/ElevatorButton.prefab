@@ -108,6 +108,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Interactive.ElevatorButtonInteractive
   _col: {fileID: 3612735601463694333}
   _elevatorId: 1
+  _holdDuration: 2
   _holdUi: {fileID: 0}
   _progressSlider: {fileID: 0}
 --- !u!114 &3612735601463694336
