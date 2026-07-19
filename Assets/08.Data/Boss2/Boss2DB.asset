@@ -26,7 +26,8 @@ MonoBehaviour:
   _chargeSpeed: 9
   _chargeDuration: 1.2
   _chargeArriveThreshold: 0.2
-  _maxHealth: 5000
+  _maxHealth: 2
+  _phaseCount: 2
   _lightningInterval: 4
   _lightningTelegraphTime: 0.8
   _lightningTelegraphHeight: 0.15
@@ -99,6 +100,13 @@ MonoBehaviour:
   - {r: 0.85, g: 0, b: 0.05, a: 1}
   - {r: 1, g: 0.35, b: 0.05, a: 1}
   - {r: 0.55, g: 0, b: 0.12, a: 1}
+  _reflectHalves: 2
+  _emotionInterval: 8
+  _lightningRatePinkMult: 2
+  _lightningRateBlueMult: 0.5
+  _confusionInterval: 10
+  _confusionDuration: 1
+  _heartPickupHeight: 0.5
   _verticalAmplitude: 0.3
   _verticalPeriod: 2
   _horizontalAmplitude: 0.15

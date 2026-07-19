@@ -24,11 +24,15 @@ public class Boss2LightningPattern
     private readonly float         _arenaMinX;
     private readonly float         _arenaMaxX;
     private readonly float         _arenaGroundY;
+    private readonly System.Func<float> _getRateMultiplier; // 감정(Pink/Blue)에 따른 발생 간격 배율 - 미연결 시 항상 1배
 
     private readonly BossHazardPool _pool;
     private Coroutine _loop;
 
-    private readonly WaitForSeconds _waitInterval;
+    // 감정별 배율은 Pink(x2)/Blue(x0.5)/그 외(x1) 3가지뿐이라 WaitForSeconds를 미리 캐싱해 GC를 피한다
+    private readonly WaitForSeconds _waitIntervalNormal;
+    private readonly WaitForSeconds _waitIntervalPink;
+    private readonly WaitForSeconds _waitIntervalBlue;
     private readonly WaitForSeconds _waitTelegraph;
     private readonly WaitForSeconds _waitActive;
     private readonly WaitForSeconds _waitFrame;
@@ -43,14 +47,15 @@ public class Boss2LightningPattern
     ****************************************/
 
     public Boss2LightningPattern(MonoBehaviour owner, Transform target, Boss2DataSO dataSo,
-        float arenaMinX, float arenaMaxX, float arenaGroundY)
+        float arenaMinX, float arenaMaxX, float arenaGroundY, System.Func<float> getRateMultiplier = null)
     {
-        _owner        = owner;
-        _target       = target;
-        _dataSo       = dataSo;
-        _arenaMinX    = arenaMinX;
-        _arenaMaxX    = arenaMaxX;
-        _arenaGroundY = arenaGroundY;
+        _owner             = owner;
+        _target            = target;
+        _dataSo            = dataSo;
+        _arenaMinX         = arenaMinX;
+        _arenaMaxX         = arenaMaxX;
+        _arenaGroundY      = arenaGroundY;
+        _getRateMultiplier = getRateMultiplier;
 
         _strikeSprites       = _dataSo.LightningStrikeSprites;
         _frameInterval       = _dataSo.LightningFrameInterval;
@@ -65,7 +70,9 @@ public class Boss2LightningPattern
         _pool = new BossHazardPool(POOL_SIZE, "Boss2_LightningBolt", firstStrikeSprite, null, true,
             _dataSo.LightningParticleSize, _dataSo.LightningParticleColors);
 
-        _waitInterval  = new WaitForSeconds(_dataSo.LightningInterval);
+        _waitIntervalNormal = new WaitForSeconds(_dataSo.LightningInterval);
+        _waitIntervalPink   = new WaitForSeconds(_dataSo.LightningInterval / _dataSo.LightningRatePinkMult);
+        _waitIntervalBlue   = new WaitForSeconds(_dataSo.LightningInterval / _dataSo.LightningRateBlueMult);
         _waitTelegraph = new WaitForSeconds(_dataSo.LightningTelegraphTime);
         _waitActive    = new WaitForSeconds(_dataSo.LightningActiveTime);
         _waitFrame     = new WaitForSeconds(_frameInterval);
@@ -107,11 +114,27 @@ public class Boss2LightningPattern
     {
         while (true)
         {
-            yield return _waitInterval;
+            yield return DecideWaitInterval();
 
             float x = DecideStrikeX();
             _owner.StartCoroutine(CoStrikeBolt(x));
         }
+    }
+
+    // 감정(Pink/Blue)에 따른 발생 간격 배율 반영 - 3가지 배율만 존재하므로 미리 캐싱한 WaitForSeconds 중 선택
+    private WaitForSeconds DecideWaitInterval()
+    {
+        float multiplier = (_getRateMultiplier != null) ? _getRateMultiplier.Invoke() : 1f;
+
+        if (Mathf.Approximately(multiplier, _dataSo.LightningRatePinkMult))
+        {
+            return _waitIntervalPink;
+        }
+        if (Mathf.Approximately(multiplier, _dataSo.LightningRateBlueMult))
+        {
+            return _waitIntervalBlue;
+        }
+        return _waitIntervalNormal;
     }
 
     // 낙하 지점 결정: 플레이어가 있으면 플레이어 x 위치 기준 반경 안에서, 없으면 아레나 전체에서 랜덤 선택

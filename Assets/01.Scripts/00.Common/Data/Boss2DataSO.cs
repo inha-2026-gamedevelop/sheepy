@@ -30,8 +30,9 @@ public class Boss2DataSO : ScriptableObject
     [SerializeField] private float _chargeDuration        = 1.2f; // 돌진 최대 지속시간(초) - 목표에 못 미쳐도 이 시간 지나면 종료
     [SerializeField] private float _chargeArriveThreshold = 0.2f; // 돌진 도달 판정 거리(유닛)
 
-    [Header("체력")]
-    [SerializeField] private float _maxHealth = 5000f; // 보스 최대 체력 TODO: 밸런싱/페이즈 확정 전 임시값
+    [Header("체력 / 페이즈")]
+    [SerializeField] private float _maxHealth  = 5000f; // 보스 최대 체력 TODO: 밸런싱/페이즈 확정 전 임시값
+    [SerializeField] private int   _phaseCount = 2;      // 이 보스가 담당하는 페이즈 수 - 피통을 이 값으로 균등 분할해 페이즈 하한을 계산한다 (3~4페이즈 = 2)
 
     [Header("낙뢰 (예고 후 즉발 강타, 플레이어 주변 낙하)")]
     [SerializeField] private float _lightningInterval        = 4f;    // 발생 간격(초)
@@ -109,6 +110,17 @@ public class Boss2DataSO : ScriptableObject
         new Color(0.55f, 0f, 0.12f),
     };
 
+    [Header("감정 - 공통 (반사/낙뢰 배율)")]
+    [SerializeField] private int   _reflectHalves         = 2;   // 감정 반사 시 공격자가 입는 피해(반칸 단위)
+    [SerializeField] private float _emotionInterval       = 8f;  // 자동 감정 전환 주기(초)
+    [SerializeField] private float _lightningRatePinkMult = 2f;  // 핑크 감정: 낙뢰 발생 비율 x2
+    [SerializeField] private float _lightningRateBlueMult = 0.5f; // 파랑 감정: 낙뢰 발생 비율 /2
+
+    [Header("감정 - 화남(혼란) / 파랑(하트 픽업)")]
+    [SerializeField] private float _confusionInterval = 10f;  // 키반전 발동 주기(초)
+    [SerializeField] private float _confusionDuration  = 1f;   // 키반전 지속 시간(초)
+    [SerializeField] private float _heartPickupHeight  = 0.5f; // 픽업 배치 높이(지면 기준)
+
     [Header("상하 흔들림")]
     [SerializeField] private float _verticalAmplitude = 0.3f; // 상하 왕복 폭(유닛)
     [SerializeField] private float _verticalPeriod     = 2f;   // 상하 왕복 1회 주기(초)
@@ -131,6 +143,7 @@ public class Boss2DataSO : ScriptableObject
 
     public float FollowSpeed => _followSpeed;
     public float MaxHealth   => _maxHealth;
+    public int   PhaseCount  => _phaseCount;
 
     public float ChargeCooldown        => _chargeCooldown;
     public float ChargeRange           => _chargeRange;
@@ -143,6 +156,15 @@ public class Boss2DataSO : ScriptableObject
     public float VerticalPeriod      => _verticalPeriod;
     public float HorizontalAmplitude => _horizontalAmplitude;
     public float HorizontalPeriod    => _horizontalPeriod;
+
+    public int   ReflectHalves         => _reflectHalves;
+    public float EmotionInterval       => _emotionInterval;
+    public float LightningRatePinkMult => _lightningRatePinkMult;
+    public float LightningRateBlueMult => _lightningRateBlueMult;
+
+    public float ConfusionInterval => _confusionInterval;
+    public float ConfusionDuration => _confusionDuration;
+    public float HeartPickupHeight => _heartPickupHeight;
 
     public float LightningInterval        => _lightningInterval;
     public float LightningTelegraphTime   => _lightningTelegraphTime;
