@@ -40,12 +40,13 @@ namespace Minsung.Boss
             }
 
             PlayerController player = other.GetComponent<PlayerController>();
-            if (_playerSpawn != null)
+            _boss?.BeginBossIntro(() =>
             {
-                player.SetPose(_playerSpawn.position, Vector2.zero, false);
-            }
-
-            _boss?.BeginBossIntro();
+                if (_playerSpawn != null)
+                {
+                    player.SetPose(_playerSpawn.position, Vector2.zero, false);
+                }
+            });
             _used = _oneShot;
         }
     }

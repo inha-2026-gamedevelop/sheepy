@@ -27,6 +27,7 @@ namespace Minsung.UI
             if (_boss != null)
             {
                 _boss.OnPhaseChanged += HandlePhaseChanged;
+                _boss.OnBattleStarted += RefreshVisibility;
             }
             Redraw(_clone.CurrentHealth, GameDB.Boss.CloneHealth);
         }
@@ -40,6 +41,7 @@ namespace Minsung.UI
             if (_boss != null)
             {
                 _boss.OnPhaseChanged -= HandlePhaseChanged;
+                _boss.OnBattleStarted -= RefreshVisibility;
             }
         }
 
@@ -64,7 +66,8 @@ namespace Minsung.UI
         {
             bool alive    = _lastHealth > 0f;
             bool inPhase1 = (_boss == null) || (_boss.PhaseIndex == 0);
-            SetVisible(alive && inPhase1);
+            bool battleStarted = (_boss == null) || _boss.IsBattleStarted;
+            SetVisible(alive && inPhase1 && battleStarted);
         }
 
         // 슬라이더 자식(Background/Fill Area)만 껐다 켠다 - 루트(이 컴포넌트)는 계속 활성 상태로 유지해야

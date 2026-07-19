@@ -104,6 +104,7 @@ namespace Minsung.Boss
         public BossBodyController Body => _body;                // 2페이즈부터 페이즈 상태가 활성/비활성 관리
         public int PhaseIndex => _phaseIndex;
         public bool IsTransitioning => _transitioning;
+        public bool IsBattleStarted => _battleStarted;
         // 현재 페이즈가 이 씬이 담당하는 마지막 페이즈인지 - true면 이번 종료 기믹 뒤 씬 전환(또는 격파 처리)이 온다
         public bool IsFinalPhase => _phaseIndex >= _finalPhaseIndex;
         public BossEmotionController EmotionController => _emotionController;
@@ -131,6 +132,7 @@ namespace Minsung.Boss
 
         public event Action<int> OnPhaseChanged;             // 새 페이즈 진입 시 (int = 새 페이즈 인덱스)
         public event Action OnBossDefeated;                  // 마지막 페이즈 피통이 0이 되었을 때
+        public event Action OnBattleStarted;
         public event Action<BossEmotion> OnEmotionChanged;   // 감정 아이콘/연출 UI 연동
         public event Action<float, float> OnHealthChanged;   // (현재, 총) 보스 HP 바 연동 - Minsung.UI.BossHealthBarUI가 구독
 
@@ -231,6 +233,7 @@ namespace Minsung.Boss
             // 보스 클리어 타이머 - 이미 진행 중(2/3페이즈 구간 씬)이면 무시, 컷신을 넘어 다시 시작할 때는 정지 해제
             GameManager.Instance?.StartBossTimer();
             GameManager.Instance?.SetBossTimerTransitionPaused(false);
+            OnBattleStarted?.Invoke();
         }
 
         // 입구 트리거가 호출하는 실제 전투 시작 지점. 중복 진입은 무시한다.
@@ -248,7 +251,7 @@ namespace Minsung.Boss
         }
 
         /// <summary> 보스방 입장 연출을 재생한 뒤 전투를 시작한다. 영상 동안에는 플레이어와 보스 패턴을 모두 잠근다. </summary>
-        public void BeginBossIntro()
+        public void BeginBossIntro(Action onScreenBlack = null)
         {
             if (_introPlaying || _battleInitialized || _transitioning)
             {
@@ -266,14 +269,18 @@ namespace Minsung.Boss
             {
                 _entranceRewindLock = RewindManager.Instance.AcquireRewindLock(this);
             }
-            _introCoroutine = StartCoroutine(CoPlayIntroThenBeginBattle());
+            _introCoroutine = StartCoroutine(CoPlayIntroThenBeginBattle(onScreenBlack));
         }
 
-        private IEnumerator CoPlayIntroThenBeginBattle()
+        private IEnumerator CoPlayIntroThenBeginBattle(Action onScreenBlack)
         {
             if (_introVideo != null)
             {
-                yield return _introVideo.CoPlay();
+                yield return _introVideo.CoPlayIntroTransition(onScreenBlack);
+            }
+            else
+            {
+                onScreenBlack?.Invoke();
             }
 
             _player?.SetInteracting(false);
@@ -281,6 +288,7 @@ namespace Minsung.Boss
             _introPlaying = false;
             _transitioning = false;
             BeginBossBattle();
+            ScreenFade.Instance?.FadeIn(0.5f);
 
             StartCoroutine(CoUnlockRewindAfterEntranceLock());
         }

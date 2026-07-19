@@ -55,7 +55,7 @@ namespace Minsung.UI
 
         private void RedrawPhaseVisibility(int phaseIndex)
         {
-            bool visible = phaseIndex >= 1;
+            bool visible = (_boss != null) && _boss.IsBattleStarted && (phaseIndex >= 1);
             foreach (Transform child in transform)
             {
                 child.gameObject.SetActive(visible);

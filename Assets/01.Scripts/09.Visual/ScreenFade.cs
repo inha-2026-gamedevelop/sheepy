@@ -98,7 +98,7 @@ namespace Minsung.Visual
                 cgo.transform.SetParent(transform);
                 canvas              = cgo.AddComponent<Canvas>();
                 canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
-                canvas.sortingOrder = 999; // 최상단
+                canvas.sortingOrder = 2000; // 영상 UI(1000)를 포함한 모든 화면 요소 위
                 cgo.AddComponent<CanvasScaler>();
                 cgo.AddComponent<GraphicRaycaster>();
             }

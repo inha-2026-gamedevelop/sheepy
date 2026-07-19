@@ -42,6 +42,10 @@ namespace Minsung.Boss
             }
 
             _subscribedEmotionController.OnEmotionChanged += Redraw;
+            if (_boss != null)
+            {
+                _boss.OnBattleStarted += RedrawCurrentEmotion;
+            }
             Redraw(_subscribedEmotionController.CurrentEmotion);
         }
 
@@ -51,6 +55,10 @@ namespace Minsung.Boss
             {
                 _subscribedEmotionController.OnEmotionChanged -= Redraw;
                 _subscribedEmotionController = null;
+            }
+            if (_boss != null)
+            {
+                _boss.OnBattleStarted -= RedrawCurrentEmotion;
             }
         }
 
@@ -66,8 +74,21 @@ namespace Minsung.Boss
 
         private void Redraw(BossEmotion emotion)
         {
+            if ((_boss != null) && !_boss.IsBattleStarted)
+            {
+                HideAll();
+                return;
+            }
             DrawEmotion(emotion);
             DrawReflect(emotion);
+        }
+
+        private void RedrawCurrentEmotion()
+        {
+            if (_subscribedEmotionController != null)
+            {
+                Redraw(_subscribedEmotionController.CurrentEmotion);
+            }
         }
 
         // 체력바 감정 아이콘 - 매핑된 감정이면 표시, 아니면 숨김
