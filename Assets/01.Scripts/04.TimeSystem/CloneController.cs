@@ -340,20 +340,45 @@ namespace Minsung.TimeSystem
                 return;
             }
 
-            float shortDist = _col.bounds.extents.y + Constants.Player.GROUND_CHECK_EXTRA;
-            if (Physics2D.Raycast(_col.bounds.center, Vector2.down, shortDist, _groundLayer))
-            {
-                return; // 이미 접지 상태
-            }
+            // 프로젝트 Physics2D 설정이 AutoSyncTransforms=off라 방금 세팅한 _rb.position이
+            // 다음 물리 스텝 전까지 Collider2D.bounds/레이캐스트에 반영되지 않는다 -> 즉시 동기화
+            Physics2D.SyncTransforms();
 
             RaycastHit2D hit = Physics2D.Raycast(_col.bounds.center, Vector2.down, Mathf.Infinity, _groundLayer);
+            if (hit.collider == null)
+            {
+                hit = FindStaticGroundBelow();
+            }
             if (hit.collider == null)
             {
                 return; // 아래에 바닥이 없으면(구덩이 등) 그대로 둔다
             }
 
+            // 가까운 바닥을 감지했더라도 마지막 기록 좌표는 공중일 수 있다.
+            // 항상 콜라이더 하단을 지면 접점에 맞춰 실행 종료 뒤 공중에 멈추지 않게 한다.
             float delta = hit.point.y - _col.bounds.min.y;
             _rb.position += new Vector2(0f, delta);
+        }
+
+        private RaycastHit2D FindStaticGroundBelow()
+        {
+            RaycastHit2D[] hits = Physics2D.RaycastAll(_col.bounds.center, Vector2.down, Mathf.Infinity);
+            foreach (RaycastHit2D hit in hits)
+            {
+                Collider2D collider = hit.collider;
+                if ((collider == null) || (collider == _col) || collider.isTrigger)
+                {
+                    continue;
+                }
+
+                Rigidbody2D body = collider.attachedRigidbody;
+                if ((body == null) || (body.bodyType == RigidbodyType2D.Static))
+                {
+                    return hit;
+                }
+            }
+
+            return default;
         }
 
         public void SetPose(Vector2 position, Vector2 velocity, bool grounded)
