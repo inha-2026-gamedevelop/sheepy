@@ -10,7 +10,9 @@ using Minsung.TimeSystem;
 
 // 부유 보스(Boss2) 체력 - 플레이어 AttackHitbox가 IDamageable로 인식해 피해를 꽂는 대상
 // 페이즈 하한: 원본 BossController와 동일한 방식 - 피통을 PhaseCount로 균등 분할해 현재 페이즈 하한 아래로는 안 깎인다
-// TODO: 페이즈 전환(하한 도달 시 기믹 -> _phaseIndex 증가)/피격 리액션/사망 연출 미구현 - 지금은 3페이즈(_phaseIndex=0) 하한 동결만 제공
+// 페이즈 전환: 하한 도달 시 _phaseIndex를 올려 다음 하한까지 데미지가 계속 흐르게 한다(boss-design.md - 3~4페이즈 경계엔 확정된 기믹이 없어 별도 연출 없이 즉시 전환)
+// 최종 페이즈(4페이즈) 진입 시 타임 리와인드를 잠근다 - Minsung.Boss.Phase4State와 동일한 규칙(boss-design.md: "4페이즈 - 타임 리와인드 시스템 삭제")
+// TODO: 피격 리액션/사망 연출 미구현
 public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
 {
     /****************************************
@@ -21,9 +23,10 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
     [SerializeField] private Boss2DataSO _dataSo;
 
     private float _currentHealth;
-    private int   _phaseIndex; // 현재 페이즈 인덱스(0부터) - 지금은 항상 0(3페이즈), 4페이즈 전환 로직은 추후 _phaseIndex를 올리는 방식으로 확장
+    private int   _phaseIndex; // 현재 페이즈 인덱스(0부터) - 0: 3페이즈, PhaseCount-1: 4페이즈(최종)
     private bool  _isRewinding; // 되감기 중 피해 차단 (플레이어/몬스터 체력 가드와 동일한 관례)
     private RingBuffer<float> _rewindBuffer;
+    private RewindManager.RewindLockHandle _finalPhaseRewindLock; // 최종 페이즈 진입 시 획득, 보스 처치(오브젝트 파괴) 시까지 유지
 
     // Boss 루트(부모)에 Boss2AttackPatterns가 붙이는 컴포넌트 - HitCenter는 자식이라 GetComponentInParent로 찾는다
     private Boss2EmotionController _emotionController;
@@ -61,7 +64,13 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
     // 현재 페이즈의 피통 상한 - 되감기로 이전 페이즈 값이 섞여 들어오지 않도록 클램프에 사용
     private float PhaseCeilHealth => MaxHealth - (PhaseSpan * _phaseIndex);
 
+    // 마지막 페이즈(4페이즈)인지 - 여기서부턴 하한 도달해도 더 이상 전환할 다음 페이즈가 없다
+    private bool IsFinalPhase => (_dataSo == null) || (_phaseIndex >= _dataSo.PhaseCount - 1);
+
+    public int PhaseIndex => _phaseIndex;
+
     public event Action<float, float> OnHealthChanged; // (현재, 최대)
+    public event Action<int>          OnPhaseChanged;   // 새 페이즈 인덱스
     public event Action               OnDefeated;
 
     /****************************************
@@ -81,6 +90,7 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
 
     private void OnDestroy()
     {
+        _finalPhaseRewindLock.Dispose();
         RewindManager.Instance?.Unregister(this);
     }
 
@@ -107,12 +117,34 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
         _currentHealth = Mathf.Max(PhaseFloorHealth, _currentHealth - dmg);
         OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
 
+        if ((_currentHealth <= PhaseFloorHealth) && !IsFinalPhase)
+        {
+            AdvancePhase();
+        }
+
         if (_currentHealth <= 0f)
         {
             GameManager.Instance?.StopBossTimer();
             OnDefeated?.Invoke();
         }
         return true;
+    }
+
+    // 페이즈 하한 도달 - 다음 페이즈로 넘어가 하한을 다시 계산한다(boss-design.md에 3~4페이즈 경계 전용 기믹이 없어 즉시 전환)
+    private void AdvancePhase()
+    {
+        ++_phaseIndex;
+        OnPhaseChanged?.Invoke(_phaseIndex);
+
+        if (IsFinalPhase)
+        {
+            // 4페이즈: 처치할 때까지 리와인드 발동 자체를 잠근다 (Minsung.Boss.Phase4State와 동일한 규칙)
+            _finalPhaseRewindLock.Dispose();
+            if (RewindManager.Instance != null)
+            {
+                _finalPhaseRewindLock = RewindManager.Instance.AcquireRewindLock(this);
+            }
+        }
     }
 
     /****************************************

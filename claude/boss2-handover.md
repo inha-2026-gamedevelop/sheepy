@@ -95,6 +95,30 @@ GameHUD (Assets/02.Prefabs/UI/GameHUD.prefab 인스턴스)
 - Angry: `SetEmotion` 즉시 `_confusionRoutine` 코루틴 시작 확인(리플렉션), None으로 돌아가면 정지
 - None: 양쪽 아이콘 모두 비활성화
 
+## 7.6 페이즈 전환 (3페이즈 -> 4페이즈)
+
+`boss-design.md`엔 3~4페이즈 경계 전용 기믹이 없고("나머지 세부 패턴은 추후 확정"), 유일하게 확정된 규칙은 **"4페이즈 진입 시 타임 리와인드 사용 불가"**뿐이다. `Minsung.Boss.Phase4State`도 정확히 이 규칙만 구현하고(패턴은 Phase2State를 임시로 그대로 상속) 나머지는 비워뒀길래, Boss2도 동일한 최소 구현으로 맞췄다.
+
+전부 `Boss2Health.cs`에 있다(별도 FSM/State 클래스 없이 — Boss2엔 애초에 페이즈별 상태 클래스가 없고, 지금은 패턴 교체 없이 하한만 넘어가는 정도라 코디네이터(`Boss2AttackPatterns`)나 별도 상태 클래스를 새로 만들 정도는 아니라고 판단):
+
+- `TakeDamage`가 데미지를 적용한 뒤 `_currentHealth <= PhaseFloorHealth`이고 아직 마지막 페이즈가 아니면 `AdvancePhase()` 호출
+- `AdvancePhase()`: `++_phaseIndex` -> `OnPhaseChanged` 이벤트 발행 -> 마지막 페이즈(`_phaseIndex >= PhaseCount - 1`)가 됐으면 `RewindManager.Instance.AcquireRewindLock(this)`로 리와인드 잠금(보스 처치/오브젝트 파괴 시까지 유지, `OnDestroy`에서 `Dispose`)
+- `PhaseFloorHealth`/`PhaseCeilHealth`는 `_phaseIndex`를 그대로 참조하는 계산식이라 페이즈가 올라가면 자동으로 다음 구간 기준으로 재계산됨 - 그래서 하한 도달 즉시 그 프레임에 남은 데미지를 이어받지는 않고(이번 히트는 새 하한까지 클램프), 다음 히트부터 새 하한 기준으로 깎인다 (원본 `BossController.TakeDamage`와 동일한 클램프 방식)
+- `OnPhaseChanged`는 지금은 아무도 구독하지 않는 훅 - 4페이즈 전용 공격 패턴/감정 강제(예: 3페이즈 "화남 고정" 같은)가 기획 확정되면 `Boss2AttackPatterns`가 구독해서 처리하면 된다
+- `BossHealthBarUI`(Boss2)는 `CurrentHealth/MaxHealth` 비율만 그리므로 페이즈 경계에서 시각적으로 끊기지 않고 그대로 이어서 줄어든다 - 코드 수정 불필요했음
+
+**Play 모드 검증 (execute_code, `MaxHealth=2/PhaseCount=2`로 테스트)**:
+```
+MaxHealth=2 PhaseIndex=0 CurrentHealth=2
+Hit1(dmg=1): applied=True health=1 phaseIndex=1 phaseChangedFired=True newPhase=1   # 하한(1) 도달 -> 즉시 4페이즈 전환
+Active rewind locks count=1   # 리와인드 잠금 확인
+Hit2(dmg=0.5, 4페이즈 하한=0): applied=True health=0.5
+Hit3(dmg=0.5): applied=True health=0   # 처치
+IsBossRunActive after defeat=False   # StopBossTimer 정상 호출 확인
+```
+
+**주의 - `MaxHealth`는 현재 테스트용으로 `2`(실제 값 `5000`이 아님)로 바뀐 상태다.** `Assets/08.Data/Boss2/Boss2DB.asset`에서 되돌려야 함 - 밸런싱 확정 전까지는 이 상태로 페이즈 전환/데미지 상한을 빠르게 반복 테스트하기 위해 일부러 낮춰둔 것.
+
 - **`HitCenter`**: 원래 `Boss`(루트)에 콜라이더+체력이 있었는데, 플레이어 오브 공격이 루트 피벗(시각적으로 턱 근처)에 꽂히는 버그가 있어서 시각적 중심(스프라이트 world bounds 기준 오프셋 `0.34, 1.07`)에 자식으로 분리했다. `AttackHitBox`도 같은 오프셋으로 옮겨서 돌진 판정이 실제 몸통에서 나가게 했다.
 - `Boss` 루트의 `BoxCollider2D`는 **Trigger**로 되어 있다 — 처음엔 non-trigger라 플레이어를 물리적으로 밀쳐냈음.
 
@@ -159,6 +183,7 @@ Unity MCP로 Play 모드 진입 후 직접 확인한 것:
 - [x] 리와인드 — 체력 5000→3500 데미지 후 되감기 -> 5000으로 완전 복원, `_isRewinding` 플래그 정상 해제, 되감기 종료 후 배회 이동도 정상 재개 확인
 - [x] `BossTimer[ON]` UI 이식 + 타이머 시작/정지 트리거 — Play 진입 시 `Boss2AttackPatterns.Start()`가 자동으로 `GameManager.StartBossTimer()` 호출, `IsBossRunActive=True`로 전환되어 CanvasGroup alpha 1, `BOSS TIMER 00:24`까지 자동 증가하는 것을 스크린샷으로 확인. `Boss2Health` 체력 0 도달 시 `StopBossTimer()` 호출도 코드로 연결(체력 0 도달 자체는 아직 사망 연출 미구현이라 실전 시나리오로는 미검증)
 - [x] 보스 감정(`Boss2Emotion`) 이식 — 반사(Black/White/Navy)/낙뢰 배율(Pink/Blue)/키반전(Angry) 로직 + HUD 아이콘 2종(체력바 좌하단, 머리 위 반사). `execute_code`로 각 감정 강제 전환 -> 반사 시 피해 무효 + 체력 불변, 낙뢰 배율 2/0.5 반환, 키반전 코루틴 시작/정지, 아이콘 표시/숨김 전부 확인. 하트 픽업(Blue)은 씬에 `HeartPickup` 인스턴스가 없어 미검증(Boss1도 동일 상태)
+- [x] 페이즈 전환(3->4) — `MaxHealth=2`로 낮춰서 테스트: 하한 도달 시 `_phaseIndex` 증가 + `OnPhaseChanged` 발행 + 리와인드 잠금(잠금 개수 1로 확인) + 다음 하한(0)까지 데미지 계속 적용 + 0 도달 시 처치(`StopBossTimer` 호출까지) 전부 확인. 자세한 로그는 7.6절 참고
 
 **주의**: 테스트 중 Unity 에디터가 **Pause 상태**에서는 코루틴이 전혀 진행되지 않아 "공격해도 안 맞는" 것처럼 보인 적이 있었다. 실제 버그가 아니라 Pause 버튼 상태 문제였음 — 재현되면 이것부터 확인할 것.
 
@@ -167,7 +192,7 @@ Unity MCP로 Play 모드 진입 후 직접 확인한 것:
 ## 9. 남은 작업 (TODO)
 
 - [ ] 결정 로그 기반 정밀 리와인드 — 지금은 위치/체력만 되감기고, 배회 웨이포인트·돌진 타이밍·낙뢰/강타/레이저 발사 시점은 되감기 후 새로 랜덤하게 결정된다(원본 Phase2/3State의 `_waveXLog`/`_laserLog` 같은 결정 로그가 없음). `Boss2EmotionController`는 `_emotionLog`/`_emotionCursor`를 갖고 있지만(원본 그대로 이식), 리와인드 시작/종료 시 커서를 되돌리는 `Capture()`/`Restore()`가 없어서 실질적으로는 "한 번 뽑은 감정 순서를 앞으로만 계속 소비"하는 수준 — 되감은 게임 시간과 정확히 동기화되지 않는다
-- [ ] 페이즈 시스템(3페이즈/4페이즈 전환, 체력 구간별 기믹) — 지금은 단일 피통. 페이즈가 생기면 `Boss2AttackPatterns.Configure(...)`에 넘기는 `isTransitioning` 콜백(현재 `() => false` 고정)도 실제 전환 상태를 반영해야 한다
+- [x] 페이즈 전환(3->4) 기본 골격 — 하한 도달 시 `_phaseIndex` 증가 + 4페이즈 리와인드 잠금까지 구현·검증 완료(7.6절). 남은 건 4페이즈 전용 공격 패턴/감정(예: 3페이즈 "화남 고정")처럼 기획 미확정 상세뿐 — 확정되면 `Boss2Health.OnPhaseChanged` 구독해서 `Boss2AttackPatterns`에 반영. 페이즈 전환 컷신/기믹이 생기면 `Boss2AttackPatterns.Configure(...)`에 넘기는 `isTransitioning` 콜백(현재 `() => false` 고정)도 실제 전환 상태를 반영해야 한다
 - [ ] `MaxHealth`(5000) 등 임시값 전체 밸런싱
 - [ ] 사망 연출/처치 처리 (`Boss2Health.OnDefeated` 훅만 있고 실제 연출 없음) — `StopBossTimer()`는 이미 연결됨([Boss2Health.cs](Assets/01.Scripts/03.Boss/Boss2/Boss2Health.cs))
 - [ ] 피격 리액션(넉백/플래시 등) — 지금은 체력만 깎임
