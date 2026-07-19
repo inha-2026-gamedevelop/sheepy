@@ -183,7 +183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89a68b50d71f0d882dc7a7a056381da1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerOrbs
-  _orbPrefab: {fileID: 0}
+  _orbPrefab: {fileID: 2087362483710590665, guid: a166bed06cdb4d542af5df59620d7367, type: 3}
   _orbTint: {r: 0.4, g: 0.8, b: 1, a: 0.6}
 --- !u!95 &6423156789012345681
 Animator:
@@ -232,7 +232,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.TimeSystem.CloneController
   _renderer: {fileID: 6423156789012345678}
-  _color: {r: 0.4, g: 0.8, b: 1, a: 0.6}
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!114 &1160187411614338685
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -245,5 +247,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 730aa994a2be5b149a5590b6ff471aa7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerHealth
-  _maxHearts: 6
-  _invincibleDuration: 1

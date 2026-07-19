@@ -39,17 +39,14 @@ namespace Minsung.Common
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
-            Instance = null;
+            ResetStatic();
         }
 
         // 씬에 배치하지 않아도 동작하도록 씬 로드 후 자동 생성
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void EnsureInstance()
         {
-            if (Instance == null)
-            {
-                new GameObject("PauseController").AddComponent<PauseController>();
-            }
+            EnsureCreated("PauseController");
         }
 
         private void Update()
@@ -85,6 +82,7 @@ namespace Minsung.Common
             _isPaused = true;
 
             Time.timeScale = 0f;
+            GameManager.Instance?.SetBossTimerGamePaused(true);
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.PauseBGM();
@@ -114,6 +112,7 @@ namespace Minsung.Common
             _isPaused = false;
 
             Time.timeScale = 1f;
+            GameManager.Instance?.SetBossTimerGamePaused(false);
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.UnPauseBGM();
@@ -130,6 +129,7 @@ namespace Minsung.Common
         {
             _isPaused = false;
             Time.timeScale = 1f;
+            GameManager.Instance?.ResetBossTimer(); // 로비로 나가면 진행 중이던 보스전 기록 폐기
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.UnPauseBGM();

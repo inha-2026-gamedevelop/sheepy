@@ -1,4 +1,5 @@
 // System
+using System;
 using System.Collections;
 
 // Unity
@@ -10,8 +11,7 @@ using Minsung.Utility;
 
 namespace Minsung.Player
 {
-    // 플레이어 전투 담당 - 공격 예약/실행(오브 우선, 없으면 근접 히트박스), 공격 플래시 연출.
-    // 정방향 공격은 Tick에서, 되감기 역재생 시 모션만 재생하는 PlayAttack(reversed:true)은 커맨드가 호출한다.
+    // 플레이어 전투 담당 - 공격 예약/실행(오브 우선, 없으면 근접 히트박스), 공격 플래시 연출. 정방향은 Tick, 역재생 모션 전용 재생은 커맨드가 PlayAttack(reversed:true)으로 호출한다.
     public class PlayerCombat : MonoBehaviour
     {
         /****************************************
@@ -29,7 +29,7 @@ namespace Minsung.Player
         private bool _chargedPending;   // 예약된 차지공격 (다음 Tick에 소비)
         private bool _attackedThisTick; // 이번 물리 틱에 공격 실행 여부 (되감기 기록용)
         private bool _attackWasCharged; // 이번 틱 공격이 차지공격인지 (되감기 기록용)
-        private bool _attackFlashing;   // 공격 플래시 연출 중 여부
+        private bool _attackFlashing;
 
         private bool  _isCharging;      // X 홀드로 차지 중
         private float _chargeStartTime; // 차지 시작 시각 (Time.time)
@@ -43,6 +43,9 @@ namespace Minsung.Player
 
         public bool IsCharging    => _isCharging;
         public bool IsChargeReady => _isCharging && ((Time.time - _chargeStartTime) >= GameDB.Player.ChargeTime);
+
+        /// <summary> 실제 공격 실행 순간(charged 여부 포함). 되감기 역재생(모션만)에서는 발생하지 않는다 (SFX 훅용) </summary>
+        public event Action<bool> OnAttacked;
 
         /****************************************
         *              Unity Event
@@ -146,6 +149,8 @@ namespace Minsung.Player
                 {
                     AttackHitbox.Spawn(_rb.position, damage, DamageSource.Player, _health);
                 }
+
+                OnAttacked?.Invoke(charged);
             }
         }
 

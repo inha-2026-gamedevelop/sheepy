@@ -12,16 +12,18 @@ namespace Minsung.Common.Data
         *                Fields
         ****************************************/
 
-        public const string RESOURCES_PATH = "GameDB"; // Resources 로드 경로
+        public const string RESOURCES_PATH = "GameDB";
 
         [SerializeField] private PlayerDataSO _playerSo;
         [SerializeField] private BossDataSO   _bossSo;
         [SerializeField] private TimeDataSO   _timeSo;
         [SerializeField] private LpDataSO     _lpSo;
+        [SerializeField] private PotionDataSO _potionSo;
 
         public PlayerDataSO PlayerSo => _playerSo;
         public BossDataSO   BossSo   => _bossSo;
         public TimeDataSO   TimeSo   => _timeSo;
         public LpDataSO     LpSo     => _lpSo;
+        public PotionDataSO PotionSo => _potionSo;
     }
 }

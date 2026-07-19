@@ -12,7 +12,7 @@
 - 출력: `claude/PLAN.md` Boss 섹션(구현 완료/HIGH/MED/LOW 갭)과 대화 내 요약 표.
 - 대상 코드: `Assets/01.Scripts/03.Boss/` 전체(`BossController`, `Phase1~4State`, `BossEmotion`, 각종 패턴 클래스).
 
-절차는 5단계다: **① 기획 원문 구조화 → ② 현행 코드 갭 분석 → ③ 리와인드 영향 판정 → ④ 미결 질문 목록 → ⑤ 구현 계획**. 단계 산출물은 `claude/PLAN.md`(구현 로드맵)와 `claude/HANDOVER.md`(진행 상태)에 나눠 누적한다(작성 시점·목차 기준은 [체크포인트 규칙](CHECKPOINT_RULES.md) 참조).
+절차는 5단계다: **① 기획 원문 구조화 → ② 현행 코드 갭 분석 → ③ 리와인드 영향 판정 → ④ 미결 질문 목록 → ⑤ 구현 계획**. 단계 산출물과 진행 상태는 `claude/PLAN.md`에 누적한다(작성 시점·목차 기준은 [체크포인트 규칙](CHECKPOINT_RULES.md) 참조).
 
 ---
 
@@ -112,7 +112,7 @@
 
 ## 관련 문서
 
-- [체크포인트 규칙](CHECKPOINT_RULES.md) — HANDOVER 작성 시점·표준 목차
+- [체크포인트 규칙](CHECKPOINT_RULES.md) — PLAN 작성 시점·표준 목차
 - [다단계 작업 SOP](MULTI_STAGE_WORKFLOW_SOP.md) — Phase 분할·DoD
 - [작업 경계선](ACTION_BOUNDARIES.md) — 리와인드 사전 질문·소유권 경계 총람
 - [핵심 파일 인덱스](MASTER_FILE_INDEX.md) / [지식 검색 맵](RAG_KNOWLEDGE_MAP.md) — 대조 대상 탐색

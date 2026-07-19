@@ -26,7 +26,7 @@
 | CONTEXT_LIMITS_POLICY.md | A | 모델 공식 수치 유지, 대형 파일 예시를 새 프로젝트 자산으로 교체 |
 | FINAL_RESPONSE_STYLE_GUIDE.md | A | {{RESPONSE_LANG}}·링크 규칙 확인 후 예시만 교체 |
 | MEMORY_RULES.md | A | 메모리 스키마·규칙 유지, 예시 메모리명 교체 |
-| CHECKPOINT_RULES.md | A | HANDOVER 목차 템플릿 유지, 보관 경로 치환 |
+| CHECKPOINT_RULES.md | A | PLAN 목차 템플릿 유지, 보관 경로 치환 |
 | PROMPT_TEMPLATE_STANDARD.md | A | 5필드 템플릿 유지, 기입 예시를 새 프로젝트 작업으로 교체 |
 | REQUEST_CONTEXT_TEMPLATE.md | A | 4필드 템플릿 유지, 예시 교체 |
 | VERIFIER_SUBAGENT_SPEC.md | A/B | 검수자 3종 개념 유지. "컨벤션 검증자"의 규칙 목록과 "세이브 검증자"는 프로젝트별 재작성 |
@@ -81,7 +81,7 @@
 | `{{LOCALE_ROOT}}` | 로컬라이제이션 에셋 루트 | Assets/Locale |
 
 본문 예시에 남아 있는 `FeatureA*`, `FeatureB*`, `SubScene*`, `SubShop*`, `NPC_A~E`, `ExampleDB*`,
-`HANDOVER_ExampleTask*`, `project_known_bug_*` 등은 플레이스홀더가 아니라 **가상의 예시 이름**입니다.
+`PLAN_ExampleTask*`, `project_known_bug_*` 등은 플레이스홀더가 아니라 **가상의 예시 이름**입니다.
 자기 프로젝트의 실제 사례로 교체하거나, 형식만 참고하고 지워도 됩니다.
 
 ## 적용 순서 (권장)

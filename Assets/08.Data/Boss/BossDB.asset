@@ -12,65 +12,121 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cecac0579d4201428448f0a1ed527f1, type: 3}
   m_Name: BossDB
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.BossDataSO
-  _totalHealth: 400
-  _phaseCount: 4
+  _cloneCrowdAvoidHorizontalRange: 0.75
+  _cloneCrowdAvoidVerticalRange: 1.25
+  _totalHealth: 4000
   _timeLimit: 600
   _attackHalves: 2
   _cloneAttackHalves: 1
   _reflectHalves: 2
   _moveSpeed: 2.5
-  _attackRange: 2
+  _attackRange: 0.7
   _attackCooldown: 2.5
   _attackActiveTime: 0.25
   _jumpCooldown: 4
-  _jumpTriggerRange: 6
-  _jumpForce: 8
-  _jumpForwardSpeed: 7
+  _jumpArcHeight: 2
   _jumpLandActiveTime: 0.2
+  _stuckEscapeDelay: 0.35
   _dodgeCooldown: 5
   _dodgeTriggerRange: 1.5
   _dodgeBackDistance: 3
   _dodgeDuration: 0.3
-  _cloneHealth: 500
+  _cloneHealth: 1000
   _cloneCount: 2
-  _cloneAttackRange: 1.5
+  _cloneAttackRange: 0.7
   _cloneAttackCooldown: 2
   _cloneAttackActiveTime: 0.2
   _cloneMoveSpeed: 1.8
-  _lightningInterval: 4
+  _cloneEntranceLeapHeight: 2
+  _lightningInterval: 8
+  _lightningTelegraphTime: 0.8
+  _lightningTelegraphHeight: 0.15
+  _lightningActiveTime: 0.15
   _lightningStunDuration: 0.5
   _lightningDamageHalves: 2
-  _lightningFallSpeed: 12
-  _lightningSpawnHeight: 8
   _lightningWidth: 0.5
-  _lightningHeight: 2
+  _lightningHeight: 9
+  _lightningGroundEmbed: 0.4
+  _lightningPlayerRadius: 3
   _lightningRatePinkMult: 2
   _lightningRateBlueMult: 0.5
-  _lightningColor: {r: 1, g: 0.95, b: 0.4, a: 1}
-  _emotionInterval: 8
+  _lightningColor: {r: 1, g: 1, b: 1, a: 1}
+  _lightningTelegraphColor: {r: 1, g: 0.9, b: 0.2, a: 0.35}
+  _lightningStrikeSprites:
+  - {fileID: -530220433616798097, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -6709968699995684228, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -4193954744895643152, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -304178918399891003, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: 5139785824930045123, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -9046904694837190012, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  - {fileID: -3060881671242500184, guid: 5d3d9f1120103034eb69b0242b035fee, type: 3}
+  _lightningFrameInterval: 0.02
+  _lightningParticleSize: 0.08
+  _lightningParticleColors:
+  - {r: 0.88, g: 0.67, b: 1, a: 1}
+  - {r: 0.78, g: 0.49, b: 1, a: 1}
+  - {r: 0.61, g: 0.31, b: 0.87, a: 1}
+  - {r: 0.48, g: 0.17, b: 0.75, a: 1}
+  _deathLightDelay: 0.4
+  _deathCircleDelay: 1.275
+  _deathCircleLaunchDirection: {x: -1, y: 1}
+  _deathCircleLaunchSpeed: 8
+  _deathCircleLaunchDuration: 0.3
+  _deathCircleFloatDuration: 2
+  _deathCircleFloatAmplitude: 0.15
+  _deathCircleFloatFrequency: 1.5
+  _deathCircleReturnSpeed: 3
   _confusionInterval: 10
   _confusionDuration: 1
   _heartPickupHeight: 0.5
+  _emotionInterval: 8
   _gimmickLaserCount: 3
-  _gimmickSafeZoneWidth: 3
-  _gimmickSafeZoneAlpha: 0.35
+  _gimmickSafeZoneAlpha: 0.45
   _gimmickTelegraphTime: 3
-  _gimmickLaserActiveTime: 0.5
+  _gimmickLaserActiveTime: 3
   _gimmickLaserHeight: 6
   _gimmickRefireDelay: 5
-  _gimmickCameraOrthoSize: 5
-  _phase2WaveInterval: 3
-  _phase2WaveRiseSpeed: 6
-  _phase2WaveWidth: 1
-  _phase2WaveHeight: 2
-  _phase2WaveMaxHeight: 8
-  _phase2WaveSpawnDepth: 2
-  _phase2WaveColor: {r: 0.4, g: 0.7, b: 1, a: 1}
+  _gimmickJudgeInterval: 2
+  _phase2WaveInterval: 6
+  _phase2WaveWidth: 2.5
+  _phase2WaveHeight: 2.5
+  _phase2WaveGroundEmbed: 0.75
+  _phase2WaveTelegraphTime: 1
+  _phase2WaveActiveTime: 0.3
+  _phase2WaveFrameInterval: 0.0333
+  _phase2WaveActiveFrameCount: 5
+  _phase2WaveColor: {r: 1, g: 1, b: 1, a: 1}
+  _phase2WaveStrikeSprites:
+  - {fileID: -7406319767457403300, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -6654237375344072925, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 6172060048188541369, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -4167454115604662804, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -3729304322876100191, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 8631984227614518045, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 887840995679485666, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: 3894408046235524746, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  - {fileID: -8365498243248456781, guid: 2353f613039fdd747bef58b337599172, type: 3}
+  _phase2WaveParticleSize: 0.1
+  _phase2WaveParticleColors:
+  - {r: 0.88, g: 0.67, b: 1, a: 1}
+  - {r: 0.78, g: 0.49, b: 1, a: 1}
+  - {r: 0.61, g: 0.31, b: 0.87, a: 1}
+  - {r: 0.48, g: 0.17, b: 0.75, a: 1}
   _phase3LaserInterval: 5
   _phase3LaserWarningTime: 1.5
-  _phase3LaserBlinkInterval: 0.25
+  _phase3LaserBlinkInterval: 0.125
   _phase3LaserActiveTime: 1
+  _phase3LaserRetractTime: 0.25
   _phase3LaserThickness: 0.5
+  _phase3LaserWarningThickness: 0.05
   _phase3LaserMaxHeight: 6
-  _phase3LaserWarningColor: {r: 1, g: 0.2, b: 0.2, a: 0.5}
-  _phase3LaserColor: {r: 1, g: 0.1, b: 0.1, a: 1}
+  _phase3LaserWarningColor: {r: 1, g: 0.05, b: 0.05, a: 0.6}
+  _phase3LaserColor: {r: 0.95, g: 0, b: 0.02, a: 1}
+  _phase3LaserFlowParticleSize: 0.12
+  _phase3LaserFlowSpeed: 14
+  _phase3LaserFlowRate: 80
+  _phase3LaserFlowColors:
+  - {r: 1, g: 0.15, b: 0.15, a: 1}
+  - {r: 0.85, g: 0, b: 0.05, a: 1}
+  - {r: 1, g: 0.35, b: 0.05, a: 1}
+  - {r: 0.55, g: 0, b: 0.12, a: 1}

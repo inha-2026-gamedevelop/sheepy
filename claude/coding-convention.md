@@ -225,104 +225,6 @@ namespace Minsung
 }
 ```
 
-### 상속 구조가 있는 경우 — 클래스 선언 위에 상속 구조 주석 필수
-
-인벤토리 코드 방식을 따른다. 클래스 선언 바로 위에 `#region` 또는 주석 블록으로 상속 계층을 명시한다.
-
-```csharp
-// Unity
-using UnityEngine;
-
-namespace Minsung.Combat
-{
-    /*
-     * 상속 구조:
-     *
-     * MonoBehaviour
-     *   └── EnemyBase          (공통 HP, 피격, 사망)
-     *         ├── EnemyPatrol  (좌우 패트롤)
-     *         └── EnemyBoss    (페이즈 전환, 패턴 호출)
-     *               ├── BossPhase1
-     *               └── BossPhase2
-     */
-    public abstract class EnemyBase : MonoBehaviour
-    {
-        /****************************************
-        *                Fields
-        ****************************************/
-
-        protected const float BASE_HEALTH = 100f;
-
-        [Header("기본 스탯")]
-        [SerializeField] protected float _maxHealth = BASE_HEALTH;
-
-        protected float _health;
-
-        /****************************************
-        *              Unity Event
-        ****************************************/
-
-        protected virtual void Awake()
-        {
-            _health = _maxHealth;
-        }
-
-        /****************************************
-        *                Methods
-        ****************************************/
-
-        public virtual void TakeDamage(float damage)
-        {
-            _health -= damage;
-            if (_health <= 0f)
-            {
-                Die();
-            }
-        }
-
-        protected abstract void Die();
-    }
-}
-```
-
-```csharp
-// Unity
-using UnityEngine;
-
-namespace Minsung.Combat
-{
-    /*
-     * 상속 구조:
-     *
-     * EnemyBase
-     *   └── EnemyBoss  ← 현재 클래스
-     *         ├── BossPhase1
-     *         └── BossPhase2
-     */
-    public abstract class EnemyBoss : EnemyBase
-    {
-        /****************************************
-        *                Fields
-        ****************************************/
-
-        protected int _currentPhase = 0;
-
-        /****************************************
-        *                Methods
-        ****************************************/
-
-        protected abstract void TransitionPhase(int phase);
-
-        protected override void Die()
-        {
-            // 보스 사망 처리
-        }
-    }
-}
-```
-
----
-
 ## 10. 참조 타입 매개변수
 
 ```csharp
@@ -535,8 +437,9 @@ Collider2D[] hits = Physics2D.OverlapCircleAll(origin, radius);
 
 ## 18. 싱글톤
 
-**DontDestroyOnLoad 싱글톤은 `Utility/PersistentSingleton<T>`를 상속한다.**  
-Awake를 직접 만들지 말고 `OnSingletonAwake()`를 오버라이드한다.
+**DontDestroyOnLoad 싱글톤은 `Utility/PersistentSingleton<T>`, 씬 로컬 싱글톤은
+`Utility/SceneSingleton<T>`를 상속한다.** Awake를 직접 만들지 말고
+`OnSingletonAwake()`를 오버라이드한다.
 
 ```csharp
 // ✅
@@ -548,12 +451,20 @@ public class GameManager : PersistentSingleton<GameManager>
     }
 }
 
+public class RewindManager : SceneSingleton<RewindManager>
+{
+    protected override void OnSingletonAwake()
+    {
+        // 현재 씬의 최초 인스턴스 확정 후 초기화
+    }
+}
+
 // ❌ 클래스마다 Instance/Awake 중복 구현 금지
 ```
 
-- 씬 로컬 싱글톤(예: `RewindManager`)은 별도 구현 유지 — DontDestroyOnLoad 여부가 다르다
-- 씬 배치 없이도 동작해야 하면 `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]`로 자동 생성
-- 도메인 리로드 OFF 대비: static 상태는 `SubsystemRegistration`에서 초기화
+- 씬 배치 없이도 동작해야 하면 파생 클래스의 `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` 훅에서 `EnsureCreated("이름")` 호출
+- 도메인 리로드 OFF 대비: 파생 클래스의 `SubsystemRegistration` 훅에서 `ResetStatic()` 호출
+- 클래스 고유 정리는 `OnSingletonDestroy()`에서 수행한다
 
 ---
 
@@ -561,8 +472,34 @@ public class GameManager : PersistentSingleton<GameManager>
 
 - 리와인드 참여 오브젝트는 반드시 `IRewindable` 구현 + `RewindManager.Register/Unregister` 쌍 호출
 - **기록 버퍼 용량은 `RewindManager.TickCapacity` 하나만 사용** — 직접 계산 금지 (인덱스 어긋남). 기록 길이(초) 조정은 TimeDB(`GameDB.Time.RecordSeconds`)에서만
+- 리와인드 발동을 잠글 때는 `RewindManager.AcquireRewindLock(owner)`의 반환 핸들을 보관하고, 해당 연출/상태가 끝날 때 `Dispose()`한다. `bool` 토글로 전역 잠금을 켜고 끄지 않는다
 - 랜덤이 들어가는 패턴은 결정 로그에 저장해 리와인드 후 재현 (Phase1State 방식 참고)
 - 시각 연출용 오브젝트는 생성/파괴 대신 풀 활성/비활성 (스냅샷 역재생 가능해야 함)
+
+---
+
+## 20. 여러 줄 시그니처/호출의 들여쓰기 (TABWIDTH 4)
+
+**매개변수가 길어 줄바꿈하는 메서드 시그니처/호출은, 여는 괄호 뒤 컬럼에 맞춰 정렬하지 않는다.
+이어지는 줄은 시작 줄의 들여쓰기에서 TABWIDTH(4) 만큼만 추가로 들여쓴다.**
+
+```csharp
+// ❌ 여는 괄호 뒤에 맞춤 (TABWIDTH 배수가 아닌 임의 칸수)
+public BossHazardPool(int count, string namePrefix, Sprite customSprite = null,
+                      bool attachParticle = false, float particleSize = 0.2f)
+
+// ✅ 시작 줄 들여쓰기 + TABWIDTH(4)
+public BossHazardPool(int count, string namePrefix, Sprite customSprite = null,
+    bool attachParticle = false, float particleSize = 0.2f)
+```
+
+메서드 호출도 동일하게 적용한다.
+
+```csharp
+// ✅
+Configure(i, rec.Position, rec.Scale, rec.RotationDeg, rec.Color,
+    rec.HasCollider, rec.DamageHalves, rec.StunDuration, rec.InstantKill);
+```
 
 ---
 
@@ -578,12 +515,12 @@ public class GameManager : PersistentSingleton<GameManager>
 ✅ 매직넘버            밸런싱은 GameDB(SO DB), 계약값은 Constants.*.cs
 ✅ SO 네이밍           클래스 *DataSO, 변수 So 어미 (_playerSo)
 ✅ 필드 정렬           = 기준 정렬
+✅ 여러 줄 시그니처    여는 괄호 정렬 금지, 시작 줄 + TABWIDTH(4)만 추가 들여쓰기
 ✅ Inspector 노출      [SerializeField] private
-✅ 상속 구조 명시      클래스 위에 계층 주석
 ✅ 네임스페이스        민성만 사용 (Minsung.XXX)
 ✅ FixedUpdate         지양, 코루틴 지향 (물리 동기화 예외)
 ✅ GC                  WaitForSeconds/material/참조 캐싱, NonAlloc 쿼리
 ✅ null 체크           Unity 오브젝트 == null, 컴포넌트는 TryGetComponent
-✅ 싱글톤              PersistentSingleton<T> 상속
+✅ 싱글톤              DDOL=PersistentSingleton<T>, 씬 로컬=SceneSingleton<T>
 ✅ 리와인드 버퍼       RewindManager.TickCapacity만 사용
 ```

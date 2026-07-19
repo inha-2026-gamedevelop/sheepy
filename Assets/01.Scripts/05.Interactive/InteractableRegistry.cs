@@ -16,7 +16,6 @@ namespace Minsung.Interactive
         // Collider를 키로 사용하여 빠른 조회
         private static readonly Dictionary<Collider2D, IInteractable> _registry = new Dictionary<Collider2D, IInteractable>();
 
-        // 모든 등록된 Interactable 목록 (필요시 사용)
         private static readonly HashSet<IInteractable> _allInteractables = new HashSet<IInteractable>();
 
         /// <summary> 등록된 개수 </summary>

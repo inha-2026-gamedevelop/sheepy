@@ -1,3 +1,6 @@
+// System
+using System;
+
 // Unity
 using UnityEngine;
 
@@ -6,8 +9,7 @@ using Minsung.Common.Data;
 
 namespace Minsung.Player
 {
-    // 플레이어 물리 이동 담당 - 걷기/점프/더블점프/접지 판정/경직(스턴).
-    // 입력은 PlayerInput이 넘긴 값을 저장만 하고, 실제 Rigidbody 속도 변경은 물리 틱(Tick)에서 한 번만 한다.
+    // 플레이어 물리 이동 담당 - 걷기/점프/더블점프/접지 판정/경직(스턴). 입력은 PlayerInput이 넘긴 값을 저장만 하고, 실제 Rigidbody 속도 변경은 물리 틱(Tick)에서 한 번만 한다.
     [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
     public class PlayerMovement : MonoBehaviour
     {
@@ -28,7 +30,7 @@ namespace Minsung.Player
         private Rigidbody2D _rb;
         private Collider2D  _col;
 
-        private float _moveInput;   // 수평 입력값 (Update에서 저장 → Tick에서 1회 반영)
+        private float _moveInput;   // 수평 입력값 (Update에서 저장 -> Tick에서 1회 반영)
         private bool  _wantJump;    // 점프 예약 (다음 Tick에 소비)
         private int   _jumpCount;   // 착지 후 사용한 점프 횟수 (MAX_JUMPS까지, 2회째부터 더블점프 모션)
         private bool  _grounded;
@@ -42,6 +44,12 @@ namespace Minsung.Player
 
         public Vector2 Position => _rb.position;
         public Vector2 Velocity => _rb.linearVelocity;
+
+        /// <summary> 점프 입력이 실제로 반영된 순간 (더블점프 포함, SFX 훅용) </summary>
+        public event Action OnJumped;
+
+        /// <summary> 공중 -> 접지 전이 순간 1회 (SFX 훅용) </summary>
+        public event Action OnLanded;
 
         /****************************************
         *              Unity Event
@@ -115,7 +123,7 @@ namespace Minsung.Player
 
             float dirX = (_rb.position.x >= sourcePosition.x) ? 1f : -1f;
             _rb.linearVelocity = new Vector2(dirX * playerSo.KnockbackForceX,
-                                             playerSo.KnockbackForceY);
+                                            playerSo.KnockbackForceY);
         }
 
         /// <summary> 상호작용 진입 시 물리 정지 (PlayerInteraction이 호출).
@@ -144,7 +152,12 @@ namespace Minsung.Player
         // 코디네이터의 FixedUpdate가 (되감기 중이 아닐 때) 호출한다.
         public void Tick()
         {
+            bool wasGrounded = _grounded;
             _grounded = CheckGrounded();
+            if (_grounded && !wasGrounded)
+            {
+                OnLanded?.Invoke();
+            }
             if (_grounded && _rb.linearVelocity.y <= 0f)
             {
                 _jumpCount = 0; // 상승 중 접지 오탐으로 점프 횟수가 풀리지 않게 하강/정지 시에만 리셋
@@ -169,10 +182,6 @@ namespace Minsung.Player
                 v.y = _jumpForce;
                 _wantJump = false;
 
-                if (!_grounded && _jumpCount == 0)
-                {
-                    _jumpCount = 1; // 점프 없이 낙하 중이면 1단을 소모한 것으로 취급 → 공중 점프는 1회만
-                }
                 ++_jumpCount;
 
                 if (_animator != null)
@@ -189,6 +198,7 @@ namespace Minsung.Player
 
                 // 이륙 틱에 접지가 true로 남아 있으면 착지 전이(IsGrounded 조건)가 점프 상태를 즉시 끊어버린다
                 _grounded = false;
+                OnJumped?.Invoke();
             }
             _rb.linearVelocity = v;
 

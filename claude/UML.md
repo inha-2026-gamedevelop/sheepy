@@ -1,6 +1,6 @@
 # UML — The Last Re:wind
 
-> `Assets/01.Scripts` 전체(104개 스크립트, `Minsung.*` 네임스페이스. `Ex/`는 샘플 코드로 제외)를 기준으로 생성. Mermaid `classDiagram` 문법 사용 (GitHub/대부분의 Markdown 뷰어에서 렌더링됨).
+> `Assets/01.Scripts` 전체(135개 스크립트, 전부 `Minsung.*` 네임스페이스 - 샘플 코드였던 `Ex/`는 2026-07-18 완전 제거됨)를 기준으로 생성. Mermaid `classDiagram` 문법 사용 (GitHub/대부분의 Markdown 뷰어에서 렌더링됨).
 > 클래스당 전체 멤버가 아니라 역할을 보여주는 핵심 멤버만 표기. 코드가 실제 소스이며, 이 문서는 구조 파악용 스냅샷이다.
 
 ## 목차
@@ -299,6 +299,8 @@ classDiagram
         <<MonoBehaviour>>
         +PlayerTarget Transform
         +SpawnPosition Vector3
+        +CurrentStateType MonsterStateType
+        +ChangeState(MonsterStateType)
         +RequestMove(float)
         +RequestChaseMove(float)
         +RequestStop()
@@ -318,13 +320,18 @@ classDiagram
         +SetLocomotion(float)
         +TriggerAttack()
         +TriggerHit()
+        +TriggerDeath()
         +SetReversed(bool)
     }
-    class PatrolAction
-    class ChaseAction
-    class AttackPlayerAction
-    class IsPlayerDetectedCondition
-    class IsPlayerInAttackRangeCondition
+    class MonsterState {
+        <<abstract>>
+        +Enter()
+        +Exit()
+        +FixedTick()
+    }
+    class MonsterPatrolState
+    class MonsterChaseState
+    class MonsterAttackState
 
     MonsterController ..|> IRewindable
     MonsterHealth ..|> IDamageable
@@ -333,11 +340,10 @@ classDiagram
     MonsterController --> PlayerHealth : 타겟 참조
     MonsterController --> RewindManager : Register
 
-    PatrolAction --> MonsterController
-    ChaseAction --> MonsterController
-    AttackPlayerAction --> MonsterController
-    IsPlayerDetectedCondition --> MonsterController
-    IsPlayerInAttackRangeCondition --> MonsterController
+    MonsterState --> MonsterController
+    MonsterState <|-- MonsterPatrolState
+    MonsterState <|-- MonsterChaseState
+    MonsterState <|-- MonsterAttackState
 ```
 
 ---
@@ -487,6 +493,13 @@ classDiagram
         +Unregister(Collider2D)$
         +Get(Collider2D) IInteractable$
     }
+    class IHoldInteractable {
+        <<interface>>
+        +CanHoldInteract bool
+        +OnHoldStart(GameObject) bool
+        +OnHoldUpdate(GameObject, float) bool
+        +OnHoldCancel(GameObject)
+    }
     class BaseInteractive {
         <<abstract MonoBehaviour>>
         +OnFocus()*
@@ -498,28 +511,62 @@ classDiagram
         +OnInteract(GameObject)
         +OnUnfocus()
     }
+    class LeverLightSwitch {
+        <<MonoBehaviour>>
+        +OnLeverPulled()
+        +OnLeverReset()
+    }
     class RadioInteractive {
         +OnFocus()
         +OnInteract(GameObject)
         +OnUnfocus()
     }
+    class ElevatorController {
+        <<MonoBehaviour>>
+        +ElevatorId int
+        +CanStart bool
+        +SetLeverPulled(bool)
+        +TryStartJourney() bool
+    }
+    class ElevatorButtonInteractive {
+        +CanHoldInteract bool
+        +OnHoldStart(GameObject) bool
+        +OnHoldUpdate(GameObject, float) bool
+        +OnHoldCancel(GameObject)
+    }
+    class ElevatorManager {
+        <<MonoBehaviour Singleton>>
+        +Instance$ ElevatorManager
+        +Register(ElevatorController) bool
+        +Unregister(ElevatorController)
+        +TryGetController(int, out ElevatorController) bool
+    }
 
     BaseInteractive ..|> IInteractable
     LeverInteractive --|> BaseInteractive
     RadioInteractive --|> BaseInteractive
+    ElevatorButtonInteractive --|> BaseInteractive
+    ElevatorButtonInteractive ..|> IHoldInteractable
     LeverInteractive ..|> IRewindable
+    ElevatorController ..|> IRewindable
     BaseInteractive --> InteractableRegistry : 등록/해제
     LeverInteractive --> PlayerController : SetInteracting
     LeverInteractive --> PlayerAnimator : TriggerLever
     LeverInteractive --> KeyGuideManager : 키 가이드 표시
+    LeverInteractive --> ElevatorController : SetLeverPulled(_elevatorId)
+    LeverLightSwitch ..> LeverInteractive : onLeverPulled/onLeverReset UnityEvent
     RadioInteractive --> CameraManager : 포커스 전환
     RadioInteractive --> SoundManager : 사운드 토글
     RadioInteractive --> KeyGuideManager : 키 가이드 표시
+    ElevatorButtonInteractive --> ElevatorManager : TryGetController(_elevatorId)
+    ElevatorButtonInteractive --> ElevatorController : TryStartJourney
+    ElevatorController --> ElevatorManager : Register/Unregister
     PlayerInteractionSensor ..> IInteractable : 조회
+    PlayerInteractionSensor ..> IHoldInteractable : 홀드 상태 머신
     PlayerInteractionSensor --> InteractableRegistry
 ```
 
-> `LeverInteractive`는 `IRewindable`이라 분신이 `InteractCommand`로 재연한다. `RadioInteractive`는 사운드/카메라 포커스만 토글해 되감기 기록 대상이 아니다.
+> `LeverInteractive`/`ElevatorController`는 `IRewindable`이라 분신이 `InteractCommand`로 재연한다(엘리베이터는 완료된 홀드만 기록). `RadioInteractive`는 사운드/카메라 포커스만 토글해 되감기 기록 대상이 아니다. `IHoldInteractable`은 상호작용 키를 일정 시간 눌러 유지해야 완료되는 오브젝트 계약(`PlayerInteractionSensor`가 상태 머신으로 처리) - 엘리베이터 버튼이 현재 유일한 구현체.
 
 ---
 
@@ -534,6 +581,8 @@ classDiagram
         +Player$ PlayerDataSO
         +Boss$ BossDataSO
         +Time$ TimeDataSO
+        +Lp$ LpDataSO
+        +Potion$ PotionDataSO
     }
     class GameDatabaseSO {
         <<ScriptableObject>>
@@ -541,6 +590,8 @@ classDiagram
         -_playerSo PlayerDataSO
         -_bossSo BossDataSO
         -_timeSo TimeDataSO
+        -_lpSo LpDataSO
+        -_potionSo PotionDataSO
     }
     class PlayerDataSO {
         <<ScriptableObject>>
@@ -554,14 +605,24 @@ classDiagram
         <<ScriptableObject>>
         리와인드/분신/슬로우/MP
     }
+    class LpDataSO {
+        <<ScriptableObject>>
+        드랍/자석픽업/풀
+    }
+    class PotionDataSO {
+        <<ScriptableObject>>
+        드랍/자석픽업/풀/소지·사용(MaxCarryCount·HealHalves)
+    }
 
     GameDB --> GameDatabaseSO : Resources.Load(GameDB) 1회 캐싱
     GameDatabaseSO o-- PlayerDataSO
     GameDatabaseSO o-- BossDataSO
     GameDatabaseSO o-- TimeDataSO
+    GameDatabaseSO o-- LpDataSO
+    GameDatabaseSO o-- PotionDataSO
 ```
 
-- 에셋: `08.Data/Resources/GameDB.asset`(루트) / `08.Data/Player|Boss|Time/*DB.asset`
+- 에셋: `08.Data/Resources/GameDB.asset`(루트) / `08.Data/Player|Boss|Time|Lp|Potion/*DB.asset`
 - 코드 계약값(입력 키, epsilon, 구조 상수)은 `Constants`(partial) 유지
 
 ```mermaid
@@ -727,15 +788,16 @@ classDiagram
     KeyGuideManager --> SpriteReference : 키 스프라이트 조회
 ```
 
-> `Ex/`(BossManager/BossUIManager/BossConditionSlotUI/BossDataSO)는 네임스페이스 없는 **샘플 코드**로 이 UML에서 제외한다. 진행바의 `Slider` 참고 구현을 정식 `BossHealthBarUI`(Minsung.UI)로 승격했다.
+> 과거 `Ex/`(BossManager/BossUIManager/BossConditionSlotUI/BossDataSO) 샘플 코드는 진행바의 `Slider` 참고 구현을 정식 `BossHealthBarUI`(Minsung.UI)로 승격한 뒤 2026-07-18 완전 삭제됐다.
 
 ---
 
 ## 참고
 
-- 클래스/인터페이스 수: 총 104개 스크립트 (`Ex/` 샘플 4개 포함, enum/struct/static 유틸 포함).
-- `IRewindable` 구현체: `PlayerRewind`, `MonsterController`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`), `CloneController`, `LeverInteractive`.
+- 클래스/인터페이스 수: 총 135개 스크립트 (enum/struct/static 유틸 포함, 전부 `Minsung.*` 프로덕션 코드).
+- `IRewindable` 구현체: `PlayerRewind`, `MonsterController`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`), `CloneController`, `LeverInteractive`, `ElevatorController`, `LpManager`, `PotionManager`.
 - `ICommandActor` 구현체: `PlayerController`(코디네이터), `CloneController`.
 - `IDamageable` 구현체: `MonsterHealth`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`).
-- `PersistentSingleton<T>` 상속: `GameManager`, `KeyGuideManager`, `SpriteReference`, `AchievementManager`, `ScreenFade`, `ParticlePresets`, `CameraManager`, `SoundManager`, `CaptionManager`.
+- `IHoldInteractable` 구현체: `ElevatorButtonInteractive`.
+- `PersistentSingleton<T>` 상속: `GameManager`, `KeyGuideManager`, `SpriteReference`, `AchievementManager`, `ScreenFade`, `ParticlePresets`, `CameraManager`, `SoundManager`, `CaptionManager`, `ElevatorManager`.
 - 다이어그램은 스냅샷이므로, 클래스 추가/삭제나 인터페이스 변경 시 수동으로 갱신해야 한다.

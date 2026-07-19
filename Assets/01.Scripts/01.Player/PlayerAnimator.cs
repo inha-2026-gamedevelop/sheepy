@@ -1,7 +1,11 @@
+// System
+using System.Collections.Generic;
+
 // Unity
 using UnityEngine;
 
 using Minsung.Common;
+using Minsung.TimeSystem;
 
 namespace Minsung.Player
 {
@@ -18,10 +22,12 @@ namespace Minsung.Player
         private static readonly int PARAM_DOUBLE_JUMP = Animator.StringToHash("Jump2");      // 구 DoubleJump
         private static readonly int PARAM_ATTACK      = Animator.StringToHash("Attack");         // 컨트롤러에 파라미터 추가 전까지 무반응
         private static readonly int PARAM_DO_LEVER    = Animator.StringToHash("DoLever");        // 〃
-        private static readonly int PARAM_ANIM_SPEED  = Animator.StringToHash("AnimSpeedMultiplier"); // 〃
 
         private Animator _animator;
         private SpriteRenderer _spriteRenderer;
+
+        // 컨트롤러에 실존하는 파라미터 해시 - 아직 추가 안 된 파라미터(Attack 등) 호출로 인한 콘솔 에러 방지
+        private readonly HashSet<int> _availableParams = new HashSet<int>();
 
         /// <summary> 바라보는 방향. 오른쪽 +1, 왼쪽 -1. 매달림 코너 판정 레이 방향에 사용 </summary>
         public int FacingDir => _spriteRenderer.flipX ? -1 : 1;
@@ -34,6 +40,12 @@ namespace Minsung.Player
         {
             _animator       = GetComponent<Animator>();
             _spriteRenderer = GetComponent<SpriteRenderer>();
+
+            // Awake 1회만 순회해 캐싱 (parameters 접근은 배열 할당이 있어 매 호출 조회 금지)
+            foreach (AnimatorControllerParameter param in _animator.parameters)
+            {
+                _availableParams.Add(param.nameHash);
+            }
 
             // 이동/점프는 전부 코드(Rigidbody2D)로 처리한다. 루트 모션이 켜져 있으면
             // 점프/더블점프 클립이 Transform(=Rigidbody)을 조금씩 밀어 우측으로 드리프트하거나
@@ -66,8 +78,8 @@ namespace Minsung.Player
         // Speed로 Idle ↔ Move, IsGrounded로 착지 복귀를 구동한다
         public void SetLocomotion(float speed, bool grounded)
         {
-            _animator.SetFloat(PARAM_SPEED, speed);
-            _animator.SetBool(PARAM_GROUNDED, grounded);
+            SetFloatSafe(PARAM_SPEED, speed);
+            SetBoolSafe(PARAM_GROUNDED, grounded);
         }
 
         /// <summary> 이동 입력 방향으로 스프라이트 좌우 반전. 입력 0이면 방향 유지 </summary>
@@ -95,29 +107,75 @@ namespace Minsung.Player
 
         public void TriggerJump()
         {
-            _animator.SetTrigger(PARAM_JUMP);        // → 1depthJump
+            SetTriggerSafe(PARAM_JUMP);        // -> 1depthJump
         }
 
         public void TriggerDoubleJump()
         {
-            _animator.SetTrigger(PARAM_DOUBLE_JUMP); // → 2depthJump
+            SetTriggerSafe(PARAM_DOUBLE_JUMP); // -> 2depthJump
         }
 
         public void TriggerAttack()
         {
-            _animator.SetTrigger(PARAM_ATTACK);
+            SetTriggerSafe(PARAM_ATTACK);
         }
 
         public void TriggerLever()
         {
-            _animator.SetTrigger(PARAM_DO_LEVER);
+            SetTriggerSafe(PARAM_DO_LEVER);
         }
 
-        /// <summary> true면 모든 모션을 역재생(되감기), false면 정상 재생. </summary>
-        public void SetReversed(bool reversed)
+        // 실존 파라미터만 통과시키는 가드 - 컨트롤러에 없는 파라미터를 Set하면 콘솔 에러가 나므로
+        private void SetFloatSafe(int paramHash, float value)
         {
-            float dir = reversed ? Constants.Player.ANIM_DIR_REVERSE : Constants.Player.ANIM_DIR_FORWARD;
-            _animator.SetFloat(PARAM_ANIM_SPEED, dir);
+            if (_availableParams.Contains(paramHash))
+            {
+                _animator.SetFloat(paramHash, value);
+            }
+        }
+
+        private void SetBoolSafe(int paramHash, bool value)
+        {
+            if (_availableParams.Contains(paramHash))
+            {
+                _animator.SetBool(paramHash, value);
+            }
+        }
+
+        private void SetTriggerSafe(int paramHash)
+        {
+            if (_availableParams.Contains(paramHash))
+            {
+                _animator.SetTrigger(paramHash);
+            }
+        }
+
+        /****************************************
+        *        Rewind Snapshot (되감기)
+        ****************************************/
+
+        /// <summary> 현재 애니메이터 상태 스냅샷. 매 물리 틱 기록해 되감기 재생의 원본이 된다 </summary>
+        public AnimCommand CaptureAnimState()
+        {
+            AnimatorStateInfo info = _animator.GetCurrentAnimatorStateInfo(Constants.Player.ANIM_LAYER_BASE);
+            return new AnimCommand(info.shortNameHash, info.normalizedTime, _spriteRenderer.flipX);
+        }
+
+        /// <summary> 기록된 스냅샷 프레임으로 강제 스크럽 (되감기 재생 전용) </summary>
+        public void ApplyAnimState(AnimCommand anim)
+        {
+            if (anim.StateHash == 0)
+            {
+                return; // 스냅샷 없는 틱(애니메이터 미주입 등) 방어
+            }
+            _spriteRenderer.flipX = anim.FlipX;
+            _animator.Play(anim.StateHash, Constants.Player.ANIM_LAYER_BASE, anim.NormalizedTime);
+        }
+
+        /// <summary> true면 스크럽 모드 - 애니메이터 자체 시간 진행을 멈춰 스냅 사이(렌더 프레임)에 모션이 앞으로 흐르는 크리프를 막는다 </summary>
+        public void SetScrubbing(bool scrubbing)
+        {
+            _animator.speed = scrubbing ? 0f : 1f;
         }
     }
 }

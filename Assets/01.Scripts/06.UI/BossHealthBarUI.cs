@@ -3,15 +3,14 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using Minsung.Boss;
-using Minsung.Common.Data;
 
 namespace Minsung.UI
 {
-    // BossController의 단일 총 HP를 Slider.value(0~1 정규화)로 표시한다
     public class BossHealthBarUI : MonoBehaviour
     {
         [SerializeField] private BossController _boss;
         [SerializeField] private Slider _slider;
+        [SerializeField] private GameObject[] _phaseNotches;
 
         private void OnEnable()
         {
@@ -22,7 +21,9 @@ namespace Minsung.UI
             }
 
             _boss.OnHealthChanged += Redraw;
-            Redraw(_boss.CurrentHealth, GameDB.Boss.TotalHealth);
+            _boss.OnPhaseChanged  += RedrawPhaseVisibility;
+            Redraw(_boss.CurrentHealth, _boss.TotalHealth);
+            RedrawPhaseVisibility(_boss.PhaseIndex);
         }
 
         private void OnDisable()
@@ -30,10 +31,11 @@ namespace Minsung.UI
             if (_boss != null)
             {
                 _boss.OnHealthChanged -= Redraw;
+                _boss.OnPhaseChanged  -= RedrawPhaseVisibility;
             }
         }
 
-        // 인스펙터 미지정이면 씬의 보스에서 자동 연결 (HUD 프리팹 드롭인용)
+        // 인스펙터 미지정이면 씬의 보스에서 자동 연결
         private void Start()
         {
             if (_boss == null)
@@ -45,8 +47,24 @@ namespace Minsung.UI
                     return;
                 }
                 _boss.OnHealthChanged += Redraw;
+                _boss.OnPhaseChanged  += RedrawPhaseVisibility;
             }
-            Redraw(_boss.CurrentHealth, GameDB.Boss.TotalHealth);
+            Redraw(_boss.CurrentHealth, _boss.TotalHealth);
+            RedrawPhaseVisibility(_boss.PhaseIndex);
+        }
+
+        private void RedrawPhaseVisibility(int phaseIndex)
+        {
+            bool visible = (_boss != null) && _boss.IsBattleStarted && (phaseIndex >= 1);
+            foreach (Transform child in transform)
+            {
+                child.gameObject.SetActive(visible);
+            }
+
+            if (visible && (_boss != null))
+            {
+                RedrawNotches(_boss.CurrentHealth, _boss.TotalHealth);
+            }
         }
 
         private void Redraw(float current, float total)
@@ -57,6 +75,26 @@ namespace Minsung.UI
             }
 
             _slider.value = (total > 0f) ? Mathf.Clamp01(current / total) : 0f;
+            RedrawNotches(current, total);
+        }
+
+        // 노치 i는 페이즈 경계(total - PhaseHealth * (i+1)) 지점 - HP가 그 아래로 깎이면 숨긴다 (되감기로 회복하면 다시 나타남)
+        private void RedrawNotches(float current, float total)
+        {
+            if (_phaseNotches == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _phaseNotches.Length; ++i)
+            {
+                if (_phaseNotches[i] == null)
+                {
+                    continue;
+                }
+                float boundaryHealth = total - ((_boss != null ? _boss.PhaseHealthSpan : 0f) * (i + 1));
+                _phaseNotches[i].SetActive(current > boundaryHealth);
+            }
         }
     }
 }

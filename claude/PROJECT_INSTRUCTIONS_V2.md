@@ -101,9 +101,9 @@
 - **규칙**: 코드를 수정하면 요청받지 않아도 모든 수정 위치를 `[파일:라인](경로#L라인)` 링크로 정리한다.
 - **출처**: `claude/CLAUDE.md` Communication Protocol.
 
-### 4-4. HANDOVER는 간결하게 — "이번에 고친 것/해야 할 것" 위주
-- **규칙**: `claude/HANDOVER.md`는 누적 아카이브가 아니라 현재 재개 지점이다. 불필요한 이력은 `claude/PLAN.md`로 위임.
-- **Why**: 이번 세션에 사용자가 "핸드오버파일 불필요한 내용 전부 제거하고 해야할것들과 이번에 고친것 내용만 포함해"라고 명시적으로 요구.
+### 4-4. PLAN은 간결하게 — "이번에 고친 것/해야 할 것" 위주
+- **규칙**: `claude/PLAN.md`는 누적 아카이브가 아니라 현재 재개 지점이다. 불필요한 이력은 커밋 기록에 남긴다.
+- **Why**: 작업 상태 문서는 진행 중인 항목과 다음 작업만 간결하게 유지한다.
 - **출처**: 이번 세션 실제 지시. 상세는 [체크포인트 규칙](CHECKPOINT_RULES.md).
 
 ---
@@ -121,7 +121,7 @@
 | 1-2 | 리와인드 버퍼 | `claude/CLAUDE.md` Critical Rule 3 |
 | 1-3 | 커밋·푸시 범위 | Git Safety Protocol + 이번 세션 지시 |
 | 2-1~2-8 | 코딩 컨벤션 | `claude/coding-convention.md` |
-| 4-1~4-4 | 커밋·보고·HANDOVER | 이번 세션 사용자 지시(메모리 미저장, 8절 참고) |
+| 4-1~4-4 | 커밋·보고·PLAN | 이번 세션 사용자 지시(메모리 미저장, 8절 참고) |
 | 5 | 테스트 플로우 | [TEST_AND_VERIFICATION_STANDARD.md](TEST_AND_VERIFICATION_STANDARD.md) |
 
 ---

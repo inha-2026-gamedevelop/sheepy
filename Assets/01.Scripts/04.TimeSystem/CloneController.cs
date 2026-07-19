@@ -12,8 +12,7 @@ using Minsung.Utility;
 
 namespace Minsung.TimeSystem
 {
-    // 분신. 기록된 클립을 정방향 재생하며 다 재생하면 마지막 자세로 idle된다.
-    // 하트 0이면 즉시 풀로 반환하지 않고 비활성화만 한다 - 되감기로 부활해야 하기 때문.
+    // 분신 - 기록된 클립을 정방향 재생하다 끝나면 idle. 하트 0이어도 되감기로 부활해야 해서 즉시 풀 반환하지 않고 비활성화만 한다.
     [RequireComponent(typeof(Rigidbody2D))]
     public class CloneController : MonoBehaviour, ICommandActor, IRewindable
     {
@@ -24,9 +23,13 @@ namespace Minsung.TimeSystem
         [Header("분신")]
         [SerializeField] private Renderer _renderer;
 
+        [Header("판정")]
+        [SerializeField] private LayerMask _groundLayer; // 클립 종료 시 공중이면 바닥으로 스냅하는 판정용 (Player.prefab의 _groundLayer와 동일하게 설정)
+
         private Color _color; // 분신 틴트 - TimeDB(GameDB.Time)에서 Awake 때 로드
 
         private Rigidbody2D _rb;
+        private Collider2D  _col;
         private PlayerHealth _health; // 본체와 동일한 하트 체력
         private PlayerOrbs _orbs; // 본체와 같은 오브 공격 대행
         private PlayerAnimator _playerAnimator; // 프리팹에 본체와 같은 Animator + PlayerAnimator를 달면 자동 연결(선택)
@@ -43,7 +46,13 @@ namespace Minsung.TimeSystem
         private RewindManager _rewindManager;
         private RingBuffer<CloneTick> _rewindBuffer; // 클립 재생 위치 + 하트 기록
         private bool _isRewinding;
+        private string _objectId;
         private int _deadTicks; // 사망 후 경과 틱 - 기록 창을 벗어나면 부활 불가 -> 풀 반환
+
+        private static readonly List<CloneController> _activeInstances = new List<CloneController>();
+
+        public static IReadOnlyList<CloneController> ActiveInstances => _activeInstances;
+        public string ObjectId => _objectId;
 
         // 한 틱의 분신 기록. 위치는 클립이 결정하므로 재생 인덱스와 체력(반칸)만 있으면 복원된다.
         private readonly struct CloneTick
@@ -66,6 +75,7 @@ namespace Minsung.TimeSystem
 
         private void Awake()
         {
+            _objectId = ManagedObjectManager.Register(EManagedObjectType.PlayerClone, this);
             _rb = GetComponent<Rigidbody2D>();
             _rb.bodyType = RigidbodyType2D.Kinematic;
             _orbs = GetComponent<PlayerOrbs>();
@@ -86,15 +96,36 @@ namespace Minsung.TimeSystem
             }
             _health.OnDeath += HandleDeath;
 
-            Collider2D col = GetComponent<Collider2D>();
-            if (col != null)
+            _col = GetComponent<Collider2D>();
+            if (_col != null)
             {
-                col.isTrigger = true;
+                _col.isTrigger = true;
             }
+
+            // 프리팹에 인스펙터로 설정 안 해도 동작하도록 기본값(Nothing)이면 Ground 레이어로 대체
+            if (_groundLayer.value == 0)
+            {
+                _groundLayer = LayerMask.GetMask(Constants.Layer.GROUND);
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (!_activeInstances.Contains(this))
+            {
+                _activeInstances.Add(this);
+            }
+        }
+
+        private void OnDisable()
+        {
+            _activeInstances.Remove(this);
         }
 
         private void OnDestroy()
         {
+            ManagedObjectManager.Unregister(this);
+            _activeInstances.Remove(this);
             if (_health != null)
             {
                 _health.OnDeath -= HandleDeath;
@@ -150,6 +181,11 @@ namespace Minsung.TimeSystem
             _deadTicks   = 0;
             _isRewinding = false;
 
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetScrubbing(false); // 되감기 중 회수된 개체 재사용 시 speed=0 잔류 방지
+            }
+
             _rewindManager = RewindManager.Instance;
             _rewindManager?.Register(this);
         }
@@ -188,6 +224,11 @@ namespace Minsung.TimeSystem
         public void OnRewindStart()
         {
             _isRewinding = true;
+
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetScrubbing(true); // 되감기 동안 분신도 프레임을 직접 스크럽한다
+            }
         }
 
         public void ApplyRewindTick(int orderedIndex)
@@ -205,8 +246,19 @@ namespace Minsung.TimeSystem
                 ApplyTick(tick);
             }
 
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetScrubbing(false); // 풀 반환 전에 반드시 복구 - 재사용 개체가 얼지 않게
+            }
+
             _isRewinding = false;
             _rewindBuffer.Clear();
+
+            // 클립 끝(공중일 수 있음)에서 되감기가 끝났으면 다시 바닥으로 스냅
+            if (_finished)
+            {
+                SnapToGroundIfAirborne();
+            }
 
             // 기록이 비워졌으니 이 분신은 더는 부활할 수 없다
             if (!gameObject.activeSelf)
@@ -238,6 +290,11 @@ namespace Minsung.TimeSystem
             if (_clip.Count > 0)
             {
                 _rb.position = _clip[poseIndex].Move.Position;
+
+                if (_playerAnimator != null)
+                {
+                    _playerAnimator.ApplyAnimState(_clip[poseIndex].Anim); // 클립의 스냅샷 재사용 - 분신용 추가 기록 불필요
+                }
             }
         }
 
@@ -270,8 +327,58 @@ namespace Minsung.TimeSystem
             ++_index;
             if (_index >= _clip.Count)
             {
-                _finished = true; // 마지막 자세로 멈춰 idle
+                _finished = true;
+                SnapToGroundIfAirborne();
             }
+        }
+
+        // 클립이 공중에서 끝난 경우(예: 기록 중 점프 도중 되감기 발동) 바닥에 붙여 영구히 뜬 채로 남지 않게 한다.
+        private void SnapToGroundIfAirborne()
+        {
+            if (_col == null)
+            {
+                return;
+            }
+
+            // 프로젝트 Physics2D 설정이 AutoSyncTransforms=off라 방금 세팅한 _rb.position이
+            // 다음 물리 스텝 전까지 Collider2D.bounds/레이캐스트에 반영되지 않는다 -> 즉시 동기화
+            Physics2D.SyncTransforms();
+
+            RaycastHit2D hit = Physics2D.Raycast(_col.bounds.center, Vector2.down, Mathf.Infinity, _groundLayer);
+            if (hit.collider == null)
+            {
+                hit = FindStaticGroundBelow();
+            }
+            if (hit.collider == null)
+            {
+                return; // 아래에 바닥이 없으면(구덩이 등) 그대로 둔다
+            }
+
+            // 가까운 바닥을 감지했더라도 마지막 기록 좌표는 공중일 수 있다.
+            // 항상 콜라이더 하단을 지면 접점에 맞춰 실행 종료 뒤 공중에 멈추지 않게 한다.
+            float delta = hit.point.y - _col.bounds.min.y;
+            _rb.position += new Vector2(0f, delta);
+        }
+
+        private RaycastHit2D FindStaticGroundBelow()
+        {
+            RaycastHit2D[] hits = Physics2D.RaycastAll(_col.bounds.center, Vector2.down, Mathf.Infinity);
+            foreach (RaycastHit2D hit in hits)
+            {
+                Collider2D collider = hit.collider;
+                if ((collider == null) || (collider == _col) || collider.isTrigger)
+                {
+                    continue;
+                }
+
+                Rigidbody2D body = collider.attachedRigidbody;
+                if ((body == null) || (body.bodyType == RigidbodyType2D.Static))
+                {
+                    return hit;
+                }
+            }
+
+            return default;
         }
 
         public void SetPose(Vector2 position, Vector2 velocity, bool grounded)

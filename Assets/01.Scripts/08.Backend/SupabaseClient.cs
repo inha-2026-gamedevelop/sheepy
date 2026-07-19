@@ -84,11 +84,11 @@ namespace Minsung.Backend
             StartCoroutine(RegisterRoutine(username, onSuccess, onError));
         }
 
-        /// <summary> 점수 + 클리어 타임 + 고스트 리플레이 제출. </summary>
-        public void SubmitScore(string username, int score, int durationMs,
-            List<GhostFrame> ghost, Action onSuccess, Action<string> onError)
+        /// <summary> 점수 + 클리어 타임 + 고스트 리플레이 제출. bossEnterAt/bossEndAt은 보스 클리어 기록일 때만 채워 전달(GameManager.BossEnterAt/BossEndAt). </summary>
+        public void SubmitScore(string username, int score, int durationMs, List<GhostFrame> ghost,
+            Action onSuccess, Action<string> onError, DateTime? bossEnterAt = null, DateTime? bossEndAt = null)
         {
-            StartCoroutine(SubmitScoreRoutine(username, score, durationMs, ghost, onSuccess, onError));
+            StartCoroutine(SubmitScoreRoutine(username, score, durationMs, ghost, bossEnterAt, bossEndAt, onSuccess, onError));
         }
 
         /// <summary> 점수 내림차순 상위 limit개 조회 (고스트 제외). </summary>
@@ -121,12 +121,13 @@ namespace Minsung.Backend
             onSuccess?.Invoke();
         }
 
-        private IEnumerator SubmitScoreRoutine(string username, int score, int durationMs,
-            List<GhostFrame> ghost, Action onSuccess, Action<string> onError)
+        private IEnumerator SubmitScoreRoutine(string username, int score, int durationMs, List<GhostFrame> ghost,
+            DateTime? bossEnterAt, DateTime? bossEndAt, Action onSuccess, Action<string> onError)
         {
             ScoreSubmit payload = new ScoreSubmit
             {
-                Username = username, Score = score, DurationMs = durationMs, Ghost = ghost
+                Username = username, Score = score, DurationMs = durationMs, Ghost = ghost,
+                BossEnterAt = bossEnterAt, BossEndAt = bossEndAt
             };
             string body = JsonConvert.SerializeObject(payload);
             using UnityWebRequest req = MakePost($"{Rest}/scores", body);

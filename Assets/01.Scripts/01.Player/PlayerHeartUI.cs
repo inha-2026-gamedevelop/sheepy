@@ -15,9 +15,9 @@ namespace Minsung.Player
 
         [SerializeField] private PlayerHealth _playerHealth; // 구독할 체력 컴포넌트 (본체)
         [SerializeField] private Image[] _heartImages;       // 하트 슬롯 이미지들 (왼쪽부터 순서대로)
-        [SerializeField] private Sprite _filledSprite;       // 채워진 하트
+        [SerializeField] private Sprite _filledSprite;
         [SerializeField] private Sprite _halfSprite;         // 반 칸 하트 (미지정 시 빈 하트로 표시)
-        [SerializeField] private Sprite _emptySprite;        // 빈 하트
+        [SerializeField] private Sprite _emptySprite;
 
         /****************************************
         *              Unity Event

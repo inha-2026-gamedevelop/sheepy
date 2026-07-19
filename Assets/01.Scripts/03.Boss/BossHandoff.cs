@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace Minsung.Boss
 {
-    // 씬 전환(2->3페이즈 맵 변경) 동안 보스 상태를 넘겨주는 정적 캐리어.
-    // 새 씬의 BossController.Start가 소비해 기본 초기화 대신 이관값으로 복원한다
+    // 씬 전환(2->3페이즈 맵 변경) 시 보스 상태를 넘기는 정적 캐리어. 새 씬 BossController.Start가 소비해 이관값으로 복원한다
     public static class BossHandoff
     {
         /****************************************

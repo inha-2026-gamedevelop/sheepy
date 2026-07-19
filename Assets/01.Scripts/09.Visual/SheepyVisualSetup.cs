@@ -5,8 +5,6 @@ using UnityEngine.Rendering.Universal;
 
 namespace Minsung
 {
-    // 씬의 빈 오브젝트에 붙이면 Sheepy 비주얼 전체를 한 번에 세팅. (2D URP)
-    // 셰이더 없이 Bloom / Color Grading / Vignette 만으로 Sheepy 감성 재현.
     [AddComponentMenu("Minsung/Sheepy Visual Setup")]
     public class SheepyVisualSetup : MonoBehaviour
     {
@@ -59,7 +57,10 @@ namespace Minsung
         #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (!Application.isPlaying) return;
+            if (!Application.isPlaying)
+            {
+                return;
+            }
             EnsureVolume();
             ApplyAll();
         }
@@ -71,12 +72,17 @@ namespace Minsung
 
         private void EnsureVolume()
         {
-            if (_globalVolume != null) return;
+            if (_globalVolume != null)
+            {
+                return;
+            }
 
-            _globalVolume = FindObjectOfType<Volume>();
-            if (_globalVolume != null) return;
+            _globalVolume = FindAnyObjectByType<Volume>();
+            if (_globalVolume != null)
+            {
+                return;
+            }
 
-            // 씬에 Global Volume 없으면 자동 생성
             GameObject go = new GameObject("Global Volume");
             _globalVolume          = go.AddComponent<Volume>();
             _globalVolume.isGlobal = true;
@@ -86,7 +92,10 @@ namespace Minsung
         /// <summary> 모든 Post Processing 효과를 Inspector 값으로 즉시 반영 </summary>
         public void ApplyAll()
         {
-            if (_globalVolume == null || _globalVolume.profile == null) return;
+            if ((_globalVolume == null) || (_globalVolume.profile == null))
+            {
+                return;
+            }
 
             ApplyBloom();
             ApplyColorGrading();

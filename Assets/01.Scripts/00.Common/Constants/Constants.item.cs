@@ -5,8 +5,8 @@ namespace Minsung.Common
         public static class Item
         {
             // 포션
-            public const float HP_POTION_RESTORE   = 30f;    // HP 포션 회복량
-            public const float MP_POTION_RESTORE   = 40f;    // MP 포션 회복량
+            public const float HP_POTION_RESTORE   = 30f;
+            public const float MP_POTION_RESTORE   = 40f;
 
             // 드랍 확률 (0~1)
             public const float DROP_COMMON_RATE    = 0.60f;

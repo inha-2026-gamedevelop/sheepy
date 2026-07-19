@@ -12,12 +12,14 @@ namespace Minsung.UI
     // 활성 상태이상을 왼쪽 슬롯부터 순서대로 표시한다.
     public class PlayerStatusEffectUI : MonoBehaviour
     {
+#pragma warning disable CS0649
         [Serializable]
         private struct EffectIconEntry
         {
             public StatusEffectType Type;
             public Sprite Icon;
         }
+#pragma warning restore CS0649
 
         [SerializeField] private PlayerStatusEffectController _statusEffects;
         [SerializeField] private Image[] _iconSlots = Array.Empty<Image>();
@@ -43,7 +45,7 @@ namespace Minsung.UI
             }
         }
 
-        // 인스펙터 미지정이면 씬의 본체에서 자동 연결 (HUD 프리팹 드롭인용)
+        // 인스펙터 미지정이면 씬의 본체에서 자동 연결
         private void Start()
         {
             if (_statusEffects == null)
@@ -79,7 +81,8 @@ namespace Minsung.UI
                         continue;
                     }
 
-                    Image slot = _iconSlots[slotIndex++];
+                    Image slot = _iconSlots[slotIndex];
+                    ++slotIndex;
                     if (slot != null)
                     {
                         slot.sprite  = _iconMap[i].Icon;

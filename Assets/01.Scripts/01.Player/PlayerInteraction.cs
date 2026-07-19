@@ -3,9 +3,7 @@ using UnityEngine;
 
 namespace Minsung.Player
 {
-    // 플레이어 상호작용 상태 담당.
-    // 실제 감지/E키 처리는 PlayerInteractionSensor가, 애니메이션은 대상(LeverInteractive 등)이 맡는다.
-    // 여기서는 (1) 연출 재생 중 입력을 잠그는 상태와 (2) 분신 재연을 위한 "이 틱에 상호작용했다" 기록을 관리한다.
+    // 플레이어 상호작용 상태 담당 - 감지/E키는 PlayerInteractionSensor, 애니메이션은 대상(LeverInteractive 등)이 맡고, 여기서는 입력 잠금과 분신 재연용 "이 틱 상호작용" 기록만 관리한다.
     public class PlayerInteraction : MonoBehaviour
     {
         /****************************************

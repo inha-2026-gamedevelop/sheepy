@@ -22,7 +22,7 @@
 **써야 하는 경우** (이 저장소 기준):
 - 신규 기능·시스템 작업 — 예: 보스 감정 전환 구동부, 씬 이관 로직처럼 여러 파일에 걸치는 작업
 - `RewindManager`(리와인드 버퍼)·`GameDB`(SO 데이터)·`CameraManager` 등 **여러 시스템 경계를 넘는 작업** — 배경 없이는 모델이 영향 범위를 못 판단한다
-- 과거 세션 결과물을 이어받는 작업 — `claude/HANDOVER.md`나 `claude/PLAN.md`에 이미 항목이 있는 주제
+- 과거 세션 결과물을 이어받는 작업 — `claude/PLAN.md`에 이미 항목이 있는 주제
 
 **생략해도 되는 경우**: 오타·단일 파일 조회·컨벤션 기계 적용(중괄호, 전위 증감 등) 같은 단발 요청. 이런 요청에 4개 필드를 채우는 것이 오히려 과잉 지시다.
 
@@ -48,7 +48,7 @@
 
 **과거 이력 (먼저 읽을 파일)**
 - 메모리: (예: C:\Users\inha\.claude\projects\d--unity2d\memory\project_*.md)
-- 저장소 문서: (예: claude/HANDOVER.md, claude/PLAN.md 해당 섹션)
+- 저장소 문서: (예: claude/PLAN.md 해당 섹션)
 - 미커밋 작업물 유무:
 ```
 
@@ -110,5 +110,5 @@
 - [프롬프트 표준 템플릿](PROMPT_TEMPLATE_STANDARD.md) — 이 컨텍스트 블록 뒤에 붙는 지시 본문 양식 (2부작)
 - [반복 참조 문서 인덱스](PROJECT_KNOWLEDGE_INDEX.md) / [메모리·교훈 규칙](MEMORY_RULES.md) — "과거 이력" 필드의 소스
 - [작업 경계선](ACTION_BOUNDARIES.md) — "연관 시스템" 체크리스트의 경계 항목 상세
-- [체크포인트 규칙](CHECKPOINT_RULES.md) — 작업 종료 시 이 컨텍스트가 다음 HANDOVER의 뼈대가 된다
+- [체크포인트 규칙](CHECKPOINT_RULES.md) — 작업 종료 시 이 컨텍스트가 다음 PLAN의 뼈대가 된다
 - [테스트·검증 표준](TEST_AND_VERIFICATION_STANDARD.md) — "기대 산출물"의 검증 방법 정의

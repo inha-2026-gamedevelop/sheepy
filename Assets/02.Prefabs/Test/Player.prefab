@@ -546,7 +546,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89a68b50d71f0d882dc7a7a056381da1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerOrbs
-  _orbPrefab: {fileID: 0}
+  _orbPrefab: {fileID: 2087362483710590665, guid: a166bed06cdb4d542af5df59620d7367, type: 3}
   _orbTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!95 &1544341399277887980
 Animator:

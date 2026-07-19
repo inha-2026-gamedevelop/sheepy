@@ -20,6 +20,7 @@ namespace Minsung.UI
             }
 
             _boss.OnPhaseChanged += ApplyVisibility;
+            _boss.OnBattleStarted += RefreshVisibility;
             ApplyVisibility(_boss.PhaseIndex);
         }
 
@@ -28,16 +29,23 @@ namespace Minsung.UI
             if (_boss != null)
             {
                 _boss.OnPhaseChanged -= ApplyVisibility;
+                _boss.OnBattleStarted -= RefreshVisibility;
             }
+        }
+
+        private void RefreshVisibility()
+        {
+            ApplyVisibility(_boss.PhaseIndex);
         }
 
         private void ApplyVisibility(int phaseIndex)
         {
-            bool isPhase1 = (phaseIndex == 0);
+            bool isPhase1 = _boss.IsBattleStarted && (phaseIndex == 0);
+            bool showBossHealth = _boss.IsBattleStarted && !isPhase1;
 
             if (_bossHealthBar != null)
             {
-                _bossHealthBar.SetActive(!isPhase1);
+                _bossHealthBar.SetActive(showBossHealth);
             }
             foreach (GameObject bar in _cloneHealthBars)
             {

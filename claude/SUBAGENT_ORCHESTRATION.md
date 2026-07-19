@@ -133,4 +133,4 @@
 - [다단계 작업 SOP](MULTI_STAGE_WORKFLOW_SOP.md) — fan-out을 Phase로 편성할 때의 DoD·문서화 의무
 - [Effort 사용 기준표](EFFORT_POLICY.md) · [최상위 모델 전용 작업 목록](FABLE_ONLY_TASKS.md) — 워커 모델·effort 배정 근거
 - [자율 실행 종료 방지 문구](AUTONOMOUS_COMPLETION_RULE.md) — 워커 프롬프트에 삽입할 조기 종료 방지 표준 문단
-- [체크포인트 규칙](CHECKPOINT_RULES.md) — 장시간 fan-out 중단 시 HANDOVER 작성 기준
+- [체크포인트 규칙](CHECKPOINT_RULES.md) — 장시간 fan-out 중단 시 PLAN 작성 기준

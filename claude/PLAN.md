@@ -3,7 +3,7 @@
 > 기준: 노션 기능 투두리스트 기준 / 챕터 1 완성
 > GameManager / AudioManager / SaveManager 는 별도 작업 (이 목록 제외 — 단, 씬전환/체크포인트/런타이머용 경량 GameManager는 구현됨)
 > 순서는 의존성 기준 — 앞 항목 완료 후 다음 항목 가능
-> 최종 갱신: 2026-07-11 (Player 컴포넌트화 / 상태이상·Sound·Camera·Interactive 시스템 / BossHealthBar Slider 반영)
+> 최종 갱신: 2026-07-18 (포션 회복 아이템 / 엘리베이터 상호작용 / 몬스터 사망 모션 / Boss 페이즈 구간 씬 분할·아웃트로 전환 / Ex 폴더 완전 제거 반영)
 
 ---
 
@@ -14,7 +14,7 @@
 - **MP 게이지 시스템** - 리와인드/슬로우는 자원 소모 없이 무제한 유지 (게이트 없음)
 - **기공파 발사체** - 오브/근접 공격으로 충분
 - **장비 시스템 전체** - EquipmentData/6등급/드랍/장착/강화(1~15강)/장인의 기운/계승 모두 제외
-- **소비 아이템** - HP·MP 포션/강화석/골드/깨진 회중시계 제외
+- **소비 아이템** - MP 포션/강화석/골드/깨진 회중시계 제외. **단, HP 포션(하트 회복)은 2026-07-18에 보스 난이도 완화 목적으로 재도입** - 장비 강화 재료가 아닌 LP와 동일한 몬스터 드랍형 소비 아이템으로 별도 설계 (`Item — 포션(회복)` 섹션 참고)
 - **이스터에그** - 숨겨진 방 해금 + 회중시계 엔딩 연출 제외
 
 ---
@@ -63,13 +63,15 @@
 |---|---|
 | 몬스터 몸통 + 위치/체력 리와인드 | MonsterController.cs |
 | 몬스터 체력 (사망 시 파괴 대신 비활성화, OnDeath 이벤트) | MonsterHealth.cs |
-| 몬스터 사망 리와인드 부활 (기록 창 안에서 죽었으면 되살아남) | MonsterController.cs / MonsterHealth.cs |
-| 몬스터 BT 노드 (순찰/추격/공격 + 감지/사거리 조건) | Monster/BT/*.cs |
+| 몬스터 사망 모션 (Death 트리거, 재생 시간만큼 비활성화 지연 - 대기 중 리와인드 부활 시 취소) | MonsterAnimator.cs / MonsterHealth.cs / MonsterController.cs |
+| 몬스터 사망 리와인드 부활 (기록 창 안에서 죽었으면 되살아남, Idle로 즉시 복귀) | MonsterController.cs / MonsterHealth.cs / MonsterAnimator.cs |
+| 몬스터 FSM (순찰/추격/공격 + 감지/사거리 전이) | MonsterState.cs / MonsterController.cs |
+| 몬스터 타깃 선택 (Player/활성 분신 중 가장 가까운 대상) | MonsterController.cs / CloneController.cs |
 | 보스 4페이즈 프레임 (칼로스식 피통 분리, 전환 컷신) | BossController.cs / BossState.cs |
 | 보스 1페이즈 "흑과 백" (권능/폭발, 결정 로그로 리와인드 재현) | Phase1State.cs |
 | 해저드 피해 판정 (하트 1개 차감) | DamageHazard.cs |
 
-### Item (LP 수집, 신규 2026-07-11)
+### Item (LP 수집, 신규 2026-07-11 / 포션 회복, 신규 2026-07-18)
 
 | 기능 | 파일 |
 |---|---|
@@ -78,13 +80,21 @@
 | LP 리와인드 복원 (개수 + 풀 슬롯별 위치/활성상태) | LpManager.cs (IRewindable) |
 | LP 카운터 HUD | LpCounterUI.cs |
 | LP 밸런싱 DB (DropChance/MagnetRadius/MagnetSpeed/CollectRadius/PoolSize) | LpDataSO.cs (GameDB.Lp) |
+| 포션 드랍/자석 픽업 풀 (LP와 동일 패턴 재사용) | PotionPickupPool.cs |
+| 포션 전역 매니저 (드랍/자석/소지 개수 상한/Q키 사용->하트 회복) | PotionManager.cs |
+| 포션 리와인드 복원 (소지 개수 + 풀 슬롯별 위치/활성상태) | PotionManager.cs (IRewindable) |
+| 포션 카운터 HUD (현재/최대 표시) | PotionCounterUI.cs |
+| 포션 밸런싱 DB (DropChance/MagnetRadius/MagnetSpeed/CollectRadius/PoolSize/MaxCarryCount/HealHalves) | PotionDataSO.cs (GameDB.Potion) |
 
 ### Interactive / Sound / Camera / UI (신규)
 
 | 기능 | 파일 |
 |---|---|
 | 상호작용 계약 + 정적 레지스트리 (Collider2D 조회) | IInteractable.cs / InteractableRegistry.cs / BaseInteractive.cs |
-| 레버 (되감기 재연 지원, 색 전환) | LeverInteractive.cs |
+| 홀드형 상호작용 계약 (누른 채 유지해야 완료) | IHoldInteractable.cs |
+| 레버 (되감기 재연 지원, 색 전환, 엘리베이터 연동) | LeverInteractive.cs |
+| 레버 연동 조명 온오프 (onLeverPulled/onLeverReset에 연결) | LeverLightSwitch.cs |
+| 엘리베이터 (ElevatorId로 레버/버튼 연결, IRewindable, 3초 홀드 버튼으로 이동) | ElevatorController.cs / ElevatorButtonInteractive.cs / ElevatorManager.cs |
 | 라디오 (사운드 토글 + 카메라 포커스, 커스텀 인스펙터) | RadioInteractive.cs / Editor/RadioInteractiveEditor.cs |
 | 사운드 매니저 (SFX/BGM, 지속형 SFX 채널) | SoundManager.cs |
 | 맵 BGM 자동 재생 / 사운드 데이터(SO) | MapBgmPlayer.cs / SoundData.cs (+Editor) |
@@ -106,6 +116,7 @@
 | 씬전환 / 체크포인트 / 런타이머 | GameManager.cs |
 | Constants 10개 파일 (camera/interactive 추가) | Constants.*.cs |
 | DontDestroyOnLoad 싱글톤 베이스 | Utility/PersistentSingleton.cs |
+| 씬 로컬 싱글톤 베이스 | Utility/SceneSingleton.cs |
 | 코루틴 교체/정지 유틸 | Utility/UtilCoroutine.cs |
 | URP Post Processing | SheepyVisualSetup.cs |
 | 캐릭터 글로우 / 그림자 / 스피드라인 | CharaGlow.cs / ShadowLayer.cs / SpeedlineEffect.cs |
@@ -172,6 +183,19 @@
   - 진행바(Slider) 아님 - 숫자 카운터로 표시
   - 사용처는 추후 결정 (현재는 단순 수집 카운터)
 
+### Item — 포션(회복) (2026-07-18 구현, 보스 난이도 완화 목적)
+
+> 소비 아이템(HP/MP 포션)은 2026-07-11에 장비 시스템과 함께 범위 제외했으나, 보스 패턴 난이도 완화 목적으로 하트 회복형 포션만 재도입. 기존 제외 결정과 구분: 장비 강화/골드/MP 포션/이스터에그(회중시계)는 여전히 범위 제외.
+> 설계 결정(사용자 확인): 획득은 몬스터 드랍(LP와 동일 패턴), 사용은 소지 후 Q키로 원하는 타이밍에, 소지 개수는 상한 있음(기본 3개) - 보스 유닛은 LP와 마찬가지로 드랍하지 않아 "보스전 진입 전에만 보충" 요건을 별도 게이트 없이 자연히 만족.
+
+- [x] **포션 드랍/자석 픽업** - `LpPickupPool`/`LpManager`와 동일 구조(`PotionPickupPool`/`PotionManager`)를 그대로 재사용. `MonsterController.HandleDeath`가 `LpManager.TryDropLp`와 나란히 `PotionManager.TryDropPotion` 호출(GameDB.Potion.DropChance 확률). 보스 유닛(`BossMeleeUnitBase`)은 LP와 동일하게 드랍하지 않음
+- [x] **소지 상한 + Q키 사용** - `PotionManager.MaxCarryCount`(기본 3)에 도달하면 자석 이동/획득을 멈춰 추가 드랍을 줍지 못함. `Constants.Player.KEY_USE_POTION`(Q) 입력을 `PlayerInput.HandleInput`이 `PotionManager.TryUsePotion()`으로 전달 - 소지 0개/되감기 중/이미 풀피면 실패, 성공 시 `PlayerHealth.Heal(GameDB.Potion.HealHalves)`(기본 반칸 2 = 하트 1칸) 호출 후 소지 개수 1 차감
+- [x] **포션 리와인드 복원** - LP와 동일 패턴(`RingBuffer<int>` 소지 개수 + 슬롯별 `RingBuffer<PotionSlotTick>`). 하트 값 자체는 `PlayerRewind`의 `TickCommand.Hearts`가 이미 매 틱 기록하므로, 포션 사용으로 회복한 하트도 되감으면 자동으로 되돌아간다 - `PotionManager`는 소지 개수/픽업 오브젝트만 독립적으로 복원하면 됨
+- [x] **포션 카운터 HUD** - `PotionCounterUI`가 `PotionManager.OnPotionChanged` 구독, "현재/최대"(예: `2/3`) 형식 표시
+- [x] **GameDB.Potion 신설** - `PotionDataSO`(DropChance/MagnetRadius/MagnetSpeed/CollectRadius/PoolSize/MaxCarryCount/HealHalves), `GameDatabaseSO`/`GameDB`에 슬롯+접근자 추가, 에셋 `08.Data/Potion/PotionDB.asset` 생성 및 `GameDB.asset`에 연결
+- [x] **씬 배치/실측 검증** - `Map2/UICanvas/PlayerHUD`의 LP 카운터를 `PotionCounter[ON]`으로 교체(포션 아이콘 + TMP). Play 모드에서 드랍/자석 이동/소지 상한 3개/Q 소비/리와인드 복원을 확인
+- [x] **포션 전용 아트/사운드** - `Resources/Item/Potion.png`을 HUD와 월드 픽업에 공용 적용해 임시 색상 사각형을 제거. 획득 시 짧은 전용 상승 차임을 런타임 생성해 재생
+
 ---
 
 ## 🟡 3순위 — Week 3
@@ -180,23 +204,29 @@
 
 ### Boss
 
+- [x] **1페이즈 분신 상하 겹침 회피** (2026-07-18) — `BossCloneController` 두 체만 대상. 같은 X축에서 위아래로 1.25m 이내 겹치면 반대 방향으로 이동해 분리한다. 판정 범위는 `BossDataSO`/`BossDB.asset`의 `CloneCrowdAvoidHorizontalRange`(0.75), `CloneCrowdAvoidVerticalRange`(1.25)로 조절.
+- [x] **1페이즈 해저드 하단 확장** (2026-07-18) — `ArenaGroundY`는 낙뢰·장풍 등 기존 기준으로 유지하고, 기믹 레이저/안전구역만 씬별 `GimmickHazardBottomY`까지 확장한다. Map2는 보스 등장 움푹한 바닥까지 포함하도록 `-36.5`로 설정 (좌/우 구덩이 전경 장식물 최저점 약 -35.98까지 커버, 최초 설정값 -33.5는 부족해 구덩이 하단이 안 보이는 버그로 재수정).
+
 > 기준 스펙: `claude/README.md`의 "보스 - Azathoth" 섹션 (2026-07-11 상세 기획 반영)
 > 아래 남은 작업은 스펙-코드 전수 대조 감사(2026-07-11, 6개 영역)로 도출 - 근거 라인은 각 항목 참고
 
 **구현 완료 (스펙 대조 통과)**
 
 - [x] **보스 체력 및 페이즈 전환** — 단일 피통 64,000 / 페이즈당 16,000 / 하한 동결 -> 종료 기믹 -> 전환. 전투 타이머 10분 즉사(리와인드 무관 실시간)
+- [x] **보스 플레이 타이머 HUD** — `GameManager.BossClearTimeMs`를 `BossTimerUI`가 `BOSS TIME`/`mm:ss`로 표시. `SheepyBossTimer` 프레임을 Map2/Map3 HUD에 배치하며, 페이즈 전환·일시정지·리와인드로 복원된 클리어 타임을 그대로 따른다.
 - [x] **낙뢰 공통 패턴** — 4초 간격 / 하트 1칸 + 0.5초 이동 불가(Bind) / Pink x2·Blue /2 배율까지 스펙과 수치 일치 (GameDB.Boss)
 - [x] **1페이즈** — 분신 2체(각 8,000) 근접전 + 즉사 레이저 기믹 (빨/파/초 랜덤 3회, 안전구역 슬로우 중에만 표시 + 발사 시점까지, 5초 후 재발사, 색 불일치 즉사)
 - [x] **2페이즈 골격** — 본체 등장 + 장풍(아래->위, 결정 로그 리와인드 재현)
 - [x] **3페이즈** — Angry 고정(주기 혼란) + 맵 가로지르는 레이저(경고 1.5초 깜빡임 + 발사 1초 + 높이 랜덤, 풀 스냅샷+결정 로그 리와인드)
-- [x] **4페이즈 골격** — 리와인드 전역 잠금(SetRewindEnabled) + 2페이즈 패턴 임시 유지
+- [x] **4페이즈 골격** — 리와인드 주체별 잠금(RewindLockHandle) + 2페이즈 패턴 임시 유지
 
 **남은 작업 - HIGH (기능 부재)**
 
 - [x] **감정 전환 구동부** — 주기적 랜덤 전환 구현 (BossController.CoEmotionLoop, GameDB.Boss.EmotionInterval 8초). 후보 Black/White/Navy/Pink/Blue(화남/기본 제외), 결정 로그(_emotionLog+커서)로 되감기 재현, BossFrame에 감정+커서 스냅샷. 3페이즈는 SetAutoEmotionSuspended로 화남 고정 유지
 - [ ] **2페이즈: 1페이즈 분신 근접 패턴 유지** — Phase1.Exit가 분신을 전부 비활성화하고 Phase2는 본체만 활성화. 스펙 문구대로 분신 2체를 유지할지, "본체가 같은 근접 패턴 수행"으로 충족인지 기획 해석 확인 후 구현
-- [~] **2페이즈 종료: 컷신 + 씬 변경 맵 전환** — 이관 로직 구현 완료: `BossHandoff`(정적 캐리어) + `BossController.SaveHandoffToNextPhase`/Start 복원 + `Phase2State.CoPhaseEndGimmick`에서 페이드 암전 시 저장 후 `SceneManager.LoadScene(_phase3SceneName)`. **남은 것: 3페이즈 전용 맵 씬 에셋 제작 후 BossController `_phase3SceneName`을 교체(현재 임시 "Boss" 자기 재로드), 대상 씬을 Build Settings에 등록.** 컷신 연출(대사/카메라)은 리소스 확정 후 onMidpoint 앞에 배치
+- [x] **2페이즈 종료: 아웃트로 영상 + 씬 변경 맵 전환** (2026-07-18, 방식 재설계) — 기존 `BossHandoff`(정적 캐리어로 피통/페이즈/감정 이관) 방식을 폐기하고, "이 씬은 자신이 담당하는 페이즈 구간까지만 진행 후 다음 구간 씬으로 완전히 전환"하는 방식으로 교체. `BossController._finalPhaseIndex`(이 씬이 담당하는 마지막 페이즈)/`_transitionToNextScene`/`_outroVideo`(`BossOutroVideoUI`)/`_nextSceneName`(`Constants.Scene.MAP_3`) 신설 - `CoPhaseEnd`가 `IsFinalPhase`(=`_phaseIndex >= _finalPhaseIndex`) 도달 시 격파 처리 대신 아웃트로 영상 재생 -> `GameManager.LoadSceneFadeInOnly`(이미 암전된 화면 위에서 페이드아웃 없이 즉시 씬 로드 후 페이드인만)로 `Map3` 진입. `Map2`(Boss.unity 후신)는 1~2페이즈만 담당, 3~4페이즈는 `Map3`에서 별도 보스 오브젝트/DB로 진행하는 구조. **`BossHandoff.cs`는 더 이상 어디서도 참조되지 않는 죽은 코드로 남아있음 - 삭제 검토 필요**
+  - 부수 변경: 피통을 이 씬이 담당하는 페이즈 수로 균등 분할하는 `BossController.PhaseHealthSpan`(`TotalHealth / (_finalPhaseIndex+1)`) 신설 - 기존 `GameDB.Boss.PhaseHealth` 고정값 대신 사용. 2페이즈 진입 시 `StartEmotionLoop(applyImmediately: true)`로 첫 감정을 대기 없이 즉시 적용
+  - 1페이즈 즉사 기믹 지형 3섹터(`_gimmickSectorLeft/Center/Right`, 좌측 구덩이/중앙 단상/우측 구덩이)로 안전구역 색 배정을 지형에 맞춰 고정
 
 **남은 작업 - MED (스펙 불일치 / 기획 확인)**
 
@@ -331,15 +361,81 @@
 
 | 순위 | 카테고리 | 남은 개수 | 주차 |
 |---|---|---|---|
-| ✅ 완료 | TimeSystem 코어 / Player 컴포넌트화 / Monster·Boss(1~3P) / BT / 상태이상 / 상호작용 / Sound / Camera / UI / 업적 / Visual / Backend 클라 | 50개+ | — |
+| ✅ 완료 | TimeSystem 코어 / Player 컴포넌트화 / Monster·Boss(1~3P) FSM / 상태이상 / 상호작용(엘리베이터 포함) / Sound / Camera / UI / 업적 / Visual / Backend 클라 | 50개+ | — |
 | 🔴 1순위 | (완료 - 방어력 계산·사망 애니는 보류/에셋 대기) | **0개** | Week 1 |
-| 🔴 2순위 | (완료 - LP 드랍/자석픽업/카운터/리와인드) - 장비/강화/소비아이템 제외 | **0개** | Week 2 |
+| 🔴 2순위 | LP/포션 완료 - 장비/강화/MP포션 제외 | **0개** | Week 2 |
 | 🟡 3순위 | Boss 페이즈 2~4·연출(5) + Backend 클리어(4) | **9개** | Week 3 |
 | 🟡 4순위 | CheatMode(4) - 이스터에그 제외 | **4개** | Week 3~4 |
 | 🟢 5순위 | 보스연출(1) - 장비 계승 제외 | **1개** | Week 4 |
-| **합계 (남은 작업)** | | **14개** | |
+| **합계 (남은 작업)** | | **16개** | |
 
 ---
+
+## 🧹 리팩토링 이력 — 2026-07-19
+
+**기능 — 플레이어 피격 화면 피드백 (코드·기본 런타임 검증 완료, 실전 체감 검증 대기)**
+- `PlayerHitFeedback`이 `PlayerHealth.OnDamaged`만 구독해 카메라 Impulse, 전체 화면 빨간 플래시, 피격 전용 히트스톱을 조율한다. 기존 `PlayerController` 글로우 플래시·넉백은 변경하지 않았고, PlayerController가 컴포넌트를 자동 보장한다
+- `PlayerDataSO`/`PlayerDB.asset`에 셰이크 세기·지속시간, 비네트 알파·지속시간, 피격 히트스톱 시간을 추가. 빨간 오버레이는 `ScreenFade` 아래 정렬(998)의 비차단 Canvas에서 unscaled로 감쇠하며 재피격 시 최대 알파와 종료 시각만 갱신
+- `HitStopController.Request(float)`을 추가하고, 중첩 요청은 기존 종료 시각보다 길 때만 연장하게 수정. Map1~3의 PlayerCamera/FocusCamera 모두 `CinemachineImpulseListener`를 연결
+- Unity·`dotnet build Assembly-CSharp.csproj --no-restore`를 통과. Play 모드에서 직접 피해 1회를 줘 체력 감소, ImpulseSource/비네트 생성, 히트스톱 시작과 timeScale·비네트 복구를 확인
+- 후속 수정: 런타임에 추가한 `CinemachineImpulseSource`는 `Reset()` 프리셋이 적용되지 않아 `Custom + Legacy`(RawSignal 없음)로 이벤트를 만들지 못했다. `Bump + Uniform` 정의를 코드에서 명시해, Play 모드 플레이어 피격 시 활성 Impulse 1개 생성까지 재검증
+
+## 🧹 리팩토링 이력 — 2026-07-18
+
+**성능 — Animator 해시 캐싱, UI 클릭 버스트 풀화, 셰이더 접근 감사 (코드 구현 완료, 일부 실게임 검증 대기)**
+- `BossController`의 Roar/Death 트리거와 DeathBody 상태 재생, `BossMeleeUnitBase`의 Speed/Attack/Cast/Jump/Dodge 파라미터를 `Animator.StringToHash` 정적 캐시와 int 오버로드로 전환. `PlayerAnimator`/`MonsterAnimator`는 기존부터 해시를 사용하고 있어 변경하지 않음
+- `UiClickBurst`는 Awake에 직렬화된 수만큼 `RectTransform`/`Image` 슬롯을 만들고 비활성 보관한다. 클릭마다 GameObject·코루틴을 만들지 않고, 빈 슬롯만 활성화해 단일 unscaled 코루틴이 위치·크기·알파를 갱신한다. 컴포넌트 비활성 시 슬롯과 코루틴도 정리
+- Visual 계열을 재감사한 결과 반복 문자열 셰이더 프로퍼티 접근은 없었다. `OrbController`는 이미 ID 캐싱을 사용하고, `CharaGlow`의 `"_Mode"` 설정은 생성 시 1회라 과잉 수정 없이 유지
+- Unity 스크립트 컴파일과 `dotnet build Assembly-CSharp.csproj --no-restore`를 통과. 보스 모션과 메뉴 연타·일시정지 중 클릭 버스트·GC.Alloc은 수동 확인 대기
+
+**구조 — 근접 보스 행동 상태 통합, 사운드 분리 보류 (코드 구현 완료, 실게임 검증 대기)**
+- `BossMeleeUnitBase`의 공격/도약/회피별 불리언 3개를 내부 `BossMeleeActionState(Idle/Attack/Jump/Dodge)`로 통합. 각 코루틴은 `TryEnterAction`으로 진입을 얻고 종료 시에만 자기 상태를 해제하므로, 같은 프레임에 둘 이상이 실행되는 경쟁을 막는다
+- 장애물 탈출 도약도 같은 상태 경로를 사용하며, 실행 중인 탈출 코루틴을 다시 시작하지 않는다. `StopCombatLoops`/전투 재개/되감기는 상태를 Idle로 초기화하는 기존 정리 지점을 유지
+- `SoundManager`는 BGM·일회성 SFX·지속 SFX가 볼륨/일시정지/풀 수명주기를 함께 쓰는 구조라 현재 분리 이득이 없다. 새 독립 채널 또는 세 번째 소비자 요구 전까지 분리하지 않기로 결정
+- Unity 스크립트 컴파일과 `dotnet build Assembly-CSharp.csproj --no-restore`를 통과. 실제 보스전에서 공격·도약·회피가 순차 전환되고 도약 착지 뒤 Idle로 복귀하는 확인은 대기
+
+**구조 — 보스 공용 감정 모듈 + 주체별 리와인드 잠금 (코드 구현 완료, 런타임 검증 대기)**
+- `BossEmotionController`/`BossEmotionSnapshot` 신설 - 감정 상태, 자동 전환, 결정 로그, Angry 혼란, Blue 하트 생성, 반사 판정을 보스 본체에서 분리. `BossController`는 기존 공개 API와 이벤트를 위임으로 유지
+- 감정 모듈은 플레이어/하트 픽업/`BossDataSO`/아레나 문맥을 `Configure(...)`로 주입받아 두 번째 보스도 조립 가능. HUD/툴팁은 모듈 직접 참조를 우선하되 기존 `BossController` 인스펙터 참조는 폴백으로 유지
+- `RewindManager.SetRewindEnabled(bool)` 제거 -> `AcquireRewindLock(owner)`/`RewindLockHandle.Dispose()`로 전환. 입장 연출, 페이즈 종료 기믹, Phase4가 각각의 잠금만 보유/해제하며, 잠금 중에도 기록은 계속
+- Unity 컴파일 및 `dotnet build Assembly-CSharp.csproj --no-restore` 통과. 런타임에서 감정 컴포넌트 자동 연결, 감정 파사드 위임, 중첩 잠금 해제 순서를 확인
+
+**구조 — 씬 로컬 싱글톤 보일러플레이트 통합 (코드 구현 완료, 런타임 검증 대기)**
+- `Utility/SceneSingleton<T>` 신설 - 씬 로컬 `Instance`, Awake 중복 가드, OnDestroy 해제, `OnSingletonAwake`/`OnSingletonDestroy`, `ResetStatic`/`EnsureCreated`를 공통화
+- `RewindManager`/`HitStopController`/`LpManager`/`SlowMotionController`를 이관. `HitStopController`의 timeScale 복원과 `LpManager`의 리와인드 등록 해제/풀 Dispose는 `OnSingletonDestroy()` 훅으로 유지
+- `PauseController`는 DDOL 영속성을 유지하기 위해 `PersistentSingleton<T>` 상속을 보존하고, 같은 베이스에 추가한 정적 헬퍼로 `ResetStatics`/`EnsureInstance` 몸체만 공통화
+- Unity 컴파일에서 이번 변경 관련 신규 오류는 없으나 기존 `PotionManager.cs:95`의 `PotionDataSO`/`GameDB.Potion` 누락 오류 2건으로 Play 검증은 대기
+
+**구조 — `Ex/` 샘플 폴더 완전 제거**
+- `Assets/01.Scripts/Ex/`(BossManager/BossUIManager/BossConditionSlotUI/SO/ExBossDataSO) 전부 삭제. 정식 `Minsung.*` 코드(BossController/BossHealthBarUI 등)로 승격이 끝나 더 이상 참조되지 않던 샘플 코드 정리 - 이제 `01.Scripts/`는 전부 `Minsung.*` 네임스페이스 프로덕션 코드만 남음(총 131개 스크립트)
+- `claude/README.md`/`claude/UML.md`의 `Ex/` 관련 서술은 이번 갱신에서 함께 정리
+
+**기능 — 상호작용: 엘리베이터 시스템 신설**
+- `IHoldInteractable`(신규 인터페이스) — 상호작용 키를 일정 시간 누른 채 유지해야 완료되는 오브젝트 계약(`CanHoldInteract`/`OnHoldStart`/`OnHoldUpdate`/`OnHoldCancel`). `PlayerInteractionSensor`가 타겟이 이 인터페이스면 즉시 실행 대신 홀드 상태 머신으로 분기(포커스 변경/센서 비활성/되감기 진입 시 자동 취소)
+- `ElevatorManager`(`PersistentSingleton`, `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` 자동 생성) — 씬의 `ElevatorController`를 `ElevatorId`로 등록/조회하는 딕셔너리 레지스트리
+- `ElevatorController`(`IRewindable`) — 레버가 당겨진 상태에서 버튼을 3초 홀드하면 문을 닫고 `_startPoint`->`_endPoint`로 플랫폼 이동. 매 틱(당김 상태/이동 중/도착/문 상태/위치)을 기록해 되감기 시 정확히 복원. `Rigidbody2D`가 있으면 `MovePosition`, 없으면 Transform 직접 이동
+- `ElevatorButtonInteractive`(`BaseInteractive` + `IHoldInteractable`) — `ElevatorId`로 대상 `ElevatorController`를 찾아 3초 홀드 완료 시 `TryStartJourney()` 호출. 홀드 UI(진행 Slider)는 `_holdUi`/`_progressSlider`로 표시. 분신은 완료된 홀드만 `InteractCommand`로 재연(홀드 도중 상태는 기록하지 않음)
+- `LeverInteractive`에 `_elevatorId`(0이면 연동 없음) 추가 - 레버 당김/리셋 시 `ElevatorController.SetLeverPulled`를 호출해 엘리베이터 시작 조건에 반영
+- `LeverLightSwitch`(신규, 앞선 커밋에서 도입) — `LeverInteractive`의 `onLeverPulled`/`onLeverReset` UnityEvent에 연결해 지정 오브젝트 배열을 켜고 끄는 범용 헬퍼
+
+**기능 — 몬스터 사망 모션**
+- `MonsterAnimator.TriggerDeath()`/`ResetToIdle()` 신설. `MonsterHealth`가 사망 즉시 비활성화하는 대신 `Constants.Combat.ENEMY_DEATH_ANIM_DURATION`(0.25초, Death 클립 길이와 일치해야 함)만큼 대기 후 비활성화(`CoDeactivateAfterDeathAnim`) - 대기 중 리와인드로 부활(`RestoreHealth`)하면 비활성화를 취소
+- `MonsterController`에 `IsDead` 프로퍼티 추가, 사망 모션 재생 구간에는 `RequestMove/RequestChaseMove/RequestStop/RequestAttackPlayer`(FSM 요청)를 전부 무시. 리와인드 부활 시 `MonsterAnimator.ResetToIdle()`로 Death 등 종단 상태에 갇히지 않게 강제 복귀
+
+**기능 — 몬스터 방향·행동 모션**
+- 원본 몬스터 아트는 왼쪽을 향한다. `Constants.Combat.ENEMY_ART_FACING_SIGN`을 통해 오른쪽 이동/공격 때만 좌우 반전하며, 공격 상태는 이동하지 않아도 매 틱 플레이어 방향을 본다.
+- `MonsterAnimator`는 Attack/Hit/Death 상태를 직접 재생해 FSM 공격, 피격 이벤트, 사망 이벤트에서 각각의 모션이 즉시 실행된다.
+
+**기능 — Boss 페이즈 구간 씬 분할 + 아웃트로 전환** (커밋 `54f8f3e`, 2026-07-18)
+- 상세는 위 3순위 Boss 섹션 "2페이즈 종료" 항목 참고. `Map2`는 1~2페이즈만 담당하고 종료 시 `BossOutroVideoUI` 영상 재생 후 `Map3`로 전환하는 구조로 재설계, 기존 `BossHandoff` 정적 캐리어 방식은 폐기(코드는 아직 미삭제)
+- `BossMeleeUnitBase` 근접 유닛 도약을 임펄스에서 포물선 이동으로 교체, 분신 상하 겹침 회피 로직 추가(`CloneCrowdAvoidHorizontalRange`/`VerticalRange`, `PLAN.md` 3순위 항목 참고)
+- 공격 판정 사거리 배율 `AttackRange * AttackRange * 3` -> `* 1.5`로 축소 (근접 유닛이 실제 공격 애니메이션 사거리보다 훨씬 먼 거리에서도 맞는 문제 완화)
+
+**기능 — Player 오브 발광/궤적 비주얼** (커밋 `bddcc51`, 2026-07-18)
+- `OrbController`에 179줄 규모로 발광/궤적 연출 추가, 전용 셰이더 `OrbGlow.shader`/`OrbTrail.shader` + 머티리얼 `PlayerOrbGlow.mat` 신설(`09.Shaders/`). `PlayerDataSO`에 관련 밸런싱 필드 추가
+
+**기타**
+- 메인메뉴 시작 버튼(`MainMenuController.OnClickStart`)이 임시 진입 씬을 `Boss`에서 `Map2`로 변경
 
 ## 🧹 리팩토링 이력 — 2026-07-12
 
@@ -359,7 +455,7 @@
 - `Constants.Player/Combat`은 코드 계약값(입력 키, 판정 epsilon, `HALVES_PER_HEART`, `ANIM_DIR_*`, 몬스터 SerializeField 기본값, `GIMMICK_LASER_COLOR_COUNT`)만 유지. `Constants.time.cs`는 전부 이관되어 삭제.
 - 컴포넌트의 밸런싱 SerializeField 미러 제거(PlayerMovement/PlayerHealth/ClonePool/SlowMotionController/RewindManager/CloneController) - DB가 단일 소스, Awake에서 로드. Player.prefab 튜닝값(이동 2 / 점프 6)은 PlayerDB 기본값으로 베이크.
 - Phase 상태들의 `static readonly WaitForSeconds` -> 인스턴스 필드 (DB 값 기반 생성 + 도메인 리로드 OFF 대비).
-- Monster(`ENEMY_*`)는 BT 그래프 에셋 호환/배치별 인스펙터 튜닝 전제로 Constants 유지 - 몬스터 종류가 늘면 `MonsterDataSO` 분리 예정.
+- Monster(`ENEMY_*`)는 FSM/배치별 인스펙터 튜닝 전제로 Constants 유지 - 몬스터 종류가 늘면 `MonsterDataSO` 분리 예정.
 - `Ex/SO` 샘플은 `ExBossDataSO`로 개명해 프로덕션 `BossDataSO`와 이름 충돌 해소.
 
 **구조 — Player 컴포넌트화 (단일 PlayerController -> 코디네이터 패턴)**
@@ -468,7 +564,7 @@
 
 에디터 셋업 필요 (코드는 완료, 씬 연결만 남음)
 ├── Player: BehaviorGraphAgent + Behavior Graph 에셋 (PlayerController.cs 상단 주석 참고)
-├── Monster: BehaviorGraphAgent + 순찰/추격/공격 그래프 (MonsterController.cs 상단 주석 참고)
+├── Monster: `MonsterState` FSM이 프리팹에서 자동 실행 - 그래프 에셋/Agent 연결 불필요
 ├── Player: Animator Controller 5파라미터 구성 (PlayerAnimator.cs 상단 주석 참고)
 ├── Clone: clonePrefab에 본체와 같은 Animator + PlayerAnimator 추가 시 자동 연결 (코드 준비 완료)
 └── ~~Resources/AchievementDatabase.asset + 업적 4종 에셋 생성~~ -> 이미 존재 확인 (08.Data/Resources + 08.Data/Achievements, 2026-07-11) - 업적 _icon 스프라이트만 미지정

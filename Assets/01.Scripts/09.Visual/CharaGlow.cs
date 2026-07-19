@@ -31,6 +31,7 @@ namespace Minsung
         private float          _baseAlpha;
         private bool           _isFlashing; // 플래시 중에는 펄스가 색을 덮지 않게
         private Coroutine      _coFlash;
+        private float          _brightnessMultiplier = 1f;
 
         /****************************************
         *              Unity Event
@@ -44,7 +45,10 @@ namespace Minsung
 
         private void Update()
         {
-            if (!_pulse || (_glowRenderer == null) || _isFlashing) return;
+            if (!_pulse || (_glowRenderer == null) || _isFlashing)
+            {
+                return;
+            }
 
             float alpha = _baseAlpha + Mathf.Sin(Time.time * _pulseSpeed) * _pulseAmplitude;
             Color c = _glowRenderer.color;
@@ -60,7 +64,6 @@ namespace Minsung
         {
             GameObject go = new GameObject("Glow");
             go.transform.SetParent(transform);
-            go.transform.localPosition = Vector3.zero;
             // 2D: XY만 사용, Z = 1 고정
             go.transform.localScale    = new Vector3(_glowScale.x, _glowScale.y, 1f);
 
@@ -80,6 +83,14 @@ namespace Minsung
             {
                 _glowRenderer.sortingLayerID = parent.sortingLayerID;
                 _glowRenderer.sortingOrder   = parent.sortingOrder + _sortingOrderOffset;
+
+                // 피벗이 스프라이트 시각적 중심과 다를 수 있어(예: 발밑 피벗) localBounds 중심에 맞춘다
+                Vector3 boundsCenter = parent.localBounds.center;
+                go.transform.localPosition = new Vector3(boundsCenter.x, boundsCenter.y, 0f);
+            }
+            else
+            {
+                go.transform.localPosition = Vector3.zero;
             }
         }
 
@@ -87,14 +98,34 @@ namespace Minsung
         public void SetGlowColor(Color color)
         {
             _glowColor = color;
-            if (_glowRenderer != null) _glowRenderer.color = color;
+            if (_glowRenderer != null)
+            {
+                _glowRenderer.color = color;
+            }
             _baseAlpha = color.a;
         }
 
         /// <summary> 글로우 켜기/끄기 </summary>
         public void SetActive(bool active)
         {
-            if (_glowRenderer != null) _glowRenderer.enabled = active;
+            if (_glowRenderer != null)
+            {
+                _glowRenderer.enabled = active;
+            }
+        }
+
+        /// <summary> 외부(예: 깜빡임 연출)에서 글로우 밝기를 0~1 배율로 제어. _pulse가 꺼져있을 때 사용. </summary>
+        public void SetBrightness(float multiplier)
+        {
+            _brightnessMultiplier = Mathf.Clamp01(multiplier);
+            if (_glowRenderer == null)
+            {
+                return;
+            }
+
+            Color c = _glowColor;
+            c.a = _baseAlpha * _brightnessMultiplier;
+            _glowRenderer.color = c;
         }
 
         /// <summary> 잠깐 글로우 색을 바꿨다가 원래 색으로 복귀 (피격 플래시). 연속 피격 시 새로 시작. </summary>

@@ -25,10 +25,10 @@ namespace Minsung.Visual
         [SerializeField] private bool     _rotate90 = true; // 세로 프레임을 가로(1920x1080)로 펴서 표시
 
         private RectTransform _rect;
-        private bool  _playing;    // 재생 중 여부
-        private int   _frameIndex; // 현재 표시 중인 프레임 인덱스
+        private bool  _playing;
+        private int   _frameIndex;
         private float _timer;      // 다음 프레임까지 누적 시간
-        private Coroutine _coPlay; // 프레임 재생 코루틴
+        private Coroutine _coPlay;
 
         // 재생을 계속해도 되는 상태인지 (Stop 호출 또는 프레임 미지정 시 false).
         private bool ShouldKeepPlaying()

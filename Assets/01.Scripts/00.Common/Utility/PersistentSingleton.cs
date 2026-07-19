@@ -47,6 +47,21 @@ namespace Minsung.Utility
         *                Methods
         ****************************************/
 
+        // 파생 클래스의 SubsystemRegistration 훅에서 static 인스턴스를 초기화한다
+        protected static void ResetStatic()
+        {
+            Instance = null;
+        }
+
+        // 파생 클래스의 AfterSceneLoad 훅에서 미배치 영속 인스턴스를 자동 생성한다
+        protected static void EnsureCreated(string objectName)
+        {
+            if (Instance == null)
+            {
+                new GameObject(objectName).AddComponent<T>();
+            }
+        }
+
         // 최초 인스턴스로 확정된 뒤 1회 호출되는 초기화 훅.
         protected virtual void OnSingletonAwake() { }
     }

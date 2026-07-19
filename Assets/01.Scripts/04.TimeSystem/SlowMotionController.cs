@@ -3,11 +3,12 @@ using UnityEngine;
 
 using Minsung.Common;
 using Minsung.Common.Data;
+using Minsung.Utility;
 
 namespace Minsung.TimeSystem
 {
     // 키를 누르는 동안 전체 시간을 느리게 만드는 컨트롤러.
-    public class SlowMotionController : MonoBehaviour
+    public class SlowMotionController : SceneSingleton<SlowMotionController>
     {
         /****************************************
         *                Fields
@@ -35,12 +36,19 @@ namespace Minsung.TimeSystem
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
+            ResetStatic();
             IsSlow       = false;
             _targetScale = 1f;
             Time.timeScale = 1f;
         }
 
-        private void Awake()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void EnsureInstance()
+        {
+            EnsureCreated("SlowMotionController");
+        }
+
+        protected override void OnSingletonAwake()
         {
             _slowScale         = GameDB.Time.SlowTimeScale;
             _defaultFixedDelta = Time.fixedDeltaTime;
@@ -60,6 +68,10 @@ namespace Minsung.TimeSystem
 
         private void OnDisable()
         {
+            if (Instance != this)
+            {
+                return;
+            }
             // 비활성/씬 전환 시 시간 원복 보장
             if (IsSlow)
             {

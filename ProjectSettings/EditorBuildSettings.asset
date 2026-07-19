@@ -16,6 +16,9 @@ EditorBuildSettings:
     guid: 93b79f443de64894b815bab140a3626b
   - enabled: 1
     path: Assets/00.Scenes/Map2.unity
+    guid: 5e33b2e3c03d6cf4a899789dd92aa306
+  - enabled: 1
+    path: Assets/00.Scenes/MapC3.unity
     guid: c3914045139b31542977a0c4801c4419
   - enabled: 1
     path: Assets/00.Scenes/Pause.unity

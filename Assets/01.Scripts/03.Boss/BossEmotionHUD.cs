@@ -7,18 +7,19 @@ using UnityEngine.UI;
 
 namespace Minsung.Boss
 {
-    // 보스 감정 상태를 두 곳에 표시한다
-    // - 감정 아이콘(_emotionIcon): 체력바 좌하단, 현재 감정을 항상 표시
-    // - 반사 아이콘(_reflectIcon): 보스 머리 위, 반사 감정(Black/White/Navy)일 때만 표시
+    // 보스 감정을 두 곳에 표시 - 감정 아이콘(체력바 좌하단, 항상 표시) / 반사 아이콘(머리 위, 반사 감정일 때만)
     public class BossEmotionHUD : MonoBehaviour
     {
+#pragma warning disable CS0649 // Unity serializes these Inspector mapping fields.
         [Serializable]
         private struct EmotionIconEntry
         {
             public BossEmotion Emotion;
             public Sprite Icon;
         }
+#pragma warning restore CS0649
 
+        [SerializeField] private BossEmotionController _emotionController;
         [SerializeField] private BossController _boss;
         [SerializeField] private Image _emotionIcon;          // 체력바 - 현재 감정 항상 표시
         [SerializeField] private SpriteRenderer _reflectIcon; // 머리 위 - 반사 3종만 표시
@@ -29,30 +30,65 @@ namespace Minsung.Boss
         // 반사 감정 -> 머리 위 아이콘 스프라이트 (Black/White/Navy)
         [SerializeField] private EmotionIconEntry[] _reflectIcons = Array.Empty<EmotionIconEntry>();
 
+        private BossEmotionController _subscribedEmotionController;
+
         private void OnEnable()
         {
-            if (_boss == null)
+            _subscribedEmotionController = ResolveEmotionController();
+            if (_subscribedEmotionController == null)
             {
                 HideAll();
                 return;
             }
 
-            _boss.OnEmotionChanged += Redraw;
-            Redraw(_boss.CurrentEmotion);
+            _subscribedEmotionController.OnEmotionChanged += Redraw;
+            if (_boss != null)
+            {
+                _boss.OnBattleStarted += RedrawCurrentEmotion;
+            }
+            Redraw(_subscribedEmotionController.CurrentEmotion);
         }
 
         private void OnDisable()
         {
+            if (_subscribedEmotionController != null)
+            {
+                _subscribedEmotionController.OnEmotionChanged -= Redraw;
+                _subscribedEmotionController = null;
+            }
             if (_boss != null)
             {
-                _boss.OnEmotionChanged -= Redraw;
+                _boss.OnBattleStarted -= RedrawCurrentEmotion;
             }
+        }
+
+        private BossEmotionController ResolveEmotionController()
+        {
+            if (_emotionController != null)
+            {
+                return _emotionController;
+            }
+
+            return _boss != null ? _boss.EmotionController : null;
         }
 
         private void Redraw(BossEmotion emotion)
         {
+            if ((_boss != null) && !_boss.IsBattleStarted)
+            {
+                HideAll();
+                return;
+            }
             DrawEmotion(emotion);
             DrawReflect(emotion);
+        }
+
+        private void RedrawCurrentEmotion()
+        {
+            if (_subscribedEmotionController != null)
+            {
+                Redraw(_subscribedEmotionController.CurrentEmotion);
+            }
         }
 
         // 체력바 감정 아이콘 - 매핑된 감정이면 표시, 아니면 숨김

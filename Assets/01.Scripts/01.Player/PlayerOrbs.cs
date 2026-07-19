@@ -42,17 +42,20 @@ namespace Minsung.Player
                 ? DamageSource.PlayerClone
                 : DamageSource.Player;
 
-            Vector2[] offsets = GameDB.Player.OrbOffsets;
-            _orbs = new OrbController[offsets.Length];
+            int orbCount = GameDB.Player.OrbCount;
+            _orbs = new OrbController[orbCount];
 
-            for (int i = 0; i < offsets.Length; ++i)
+            for (int i = 0; i < orbCount; ++i)
             {
                 OrbController orb = (_orbPrefab != null)
                     ? Instantiate(_orbPrefab)
                     : CreateDefaultOrb(i);
 
+                // 오브 개수만큼 가로로 나란히 벌려놓는 슬롯 오프셋 (중앙 정렬)
+                Vector2 slotOffset = Vector2.right * ((i - ((orbCount - 1) / 2f)) * GameDB.Player.OrbSpacing);
+
                 orb.transform.SetParent(null);
-                orb.Init(transform, offsets[i], (Mathf.PI * 2f / offsets.Length) * i);
+                orb.Init(transform, i * 53.7f, slotOffset); // 오브마다 다른 노이즈 시드 - 겹치지 않는 자유로운 움직임
 
                 // 분신 오브는 반투명화
                 if (orb.TryGetComponent(out SpriteRenderer orbRenderer))
@@ -146,7 +149,7 @@ namespace Minsung.Player
         // 확정된 대상 하나에 대해서만 타격 콜백을 만든다.
         // 본체와 분신이 같은 조준 규칙을 공유하도록 하기 위해 static이다.
         private static bool FindNearestTarget(Vector2 origin, float damage, DamageSource source, PlayerHealth attacker,
-                                              out Transform target, out Action onHit)
+                                                out Transform target, out Action onHit)
         {
             target = null;
             onHit  = null;
@@ -199,14 +202,12 @@ namespace Minsung.Player
         // "필터 없음" ContactFilter2D 생성 (트리거 콜라이더도 대상에 포함).
         private static ContactFilter2D CreateNoFilter()
         {
-            ContactFilter2D filter = new ContactFilter2D();
-            filter.NoFilter();
+            ContactFilter2D filter = ContactFilter2D.noFilter;
             filter.useTriggers = true; // NoFilter는 필터 쿼리에서 트리거를 제외하므로 명시적으로 포함 (트리거 판정형 보스 유닛 대응)
             return filter;
         }
 
         // 프리팹이 없을 때 쓰는 기본 오브
-        // ! 프리팹 갖고오면 이건 X
         private OrbController CreateDefaultOrb(int index)
         {
             GameObject go = new GameObject($"PlayerOrb_{index}");

@@ -11,14 +11,7 @@ using Minsung.TimeSystem;
 
 namespace Minsung.Player
 {
-    // 플레이어 코디네이터 - 세부 기능은 각 컴포넌트가 담당하고, 여기서는 컴포넌트를 연결(주입)하고
-    // 실행 순서를 조율하며 외부(보스/해저드/UI/상호작용)가 참조하는 상태와 커맨드 대상을 대표한다.
-    //   PlayerInput       : 입력
-    //   PlayerMovement    : 이동/점프/매달림/접지/경직
-    //   PlayerCombat      : 공격
-    //   PlayerInteraction : 상호작용 잠금/기록
-    //   PlayerRewind      : 되감기(IRewindable)/분신
-    // 트리거 판정(HeartPickup/DamageHazard 등)이 "본체"를 이 컴포넌트로 식별하므로 루트에 유지한다.
+    // 플레이어 코디네이터 - Input/Movement/Combat/Interaction/Rewind 컴포넌트를 주입/조율하며, 트리거 판정(HeartPickup/DamageHazard 등)이 "본체"를 이 컴포넌트로 식별하므로 루트에 유지한다.
     [RequireComponent(typeof(PlayerInput), typeof(PlayerMovement), typeof(PlayerCombat))]
     [RequireComponent(typeof(PlayerInteraction), typeof(PlayerRewind))]
     [RequireComponent(typeof(PlayerStatusEffectController))]
@@ -39,6 +32,7 @@ namespace Minsung.Player
         private PlayerRewind      _rewind;
         private PlayerHealth      _health;
         private PlayerStatusEffectController _statusEffects;
+        private string _objectId;
 
         private Material  _material; // _renderer의 인스턴스 머티리얼 캐시
         private CharaGlow _glow;     // 피격 플래시용 글로우 (없으면 플래시 생략)
@@ -54,6 +48,7 @@ namespace Minsung.Player
         public bool IsInputInverted => _input.IsInverted;
         public bool IsDead          => _isDead;
         public PlayerStatusEffectController StatusEffects => _statusEffects;
+        public string ObjectId => _objectId;
 
         public event Action<bool> OnInputInvertedChanged; // 혼란 아이콘 UI 연동용
 
@@ -63,6 +58,7 @@ namespace Minsung.Player
 
         private void Awake()
         {
+            _objectId    = ManagedObjectManager.Register(EManagedObjectType.Player, this);
             _input       = GetComponent<PlayerInput>();
             _movement    = GetComponent<PlayerMovement>();
             _combat      = GetComponent<PlayerCombat>();
@@ -72,6 +68,14 @@ namespace Minsung.Player
             if (_statusEffects == null)
             {
                 _statusEffects = gameObject.AddComponent<PlayerStatusEffectController>();
+            }
+            if (!TryGetComponent(out PlayerHitFeedback hitFeedback))
+            {
+                gameObject.AddComponent<PlayerHitFeedback>();
+            }
+            if (!TryGetComponent(out PlayerSoundController soundController))
+            {
+                gameObject.AddComponent<PlayerSoundController>();
             }
             TryGetComponent(out _health);
 
@@ -110,6 +114,7 @@ namespace Minsung.Player
 
         private void OnDestroy()
         {
+            ManagedObjectManager.Unregister(this);
             if (_input != null)
             {
                 _input.OnInvertedChanged -= ForwardInvertedChanged;
@@ -170,6 +175,7 @@ namespace Minsung.Player
             {
                 return;
             }
+            GameManager.Instance?.ResetBossTimer(); // 보스전 중 사망 - 진행 중이던 클리어 타이머 폐기
             StartCoroutine(CoDeathRespawn());
         }
 
@@ -177,15 +183,16 @@ namespace Minsung.Player
         private IEnumerator CoDeathRespawn()
         {
             _isDead = true;
-            _movement.SetPose(transform.position, Vector2.zero, _movement.IsGrounded); // 속도 정지
+            _movement.SetPose(transform.position, Vector2.zero, _movement.IsGrounded);
             // 사망 애니메이션 - Animator에 Death 트리거가 추가되면 여기서 재생
 
             yield return _waitDeathDelay;
 
             bool respawned = false;
+            respawned = RespawnManager.TryRespawn(this, OnRespawned);
             if (GameManager.Instance != null)
             {
-                respawned = GameManager.Instance.RequestCheckpointRespawn(transform, OnRespawned);
+                respawned = respawned || GameManager.Instance.RequestCheckpointRespawn(transform, OnRespawned);
             }
             if (!respawned)
             {
