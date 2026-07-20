@@ -65,7 +65,8 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
     private float PhaseCeilHealth => MaxHealth - (PhaseSpan * _phaseIndex);
 
     // 마지막 페이즈(4페이즈)인지 - 여기서부턴 하한 도달해도 더 이상 전환할 다음 페이즈가 없다
-    private bool IsFinalPhase => (_dataSo == null) || (_phaseIndex >= _dataSo.PhaseCount - 1);
+    // public: Boss2BrandController/Boss2AltarSpawner가 4페이즈 전용 루프 시작 조건으로 참조한다
+    public bool IsFinalPhase => (_dataSo == null) || (_phaseIndex >= _dataSo.PhaseCount - 1);
 
     public int PhaseIndex => _phaseIndex;
 
@@ -145,6 +146,13 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
                 _finalPhaseRewindLock = RewindManager.Instance.AcquireRewindLock(this);
             }
         }
+    }
+
+    // 4페이즈 재시작(Boss2BrandController - 낙인 7스택 즉사 후) - 현재 페이즈 상한 체력으로 복원
+    public void ResetToPhaseStart()
+    {
+        _currentHealth = PhaseCeilHealth;
+        OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
     }
 
     /****************************************

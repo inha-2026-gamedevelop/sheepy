@@ -29,6 +29,7 @@ public class BossFloatMovement : MonoBehaviour, IRewindable
     [SerializeField] private Transform _maxHeightAnchor; // 이 오브젝트 y + Boss2DataSO.MaxHeightMargin보다 위로 못 올라간다 (미연결 시 제한 없음)
 
     private Rigidbody2D _rb;
+    private Vector2     _spawnOrigin;   // Start 시점 스폰 위치(불변) - _origin과 달리 FollowTarget/돌진으로 바뀌지 않는다. 4페이즈 재시작 복귀 지점
     private Vector2     _origin;        // 배회 반경의 중심 - Start 시점 위치
     private Vector2     _waypoint;      // 현재 목표 지점
     private Vector2     _velocity;      // SmoothDamp 내부 속도 상태
@@ -74,6 +75,7 @@ public class BossFloatMovement : MonoBehaviour, IRewindable
             origin = transform.position;
         }
 
+        _spawnOrigin = origin;
         _origin   = origin;
         _baseX    = origin.x;
         _baseY    = origin.y;
@@ -190,6 +192,23 @@ public class BossFloatMovement : MonoBehaviour, IRewindable
     /****************************************
     *                Methods
     ****************************************/
+
+    // 4페이즈 재시작(Boss2BrandController - 낙인 7스택 즉사 후) - 스폰 지점으로 순간이동하고 배회/돌진을 그 자리에서 새로 시작한다
+    public void ResetToSpawn()
+    {
+        StopMovementLoops();
+        ApplyPosition(_spawnOrigin);
+        _origin   = _spawnOrigin;
+        _waypoint = _spawnOrigin;
+        _baseX    = _spawnOrigin.x;
+        _baseY    = _spawnOrigin.y;
+
+        if (_dataSo != null)
+        {
+            _roamLoop   = StartCoroutine(CoRoamLoop());
+            _chargeLoop = StartCoroutine(CoChargeLoop());
+        }
+    }
 
     // 배회 중심을 플레이어 쪽으로 FollowSpeed만큼 느리게 옮긴다 - 실제 이동(MoveTowardWaypoint)보다 훨씬 느려서
     // "쫓아가되 그 자리에 종속되지는 않는" 느낌을 낸다. 다음 웨이포인트부터 이 갱신된 중심 기준으로 뽑힌다
