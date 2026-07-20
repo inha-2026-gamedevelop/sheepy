@@ -188,6 +188,14 @@ namespace Minsung.Player
 
             yield return _waitDeathDelay;
 
+            // 보스전 사망은 BossController.HandlePlayerDeath가 Map2를 통째로 리로드해 복귀시킨다
+            // 여기서 별도로 체크포인트 복귀 페이드를 걸면 같은 ScreenFade 슬롯을 다퉈 리로드용 페이드의
+            // 콜백(씬 로드)이 취소될 수 있으므로, 보류 중인 보스 리스타트가 있으면 이 경로는 양보
+            if (RespawnManager.IsBossRestartPending)
+            {
+                yield break;
+            }
+
             bool respawned = false;
             respawned = RespawnManager.TryRespawn(this, OnRespawned);
             if (GameManager.Instance != null)

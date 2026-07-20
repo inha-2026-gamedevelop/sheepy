@@ -33,10 +33,16 @@ Material:
     - _EdgeFade: 0.3
     - _Intensity: 1.3
     - _NoiseScale: 0.45
+    - _SafeEdgeWidth: 0.045
+    - _SafeFlowScale: 6.5
+    - _SafeFlowSpeed: 0.45
+    - _SafeModeThreshold: 0.7
+    - _SafeTintAmount: 0.42
     - _Softness: 0.5
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _FogColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SafeBaseColor: {r: 0.055, g: 0.09, b: 0.16, a: 1}
     - _ScrollSpeed: {r: 0.06, g: 0.03, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

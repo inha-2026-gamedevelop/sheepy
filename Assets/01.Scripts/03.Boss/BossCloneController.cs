@@ -1,5 +1,6 @@
 // System
 using System;
+using System.Collections;
 
 // Unity
 using UnityEngine;
@@ -63,7 +64,7 @@ namespace Minsung.Boss
         ****************************************/
 
         /// <summary> 필드 등장 + 피통 초기화. Phase1State.Enter가 호출한다 </summary>
-        public void Activate()
+        public void Activate(float actionStartOffset = 0f)
         {
             _health  = GameDB.Boss.CloneHealth;
             _isAlive = true;
@@ -79,14 +80,29 @@ namespace Minsung.Boss
             _isRewinding = false;
             RewindManager.Instance?.Register(this);
 
-            BeginCombat();
+            BeginCombat(actionStartOffset);
 
             // 등장 연출 - 파인 스폰 지점에서 본체가 서 있는 중앙 평지로 한 번 도약해 진입한다
             if ((_boss != null) && (_boss.Body != null))
             {
-                Vector2 landingPoint = _boss.Body.transform.position;
-                StartCoroutine(CoLeapTo(landingPoint.x, landingPoint.y, GameDB.Boss.CloneEntranceLeapHeight));
+                StartCoroutine(CoEnterArena(actionStartOffset));
             }
+        }
+
+        private IEnumerator CoEnterArena(float actionStartOffset)
+        {
+            if (actionStartOffset > 0f)
+            {
+                yield return new WaitForSeconds(actionStartOffset);
+            }
+
+            if ((_boss == null) || (_boss.Body == null) || (!_isAlive))
+            {
+                yield break;
+            }
+
+            Vector2 landingPoint = _boss.Body.transform.position;
+            yield return CoLeapTo(landingPoint.x, landingPoint.y, GameDB.Boss.CloneEntranceLeapHeight);
         }
 
         /// <summary> 퇴장 + 타임라인 이탈. 페이즈 정리(Phase1State.Exit)에서 호출한다 </summary>

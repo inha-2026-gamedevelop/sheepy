@@ -115,6 +115,7 @@ MonoBehaviour:
   _endPoint: {fileID: 6425083140564721821}
   _moveSpeed: 2
   _closedDoor: {fileID: 0}
+  _openDoor: {fileID: 0}
 --- !u!114 &6425083140564721806
 MonoBehaviour:
   m_ObjectHideFlags: 0
