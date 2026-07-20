@@ -99,6 +99,26 @@ fix: Boss Phase2 낙뢰 풀 오브젝트 미반환 수정
 
 ---
 
+## 7. Co-Authored-By (금지)
+
+**`Co-Authored-By` 트레일러를 커밋 메시지에 추가하지 않는다.** 
+
+- 커밋은 개인 책임으로 기록되어야 한다 - AI 또는 다른 도구 지원 여부와 무관하게 작성자만 표시
+- 협업/페어 프로그래밍이 필요하면 PR 설명이나 토론에서 별도 명시
+- GitHub의 Co-Authored-By는 자동 생성(예: 웹 UI 병합 시)될 수 있으니, 로컬 커밋 메시지에는 절대 추가하지 말 것
+
+```
+// ✅ 올바름
+fix: Player 회피 무적 기능 추가
+
+// ❌ 금지
+fix: Player 회피 무적 기능 추가
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+---
+
 ## 예시 모음
 
 ```

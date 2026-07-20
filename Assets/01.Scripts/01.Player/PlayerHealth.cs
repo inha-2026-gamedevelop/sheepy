@@ -24,10 +24,11 @@ namespace Minsung.Player
         private WaitForSeconds _waitInvincible;
 
         // 전용 무적키(보스 즉사기 회피) - 피격 후 자동 무적(_isInvincible)과 별도 플래그로 관리
+        // 지속/쿨타임은 슬로우모션(Time.timeScale 변조) 중에도 체감 시간이 변하지 않도록 unscaled 기준으로 센다
         private bool _isDodgeInvincible;
         private bool _dodgeInvincibleOnCooldown;
-        private WaitForSeconds _waitDodgeInvincibleDuration;
-        private WaitForSeconds _waitDodgeInvincibleCooldown;
+        private float _dodgeInvincibleDuration;
+        private float _dodgeInvincibleCooldown;
 
         public int MaxHalves => _maxHalves;
         public int CurrentHalves => _currentHalves;
@@ -50,8 +51,8 @@ namespace Minsung.Player
             _maxHalves      = playerSo.MaxHeartHalves;
             _currentHalves  = _maxHalves;
             _waitInvincible = new WaitForSeconds(playerSo.InvincibleDuration);
-            _waitDodgeInvincibleDuration = new WaitForSeconds(playerSo.DodgeInvincibleDuration);
-            _waitDodgeInvincibleCooldown = new WaitForSeconds(playerSo.DodgeInvincibleCooldown);
+            _dodgeInvincibleDuration = playerSo.DodgeInvincibleDuration;
+            _dodgeInvincibleCooldown = playerSo.DodgeInvincibleCooldown;
         }
 
         /****************************************
@@ -154,7 +155,11 @@ namespace Minsung.Player
         private IEnumerator CoDodgeInvincible()
         {
             _isDodgeInvincible = true;
-            yield return _waitDodgeInvincibleDuration;
+            float endTime = Time.unscaledTime + _dodgeInvincibleDuration;
+            while (Time.unscaledTime < endTime)
+            {
+                yield return null;
+            }
             _isDodgeInvincible = false;
         }
 
@@ -162,7 +167,11 @@ namespace Minsung.Player
         private IEnumerator CoDodgeCooldown()
         {
             _dodgeInvincibleOnCooldown = true;
-            yield return _waitDodgeInvincibleCooldown;
+            float endTime = Time.unscaledTime + _dodgeInvincibleCooldown;
+            while (Time.unscaledTime < endTime)
+            {
+                yield return null;
+            }
             _dodgeInvincibleOnCooldown = false;
         }
     }
