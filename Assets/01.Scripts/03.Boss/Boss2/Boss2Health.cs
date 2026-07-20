@@ -10,8 +10,8 @@ using Minsung.TimeSystem;
 
 // 부유 보스(Boss2) 체력 - 플레이어 AttackHitbox가 IDamageable로 인식해 피해를 꽂는 대상
 // 페이즈 하한: 원본 BossController와 동일한 방식 - 피통을 PhaseCount로 균등 분할해 현재 페이즈 하한 아래로는 안 깎인다
-// 페이즈 전환: 하한 도달 시 _phaseIndex를 올려 다음 하한까지 데미지가 계속 흐르게 한다(boss-design.md - 3~4페이즈 경계엔 확정된 기믹이 없어 별도 연출 없이 즉시 전환)
-// 최종 페이즈(4페이즈) 진입 시 타임 리와인드를 잠근다 - Minsung.Boss.Phase4State와 동일한 규칙(boss-design.md: "4페이즈 - 타임 리와인드 시스템 삭제")
+// 페이즈 전환: 하한 도달 시 _phaseIndex를 올려 다음 하한까지 데미지가 계속 흐르게 한다(boss.md - 3~4페이즈 경계엔 확정된 기믹이 없어 별도 연출 없이 즉시 전환)
+// 4페이즈에서도 타임 리와인드를 정상 사용할 수 있다(boss.md 2026-07-20 변경 - 과거 "4페이즈 리와인드 삭제" 규정 폐기)
 // TODO: 피격 리액션/사망 연출 미구현
 public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
 {
@@ -26,7 +26,6 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
     private int   _phaseIndex; // 현재 페이즈 인덱스(0부터) - 0: 3페이즈, PhaseCount-1: 4페이즈(최종)
     private bool  _isRewinding; // 되감기 중 피해 차단 (플레이어/몬스터 체력 가드와 동일한 관례)
     private RingBuffer<float> _rewindBuffer;
-    private RewindManager.RewindLockHandle _finalPhaseRewindLock; // 최종 페이즈 진입 시 획득, 보스 처치(오브젝트 파괴) 시까지 유지
 
     // Boss 루트(부모)에 Boss2AttackPatterns가 붙이는 컴포넌트 - HitCenter는 자식이라 GetComponentInParent로 찾는다
     private Boss2EmotionController _emotionController;
@@ -91,7 +90,6 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
 
     private void OnDestroy()
     {
-        _finalPhaseRewindLock.Dispose();
         RewindManager.Instance?.Unregister(this);
     }
 
@@ -131,21 +129,11 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
         return true;
     }
 
-    // 페이즈 하한 도달 - 다음 페이즈로 넘어가 하한을 다시 계산한다(boss-design.md에 3~4페이즈 경계 전용 기믹이 없어 즉시 전환)
+    // 페이즈 하한 도달 - 다음 페이즈로 넘어가 하한을 다시 계산한다(boss.md에 3~4페이즈 경계 전용 기믹이 없어 즉시 전환)
     private void AdvancePhase()
     {
         ++_phaseIndex;
         OnPhaseChanged?.Invoke(_phaseIndex);
-
-        if (IsFinalPhase)
-        {
-            // 4페이즈: 처치할 때까지 리와인드 발동 자체를 잠근다 (Minsung.Boss.Phase4State와 동일한 규칙)
-            _finalPhaseRewindLock.Dispose();
-            if (RewindManager.Instance != null)
-            {
-                _finalPhaseRewindLock = RewindManager.Instance.AcquireRewindLock(this);
-            }
-        }
     }
 
     // 4페이즈 재시작(Boss2BrandController - 낙인 7스택 즉사 후) - 현재 페이즈 상한 체력으로 복원

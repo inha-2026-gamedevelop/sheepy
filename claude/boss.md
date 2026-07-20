@@ -1,0 +1,336 @@
+# 보스 (Azathoth) — 통합 기획 및 구현 문서
+
+> 기존 `boss-design.md` / `boss2-handover.md` / `boss2-handover-prompt-next.md` / `boss2-code-guide.md` 4개 문서를 이 문서 하나로 통합했다(2026-07-20). 위 4개 파일은 제거됨 — 보스 관련 기획/구현/디버깅 정보는 전부 이 문서를 참고한다.
+
+## 0. 개요 / 팀 분담
+
+보스는 총 4페이즈, 두 사람이 절반씩 나눠 담당하고 씬도 분리되어 있다.
+
+| 담당 | 시스템 | 페이즈 | 씬 | 네임스페이스 |
+|---|---|---|---|---|
+| 민성 | Boss1 (`BossController` 계열) | 1페이즈, 2페이즈 | `Map2` | `Minsung.Boss` |
+| 진욱 | Boss2 (신규 별도 시스템) | 3페이즈, 4페이즈 | `Jinwook/Map3` | 없음 (팀 컨벤션상 진욱 코드는 네임스페이스 미사용) |
+
+> **예외**: 4페이즈의 "공간찢기" 패턴은 Boss2(Map3) 소속이지만 **민성이 직접 구현**한다(전용 무적키 신설 등 코어 시스템 영역과 맞닿아 있어서). 4-4절 참고.
+
+- 전투는 1페이즈부터 시작해 2→3→4페이즈까지 **하나의 흐름**으로 이어진다. **전투 타이머도 1페이즈 시작부터 4페이즈까지 끊기지 않고 연속으로 기록되어야 한다.**
+- Boss2는 `Minsung.Boss.*`를 절대 수정하지 않는 별도 시스템이다. 재사용 가능한 범용 인프라(`BossHazardPool`, `DamageHazard`, `IDamageable`, `IRewindable`, `RewindManager`, `HeartPickup`)는 그대로 참조하고, `BossController`처럼 특정 타입에 고정되어 재사용 불가능한 것만 같은 이름으로 Boss2 폴더에 새로 만든다.
+
+## 1. 공통 규칙 (전 페이즈)
+
+- **보스 총 체력**: 64,000 (Boss1 쪽 수치 — 페이즈당 16,000 소모, 페이즈 하한 도달 시 피통 동결 후 종료 기믹). Boss2는 별도 독립 피통(`Boss2Health.MaxHealth`, 현재 임시값 — 4장 참고)
+- **피격 데미지**: 보스 본체 공격 = 하트 1칸, 보스 분신 공격 = 하트 반칸
+- **전투 타이머**: 되감기와 무관하게 계속 흐르는 실시간 타이머. 10분(600초) 초과 시 플레이어 즉사. **1페이즈부터 4페이즈까지 연속 기록되어야 함** (현재 구현은 이 요구사항과 어긋남 — 8장 "알려진 기술 이슈" 참고)
+- **타임 리와인드**: 되감기 시 보스 체력도 함께 되돌아간다. **4페이즈에서도 리와인드를 정상 사용할 수 있다** — 과거 "4페이즈 진입 시 리와인드 시스템 삭제" 규정은 폐기됨(2026-07-20 변경, 3장 참고)
+- 랜덤 패턴은 결정 로그로 재현하는 것이 원칙이나, 이 구현 수준은 Boss1(1~3페이즈)만 해당된다. Boss2(3~4페이즈)는 아직 결정 로그가 없어 되감기 후 패턴 타이밍이 새로 랜덤 결정된다(8장 참고).
+
+## 2. 감정 상태 (`BossEmotion` / `Boss2Emotion`, 페이즈와 별개로 공통 패턴 변조)
+
+| 감정 | 효과 |
+|---|---|
+| 검정(Black) | 모든 공격(본체+분신) 반사 |
+| 하양(White) | 플레이어 **본체** 공격만 반사 |
+| 남색(Navy) | 플레이어 **분신** 공격만 반사 |
+| 핑크(Pink) | 낙뢰 낙하 비율 x2(더 자주) |
+| 파랑(Blue) | 낙뢰 낙하 비율 x1/2(덜 자주) + 맵에 하트 1칸 회복 픽업 제공 |
+| 화남(Angry) | 3페이즈 고정 패턴(Boss1) — 10초마다 1초간 플레이어 키반전(혼란), 상태 아이콘 표시. **4페이즈도 화남 고정 유지**(신규 확정) |
+
+반사 판정은 `DamageSource`(Player/PlayerClone)로 구분. Boss2 쪽은 `Boss2Health.TakeDamage`가 부모의 `Boss2EmotionController.ReflectIfNeeded(source, attacker)`를 호출해 처리(원본 `Minsung.Boss.BossEmotionController`를 동일 로직으로 이식, 명명 규칙은 6장 참고).
+
+## 3. 낙뢰 (공통 패턴, 페이즈 무관)
+
+- 4초에 한 번씩 맵 랜덤 위치에 위에서 아래로 낙하
+- 피격 시 하트 1칸 차감 + 0.5초 이동 불가(스턴)
+- Boss1: `BossLightningPattern` / Boss2: `Boss2LightningPattern`(감정 Pink/Blue 배율 반영, 흰색 틴트 필수 — 8장 함정 참고)
+
+## 4. 페이즈별 상세
+
+### 4-1. 1페이즈 (64,000 ~ 48,000, Map2, 민성) — ✅ 구현 완료
+
+- 보스 분신 2체 등장, **각 분신은 독립 피통**(본체 총 피통과 분리, 감정 반사 규칙만 공유)
+- 분신 2체 개별 체력바 표시(보스 총 체력바 대신, 25% 구분선 없음)
+- 분신은 근접 공격, 애니메이터 모션
+- **종료 기믹(즉사 레이저)**: 분신 2체를 모두 잡으면 발동
+  1. 맵 전체 레이저를 빨강/파랑/초록 랜덤 순서로 3회 예고 발사 — 안전구역은 **슬로우모션 중에만** 표시되며 발사 시점까지만 표시
+  2. 예고 종료 5초 후 같은 순서로 실전 발사 — 해당 색 안전구역 밖에 있으면 즉사
+  3. 파훼 성공 시 보스 본체 등장(2페이즈 시작), 본체 체력바는 **75%부터** 표시(1페이즈 몫 25%를 분신이 대신 소화)
+- 즉사 판정은 x축 기둥 기준(세로 전체), 레이저 색 시퀀스는 중복 허용(연속 같은 색 가능)
+
+### 4-2. 2페이즈 (48,000 ~ 32,000, Map2, 민성) — ✅ 구현 완료
+
+- 본체(`BossBodyController`) 등장, 1페이즈 분신 근접 패턴 + 장풍(맵 아래→위 상승 해저드, 애니메이션 포함) 추가
+- **미해결 스펙 해석 이슈**: 기획 문구는 "1페이즈 분신 근접 패턴 유지"인데, 현재 구현은 `Phase1State.Exit`가 분신을 전부 비활성화하고 본체만 활성화한다. 분신을 실제로 유지할지, "본체가 같은 근접 패턴을 수행"으로 충족되는지 기획 해석 확인 필요(과거부터 미해결로 남아있던 항목)
+- **종료**: 아웃트로 영상 재생 → `GameManager.LoadSceneFadeInOnly`로 `Map3`(진욱 구역) 진입. `Map2`는 1~2페이즈만 담당하고 3~4페이즈는 `Map3`에서 별도 보스 오브젝트/DB로 진행
+
+### 4-3. 3페이즈 (Map3, 진욱) — ✅ 구현 완료 (낙인/제단은 🔧 이동 예정)
+
+- 화남(Angry) 감정 고정 + 2페이즈 패턴(근접+장풍류) 유지 + 맵을 가로지르는 레이저 추가
+- 레이저: 발사 전 1.5초 빨간 점멸 경고 → 1초 발사. 시작 방향/도착 지점 랜덤(현재 좌→우 고정, 높이만 랜덤 — 정지 빔이라 게임플레이 차이는 없음)
+- Boss2 본체는 **부유체**(중력 없음, Kinematic Rigidbody2D + 코드로 위치 직접 제어) — 이동 로직은 5장 참고
+- **낙인 / 정화 제단 (2026-07-20, 4페이즈에서 이동)**: 3페이즈 시작(보스 스폰) 시점부터 10초마다 낙인 스택 +1. **7스택 도달 시 즉사("낙인사") + 3페이즈 재시작**(체력/위치 리셋). 제단(`Altar`)이 30초마다 맵 바닥 랜덤 위치에 출현, E키 3초 홀드로 스택 0 초기화. 보스가 제단에 닿으면 제단 소멸(스포너가 재소환). **4페이즈 진입 시 이 시스템은 완전히 정지**한다(스택 증가도, 제단 소환도 멈춤 — 4페이즈에는 낙인 기믹이 없음)
+- **낙인 폭발 (낙인 스택 연동 광역판정)**: 스택 3 / 5 / 7 도달 시 각 1회, 보스 자신의 위치를 중심으로 광역 판정 발동. 구현은 `Boss2WavePattern`의 폭발 에셋(`boss2_fx_explosion-sheet0.png`) 재사용, 랜덤 위치 대신 보스 자기 위치 중심 + 넓은 반경. 스택 7 임계치는 낙인사와 동시 발동(판정 겹쳐도 무해)
+
+### 4-4. 4페이즈 (Map3, 진욱) — 🔧 구현 진행 중, 기획 확정(2026-07-20)
+
+**정책**
+
+- 화남(Angry) 감정 고정 유지(10초마다 1초 키반전)
+- **타임리와인드 잠금 없음** — 4페이즈에서도 리와인드 정상 사용 가능(과거 규정 폐기). `Boss2Health.AdvancePhase()`의 `RewindManager.AcquireRewindLock()` 잠금 로직 제거 완료(2026-07-20)
+- **사망/리스폰**: 최종 목표는 4페이즈 사망 시 Map2의 리스폰 지점에서 재시작. **개발 완료 전까지는 임시로 현재처럼 맵 안에서 즉시 부활 유지.** 체력(피통) 수치는 테스트하며 확정
+- **보스 사망(처치) 연출**: 미확정, 별도 논의 예정
+
+**신규 패턴 3종** (기존 3종 낙뢰/강타/레이저에 전부 추가, 대체 아님. 낙인/제단은 3페이즈로 이동했으므로 4페이즈엔 없음 — 4-3절 참고)
+
+| 패턴 | 쿨타임 | 담당 | 내용 |
+|---|---|---|---|
+| 손아귀 | 20초, 50% 확률로 시전 | 진욱 | 하트 1.5칸 피해. 보스 팔에 붙잡히는 모션 → 2초간 포박 → 공중으로 투척 |
+| 공간찢기 (즉사기) | **체력 10% 도달 시 1회만** (2026-07-20 확정 - 기존 "쿨타임 1분 20초" 주기 패턴안은 폐기) | **민성** | **패턴배너로 사전 예고**("보스보다 시간을 느리게 하여 보스의 패턴을 막아보세요!") → 맵 흑백 전환 + 슬로우 → 5방향 돌진 경로(선)를 미리 보여줌 → 실제 5회 연속 돌진. **파훼: 신설 전용 무적키**로 충돌 순간 회피(로스트아크 카멘 4관문 '영전' 패턴 참고, Shift 슬로우모션과는 별개의 새 키) |
+| 원혼방출 | 1분 | 진욱 | **패턴배너로 사전 예고**("혼돈의 구역에서 보스의 악기가 곧 흘러넘쳐 방출될 것 같다.") → 맵 3곳 중 1곳에 즉사 구역 설치. 해당 구역에 있으면 모든 방어/무적 무시하고 즉사(메이플스토리 카링 Spirit Overflow 패턴 참고) |
+
+공간찢기는 4페이즈(Map3, Boss2) 소속 패턴이지만 **민성이 구현**한다(0장 예외 참고) — Boss2 쪽(`Boss2AttackPatterns`, 4페이즈 진입 트리거, 패턴배너 예고 타이밍)과의 연동 지점은 협의 필요.
+
+**공간찢기 상세 설계 (2026-07-20 확정)**
+
+- **트리거**: 4페이즈 진입 후 `Boss2Health.CurrentHealth`가 `MaxHealth`의 10%에 처음 도달하는 순간 딱 1회만 발동한다. 발동 즉시 체력을 10% 지점에서 **동결**(더 이상 데미지가 안 먹힘) - 5회 돌진 시퀀스가 끝날 때까지 유지
+- **처치 조건**: 동결은 영구가 아니다. 시퀀스가 끝나면(생존 성공/실패 무관) 동결이 풀리고, 그 뒤로 다시 정상적으로 데미지가 들어가야 남은 체력을 마저 깎아 처치할 수 있다 - "생존 = 즉시 승리"가 아니라 "생존해야 마무리 타격을 넣을 기회가 생기는" 구조
+- **5회 돌진 구성**: 총 5개 라인을 동시에 예고 표시한 뒤 순서대로 5회 연속 돌진한다
+  - 4개는 **시작점/종료점을 민성이 직접 지정**(씬/인스펙터에 좌표로 배치, 로스트아크 영전처럼 아레나를 가로지르는 고정 선)
+  - 나머지 1개는 **반드시 플레이어를 향함** - 시작점은 보스의 (돌진 시퀀스 시작 시점) 위치, 종료점은 그 시점 플레이어 위치로 고정한 직선
+- **파훼**: 각 돌진의 충돌 판정은 즉사(`DamageHazard._instantKill`) - 이 판정에 맞기 직전 전용 무적키(위 항목)로 회피해야 한다
+
+**전용 무적키 (2026-07-20 구현, `Minsung.Player`)** — 공간찢기 파훼용 키 자체를 패턴과 분리해 먼저 구현. 기본 키는 상호작용키(E)와 동일(`Constants.Player.KEY_DODGE_INVINCIBLE`), 무적 지속 1초(`PlayerDataSO.DodgeInvincibleDuration`) + 쿨타임 30초(`PlayerDataSO.DodgeInvincibleCooldown`, 발동 즉시부터 카운트 - 무적 종료 후 대기 아님). `PlayerHealth.RequestDodgeInvincible()`이 쿨타임 중이면 무시하고, 아니면 `_isDodgeInvincible`(피격 후 자동 무적 `_isInvincible`과 별도 플래그)을 켜 `TakeDamageHalves`를 차단한다. `PlayerInput.HandleInput()`이 키 입력을 받아 호출.
+
+**중요 - `Kill()`과의 상충 (2026-07-20 발견, 수정 예정)**: `DamageHazard._instantKill`은 `PlayerHealth.Kill()`을 직접 호출하는데, `Kill()`은 설계상 모든 무적 가드(`_isInvincible`/`_isDodgeInvincible`)를 무시한다(보스전 타이머 초과 같은 "절대 즉사" 용도로 의도된 것). 공간찢기 돌진 판정도 결국 `_instantKill` 경로를 타므로, **지금 상태로는 전용 무적키가 공간찢기를 전혀 막지 못한다.** `DamageHazard`의 즉사 분기가 `PlayerHealth.IsDodgeInvincible`을 먼저 확인하도록 한 곳만 고치면 해결(다른 즉사 호출부는 영향 없음, `Kill()` 자체는 그대로 유지). 아래 8-1 구현 계획의 1번 항목.
+
+**패턴배너는 새로 안 만든다**: `Minsung.UI.BossBannerUI`(`_bannerObject`/`_bannerText`/`_fadeDuration`만 갖는 순수 텍스트+페이드 컴포넌트, `BossController` 타입 의존 없음)를 Boss2에서 `using Minsung.UI;`로 그대로 참조하면 된다 - 명명 충돌도 없다(Boss2가 동명 클래스를 만드는 게 아니라 기존 타입을 소비만 하므로 5-1절의 "이름 충돌" 규칙과 무관). 기존에 예정했던 "Boss1 배너를 이식" 작업 자체가 불필요해짐 - 아래 8-1 TODO에서 제거.
+
+**구현 계획 (코드 레벨, 미착수)**
+
+1. `DamageHazard` - 즉사 분기에 `IsDodgeInvincible` 체크 추가 (위 "Kill()과의 상충" 항목)
+2. `Boss2Health` - 10% 도달 1회 동결(`_spaceTearActive`) + `OnSpaceTearTriggered` 이벤트 + 시퀀스 종료 후 풀어주는 `EndSpaceTearFreeze()`
+3. `BossFloatMovement` - 범용 "스크립트 돌진"(지정 시작점 순간이동 → 지정 종료점까지 등속 직선 이동) 추가, 기존 몸통박치기(`CoBodySlam`) 로직은 그대로 두고 별도 경로로 구현
+4. 신규 `Boss2SpaceTearPattern`(기존 낙뢰/장풍/레이저와 동일한 순수 C# 패턴 클래스, `Boss2AttackPatterns`가 소유) - 배너 예고 → 화면 채도 인하(흑백) + 슬로우 → 5개 라인 텔레그래프(`BossHazardPool`의 회전 사각형 재사용) → 5회 연속 스크립트 돌진(즉사 판정) → 정리 + 화면/슬로우 복귀 + `Boss2Health.EndSpaceTearFreeze()`
+5. 4개 프리셋 라인의 시작/종료 좌표는 `Boss2AttackPatterns` 인스펙터에 빈 배열 슬롯으로 노출 - 실제 좌표는 나중에 직접 채움. 타이밍(텔레그래프 길이/돌진 속도/간격)은 기존 관례대로 임시 기본값 + TODO 주석, 실측은 추후
+
+## 5. Boss2 구현 구조 (스크립트 / 씬 / 코드 흐름 — 디버깅 참고)
+
+### 5-1. 스크립트 위치
+
+```
+Assets/01.Scripts/03.Boss/Boss2/
+├── BossFloatMovement.cs      # 이동 전체 (배회/추적/돌진)
+├── Boss2Health.cs            # 체력 (IDamageable) + 페이즈 전환(3->4) + 감정 반사 판정 위임
+├── BossHealthBarUI.cs        # 체력바 UI (Minsung.UI.BossHealthBarUI와 동명, 네임스페이스만 다름)
+├── Boss2AttackPatterns.cs    # 원거리 패턴 3종 + 감정 코디네이터
+├── Boss2LightningPattern.cs / Boss2WavePattern.cs / Boss2LaserPattern.cs  # 낙뢰/강타/레이저
+├── Boss2Emotion.cs / Boss2EmotionController.cs / Boss2EmotionHUD.cs      # 감정 이식(명명 규칙은 아래 참고)
+├── Boss2BrandController.cs   # 3페이즈 "낙인" 스택 시스템 (10초마다 +1, 7스택 즉사+재시작, 4페이즈 진입 시 정지)
+├── Boss2AltarInteractive.cs  # 낙인 정화 제단 - E키 홀드 상호작용 (BaseInteractive/IHoldInteractable 재사용)
+├── Boss2AltarSpawner.cs      # 제단 주기 소환 코디네이터
+└── Boss2BrandCountUI.cs      # 플레이어 머리 위 낙인 카운트 UI
+
+Assets/01.Scripts/00.Common/Data/
+└── Boss2DataSO.cs            # Boss2 전용 밸런싱 DB (GameDatabaseSO 트리에는 미연결, 컴포넌트에 직접 드래그)
+```
+
+- 새 `*DataSO`는 전부 `00.Common/Data/`에, 나머지 Boss2 스크립트는 `03.Boss/Boss2/`에 둔다(팀 규칙).
+- **명명 규칙 — 이름 충돌 주의**: `Minsung.Boss` 타입과 완전히 같은 이름으로 무네임스페이스 클래스를 만들면, `using Minsung.Boss;`로 그 타입을 참조하는 다른 네임스페이스 파일(예: `Minsung.UI.BossEmotionIconTooltip.cs`)과 실제 컴파일 충돌(`CS0029`)이 난다 — 전역 네임스페이스가 `using` 지시문보다 이름 해석 우선순위가 높기 때문. `BossEmotionController`로 만들었다가 이 문제로 `Boss2EmotionController`로 개명한 사례가 실제로 있었다. **새 Boss2 클래스가 Minsung.Boss 타입과 동명이면, 먼저 다른 네임스페이스 파일이 `using Minsung.Boss;` + 그 이름을 참조하는지 확인하고, 있으면 `Boss2` 접두사를 붙인다.**
+
+### 5-2. 씬 구성 (`Map3.unity`)
+
+```
+Boss (Rigidbody2D Kinematic, BossFloatMovement, Boss2AttackPatterns,
+      Boss2EmotionController(런타임 AddComponent), Boss2EmotionHUD)
+├── AttackHitBox   (BoxCollider2D Trigger + Minsung.Boss.DamageHazard, 평소 비활성 - 돌진 중에만 켜짐)
+├── Visual         (SpriteRenderer + Animator -> Boss2.controller)
+├── HitCenter      (BoxCollider2D Trigger + Boss2Health) — 시각적 중심(오프셋 0.34,1.07)에 배치
+└── ReflectIcon    (SpriteRenderer, 머리 위 반사 아이콘)
+
+Altar[OFF]  (Boss와 형제, Layer: Interactable, BoxCollider2D Trigger + Boss2AltarInteractive, 기본 비활성)
+├── Visual   (SpriteRenderer, altar.png)
+└── HoldUI[OFF]  (World Space Canvas + Slider - E키 홀드 진행도)
+
+GameHUD (프리팹 인스턴스)
+├── BossUI/BossHealthBar[ON]  (Slider + BossHealthBarUI, PhaseNotch_2만 활성 = 2분할)
+│   └── EmotionIcon            (감정 아이콘, 좌하단)
+├── BossUI/BossTimer[ON]       (Minsung.UI.BossTimerUI 그대로 재사용)
+└── PlayerHUD/Hearts
+
+Player/HUD_Player (월드스페이스 캔버스, Player 자식)
+└── Panel_BrandCount[ON] -> Visual_BrandCount[OFF] (4P 진입 시 표시) -> Img_Count / Text_BrandCount("n/7")
+```
+
+- `Boss` 루트의 `BoxCollider2D`는 반드시 **Trigger**(non-trigger면 플레이어를 물리적으로 밀쳐냄).
+- `HitCenter`를 따로 둔 이유: 콜라이더가 `Boss` 루트에 있으면 오브 공격이 `hit.transform`(=루트 피벗, 시각적으로 턱 근처)으로 날아가는 버그가 있었음 — 시각적 중심으로 분리해서 해결.
+
+### 5-3. 오브젝트/컴포넌트 관계
+
+```mermaid
+graph TD
+    subgraph "Boss (Rigidbody2D Kinematic)"
+        BFM[BossFloatMovement 이동/돌진]
+        BAP[Boss2AttackPatterns 원거리 패턴 코디네이터]
+    end
+    subgraph "Boss/AttackHitBox"
+        DH1["Minsung.Boss.DamageHazard (재사용)"]
+    end
+    subgraph "Boss/HitCenter"
+        B2H[Boss2Health IDamageable+IRewindable]
+    end
+    BFM -- "_attackHitBox 참조, 돌진 중 SetActive(true)" --> DH1
+    BAP -- "new (생성자 주입)" --> LP[Boss2LightningPattern]
+    BAP -- "new" --> WP[Boss2WavePattern]
+    BAP -- "new" --> LZ[Boss2LaserPattern]
+    LP & WP & LZ -- "재사용" --> POOL["Minsung.Boss.BossHazardPool"]
+    POOL -- "판정 있는 슬롯엔" --> DH2["Minsung.Boss.DamageHazard (재사용)"]
+    Player["Player.PlayerOrbs / AttackHitbox"] -- "OverlapCircle, hit.transform=HitCenter" --> B2H
+    DH1 & DH2 -- "OnTriggerEnter2D" --> PlayerHealth["Minsung.Player.PlayerHealth"]
+    RM["Minsung.TimeSystem.RewindManager (싱글톤)"] -- "Register/RecordTick/ApplyRewindTick/OnRewindEnd" --> BFM
+    RM --> B2H
+    RM --> BAP
+```
+
+`Boss2*` 클래스들은 서로 직접 참조하지 않는다. 전부 `Boss2DataSO`를 통해서만 간접적으로 엮여 있고, `RewindManager`/`BossHazardPool`/`DamageHazard`/`IDamageable` 같은 Minsung 쪽 공용 인프라를 소비만 한다.
+
+### 5-4. 이동 (`BossFloatMovement.cs`) — 좌표 변수 정리
+
+| 변수 | 의미 | 언제 바뀌나 |
+|---|---|---|
+| `_baseX`, `_baseY` | 지금 서 있다고 치는 기준 위치 | `MoveTowardWaypoint()`(배회) 또는 `UpdateCharge()`(돌진)에서 매 틱 |
+| `_origin` | 배회 반경의 중심, 플레이어를 서서히 추적 | `FollowTarget()`에서 매 틱 아주 조금씩 |
+| `_waypoint` | 지금 걸어가는 목표 지점(`_origin` 반경 안 랜덤) | `CoRoamLoop()`가 도착마다 새로 뽑음 |
+| `_chargeTarget` | 돌진 시작 순간 스냅샷 목표 | `CoBodySlam()` 시작 시 1회 |
+| 최종 렌더 위치 | `_baseX/_baseY` + 사인파 흔들림 | `FixedUpdate()` 매 틱 |
+
+즉 "어디를 중심으로 배회할지"(`_origin`) → "그 반경 안에서 지금 어디로 가는지"(`_baseX/_baseY`) → "그 자리에서 살짝 흔들림"(최종 위치) 3단계. 위치가 이상하면 이 세 단계 중 어디가 문제인지 나눠서 볼 것.
+
+`FixedUpdate()`: `_isRewinding`이면 아무것도 안 함 → `_isCharging`이면 `UpdateCharge()`만 → 평상시엔 `FollowTarget()` + `MoveTowardWaypoint()` + 흔들림 → `ClampHeightCeiling()` → `_rb.MovePosition()`.
+
+리와인드 시 `StopMovementLoops()`로 코루틴 정지, 종료 시 새로 시작(진행 중이던 배회 목적지/돌진은 사라지고 되감긴 위치에서 완전히 새로 시작 — "위치"만 되감기고 "무엇을 하고 있었는지"는 재현 안 됨).
+
+### 5-5. 시나리오별 코드 흐름
+
+**오브 공격 명중**: `PlayerOrbs.TryAttackNearest()` → `OverlapCircle`로 `IDamageable` 탐색(`hit.transform` = `HitCenter`) → `OrbController.CoAttack()` → `Boss2Health.TakeDamage()` → `OnHealthChanged` → `BossHealthBarUI.Redraw()`
+
+**몸통박치기**: `CoChargeLoop()` 쿨다운+거리 조건 통과 → `CoBodySlam()`: `_chargeTarget` 스냅샷 → 예고 정지(`ChargeTelegraphTime`) → `_isCharging=true`+히트박스 활성 → 등속 돌진 → 도달/시간초과 시 히트박스 비활성. 실제 피해 판정은 `DamageHazard`(재사용)가 전담.
+
+**R키 되감기 전체 체인**:
+```
+RewindManager.StartRewind()
+  → 모든 IRewindable.OnRewindStart() 방송(역순)
+      BossFloatMovement(코루틴 정지) / Boss2Health(_isRewinding=true) / Boss2AttackPatterns(패턴 3종 Stop())
+  → 매 프레임 ApplyRewindTick(역순, 인덱스 감소)
+      BossFloatMovement(위치 복원) / Boss2Health(체력 복원)
+  → FinishRewind() → 모든 IRewindable.OnRewindEnd(0) 방송(역순)
+      BossFloatMovement(코루틴 재시작) / Boss2Health(_isRewinding=false) / Boss2AttackPatterns(패턴 재시작)
+```
+
+**중요 — `RewindManager`의 이 방송 루프엔 예외 처리가 없다.** 등록된 리와인더 중 하나가 `OnRewindEnd` 안에서 예외를 던지면, 그 뒤 순서로 등록된 리와인더는 콜백 자체를 못 받는다. 실제로 Map3에 `ClonePool`이 없어서 `PlayerRewind.OnRewindEnd()`가 예외를 던졌고, 그 여파로 뒤에 등록된 `Boss2Health` 등이 `OnRewindEnd`를 못 받아 체력이 안 풀리는 버그가 있었다(현재는 Map3에 `ClonePool` 배치로 해결됨 — Map3 전체에 영향 있던 버그였지 Boss2 전용 이슈는 아니었음).
+
+### 5-6. 페이즈 전환(3→4) 로직 — `Boss2Health.cs`
+
+별도 FSM/State 클래스 없이 전부 `Boss2Health.cs`에 있음(페이즈별 상태 클래스를 새로 만들 정도로 복잡하지 않다고 판단):
+
+- `TakeDamage`가 데미지 적용 후 `_currentHealth <= PhaseFloorHealth`이고 마지막 페이즈가 아니면 `AdvancePhase()` 호출
+- `AdvancePhase()`: `++_phaseIndex` → `OnPhaseChanged` 이벤트 발행 (4페이즈 리와인드 정책 변경에 따라 `RewindManager.AcquireRewindLock()` 잠금 로직은 제거됨, 2026-07-20)
+- `PhaseFloorHealth`/`PhaseCeilHealth`는 `_phaseIndex` 기준 계산식이라 페이즈 전환 시 자동 재계산(하한 도달 즉시 그 프레임 잔여 데미지는 새 하한까지 클램프, 다음 히트부터 새 구간 적용 — 원본 `BossController.TakeDamage`와 동일 방식)
+- `OnPhaseChanged`는 현재 아무도 구독하지 않는 훅 — 앞으로 두 방향으로 연결되어야 함: (1) `Boss2BrandController`가 이 이벤트로 4페이즈 진입을 감지해 **낙인 루프를 정지**(현재는 반대로 "감지해서 시작"하도록 되어 있어 로직 반전 필요, 8장 참고), (2) 4페이즈 전용 신규 패턴(손아귀/공간찢기/원혼방출) 시작 트리거
+
+## 6. UI
+
+- **Player 하트**: `Minsung.Player.PlayerHeartUI` 그대로 재사용(수정 없음)
+- **Boss 체력바**: `Minsung.UI.BossHealthBarUI`는 필드 타입이 `Minsung.Boss.BossController`로 고정돼 재사용 불가 → 동일 이름의 무네임스페이스 클래스를 Boss2 폴더에 신규 작성, `Boss2Health` 구독. 페이즈 노치는 `PhaseNotch_2`(50%)만 남겨 2분할
+- **BossTimer[ON]**: `Minsung.UI.BossTimerUI` 수정 없이 재사용. 현재 `Boss2AttackPatterns.Start()`(보스 스폰 시점)에서 `GameManager.StartBossTimer()`를 독자 호출 — **8장 이슈 목록 참고(타이머 연속성 요구사항과 충돌)**
+- **낙인 카운트**: `Boss2BrandCountUI`가 `PlayerInteractionSensor`의 "머리 위 고정" 기법을 본떠 `LateUpdate`에서 플레이어 오프셋 위치를 매 프레임 재적용
+
+## 7. 검증 상태 (Unity MCP Play 모드, 지금까지 확인된 것)
+
+- [x] 배회/추적/높이 제한 — 위치 샘플링
+- [x] 몸통박치기 — 플레이어 하트 12→6 하프하트 차감
+- [x] Rigidbody2D interpolation — 추가 후 재확인(처음엔 Rigidbody2D 자체가 없어 무의미했음)
+- [x] `Boss2Health.TakeDamage` — 리플렉션 + 실제 오브 공격 양쪽 확인
+- [x] 오브 공격이 `HitCenter`에 명중 — 위치 비교로 확인
+- [x] Player/Boss HP UI 렌더링 — 스크린샷
+- [x] 낙뢰/강타/레이저 스폰 및 판정, 낙뢰 색상 수정
+- [x] 리와인드 — 체력 5000→3500 데미지 후 되감기로 5000 완전 복원, `_isRewinding` 정상 해제, 배회 이동 재개까지 확인
+- [x] `BossTimer[ON]` UI 이식 + 시작/정지 트리거
+- [x] 보스 감정(`Boss2Emotion`) 이식 — 반사(Black/White/Navy)/낙뢰 배율(Pink/Blue)/키반전(Angry)/HUD 아이콘 2종. 하트 픽업(Blue)은 씬에 `HeartPickup` 인스턴스가 없어 미검증(Boss1도 동일 상태)
+- [x] 페이즈 전환(3→4) — `MaxHealth=2`로 낮춰서 하한 도달→전환→데미지 계속 적용→처치까지 확인(리와인드 잠금 개수 1로도 확인 — 단, 이 잠금은 제거 예정)
+- [x] 낙인/제단 — 코루틴 자동 시작, UI 갱신, `PlayerInteractionSensor` 감지(레이어 수정 후), 3초 홀드 정화, 보스 접촉 시 소멸+재소환, 즉사 시 낙인 0+체력/위치 복원까지 확인. **단, 이 검증은 "4페이즈 진입 시 시작" 트리거로 테스트된 것 — 3페이즈로 이동(8장) 후 트리거 시점이 바뀌므로 재검증 필요**
+- [ ] 손아귀 / 공간찢기 / 원혼방출 — 패턴 자체는 미구현. 공간찢기 파훼용 전용 무적키(입력/무적/쿨타임)만 먼저 구현·컴파일 확인 완료 - Play 모드 실측 및 패턴 연동은 대기. 상세 설계는 4-4절, 구현 계획은 8-1절 참고
+- [x] ~~패턴배너(Boss2)~~ — 별도 구현 불필요로 판명(4-4절 "패턴배너는 새로 안 만든다" 참고), `Minsung.UI.BossBannerUI` 직접 재사용
+
+**주의**: 테스트 중 Unity 에디터가 **Pause 상태**에서는 코루틴이 진행되지 않아 "공격해도 안 맞는다"처럼 보인 사례가 있었음 — 재현되면 이것부터 확인.
+
+## 8. 알려진 기술 이슈 / TODO
+
+### 8-1. 지금 반영해야 할 것 (이번 세션 결정)
+
+- [x] **타임리와인드 잠금 코드 제거** (2026-07-20) — `Boss2Health.AdvancePhase()`의 `RewindManager.AcquireRewindLock(this)` 호출부 및 `OnDestroy`의 `Dispose` 제거. 4페이즈 리와인드 정책 변경(사용 가능으로 전환)에 따른 후속 조치. `dotnet build Assembly-CSharp.csproj` 통과, Unity MCP 미연결로 Play 모드 실측은 대기
+- [x] **전용 무적키 입력/무적/쿨타임 구현** (2026-07-20) — 4-4절 "전용 무적키" 참고. 공간찢기 패턴 자체와의 연동은 별도(아래 항목)
+- [ ] **낙인/제단 시스템을 3페이즈로 이동** — 현재 코드는 `Boss2BrandController`가 `Boss2Health.OnPhaseChanged`로 **4페이즈 진입**을 감지해 스택 코루틴을 시작한다(트리거가 반대). 3페이즈 시작(보스 스폰) 시점부터 시작하고, `OnPhaseChanged`로 4페이즈 진입을 감지하면 **정지**하도록 로직을 반전해야 함. 7스택 즉사 시 리셋 대상도 "3페이즈 시작" 기준으로 맞춰야 함(`Boss2Health.ResetToPhaseStart()`가 `_phaseIndex` 기준이라 자연히 따라가지만, 트리거 시점 자체가 바뀌므로 재검증 필요)
+- [x] ~~패턴배너 Boss2 이식~~ — 불필요로 판명. `Minsung.UI.BossBannerUI`가 `BossController` 타입에 의존하지 않는 순수 텍스트+페이드 컴포넌트라 Boss2에서 `using Minsung.UI;`로 그대로 참조 가능(4-4절 참고)
+- [ ] **손아귀 / 원혼방출 신규 구현** (진욱) — 4장 표 참고
+- [ ] **공간찢기 신규 구현** (민성 담당) — 상세 설계 확정(4-4절: 체력 10% 1회 트리거, 동결→재타격 필요, 4개 프리셋+1개 대상지정 총 5회 돌진). 구현은 다음 5단계로 진행 예정:
+  1. [ ] `DamageHazard` 즉사 분기에 `PlayerHealth.IsDodgeInvincible` 체크 추가 (전용 무적키가 실제로 즉사를 막도록)
+  2. [ ] `Boss2Health`에 10% 도달 1회 동결(`_spaceTearActive`) + `OnSpaceTearTriggered` 이벤트 + `EndSpaceTearFreeze()`
+  3. [ ] `BossFloatMovement`에 범용 스크립트 돌진(지정 시작점→종료점 등속 이동) 추가, 기존 `CoBodySlam`은 유지
+  4. [ ] 신규 `Boss2SpaceTearPattern`(순수 C# 클래스, 낙뢰/장풍/레이저와 동일 구조) - 배너 예고→흑백/슬로우→5라인 텔레그래프→5회 돌진(즉사 판정)→정리+동결 해제
+  5. [ ] `Boss2AttackPatterns`에 4개 프리셋 라인 좌표 인스펙터 슬롯 추가(값은 추후 직접 입력), 타이밍 값은 임시 기본값+TODO로
+
+### 8-2. 알려진 이슈 — 지금 당장은 안 고침(추후 이어받기)
+
+- [ ] **전투 타이머 연속성 불일치** — 현재 `Boss2AttackPatterns.Start()`가 Map3 진입 시 `GameManager.StartBossTimer()`를 독자적으로 새로 호출한다("보스 스폰 == 전투 시작"으로 단순화했던 것). 이는 "1페이즈부터 4페이즈까지 타이머가 연속 기록되어야 한다"는 요구사항과 충돌 — Map2→Map3 전환 시 타이머를 새로 시작하지 않고 이어받도록 고쳐야 함. **당장 수정하지 않음, 추후 작업.**
+
+### 8-3. 기존 미해결 항목 (밸런싱/에셋/폴리싱)
+
+- [ ] 결정 로그 기반 정밀 리와인드 — 지금은 위치/체력만 되감기고, 배회 웨이포인트·돌진 타이밍·낙뢰/강타/레이저 발사 시점·감정 전환 커서는 되감기 후 새로 랜덤 결정됨
+- [ ] `Boss2Health.MaxHealth`(현재 테스트값 `2`, 실제 `5000`) 등 임시값 전체 밸런싱 — **테스트하면서 확정할 예정, 지금 되돌리지 않음**
+- [ ] `Boss2DataSO.AltarSpawnInterval`(현재 테스트값 `5초`, 실제 `30초`) — 위와 동일하게 테스트용으로 유지 중
+- [ ] 사망 연출/처치 처리 (`Boss2Health.OnDefeated` 훅만 있고 실제 연출 없음) — `StopBossTimer()`는 연결됨
+- [ ] 피격 리액션(넉백/플래시 등) — 현재는 체력만 깎임
+- [ ] Idle 애니메이션만 있음(Run/Attack/Hit/Death 등 미구현, `Boss2.controller`에 State 추가 필요) — 4페이즈 진입 시 "Scream" 애니메이션 교체도 이 작업에 종속
+- [ ] 아레나 경계 값(`-10~10`, `y=-3`) 실제 Map3 스테이지 크기에 맞춰 재조정
+- [ ] `AttackHitBox`/`HitCenter` 콜라이더 크기·오프셋 정밀 조정
+- [ ] `HeartPickup` 씬 미배치 — Blue 감정 하트 픽업이 no-op(Boss1도 동일 상태, 배치하면 바로 동작)
+- [ ] 낙인사 즉사 순간 전용 연출 없음(`Boss2BrandController.CoBrandLoop` TODO 훅만 존재) — 4장에서 "몸에 낙인이 뒤덮는 로컬 이펙트(2~3초, 카메라 연출 없음) → 암전 유지 상태에서 리셋 → 페이드인" 순서로 기획 확정됨, 구현 대기
+- [ ] 제단 홀드 진행 UI(`HoldUI`)가 기본 Slider 스타일 그대로 — 아트 미적용
+- [ ] `Panel_BrandCount` 크기/폰트/위치 폴리싱 필요
+- [ ] 4페이즈 사망 시 복귀 위치 — 최종적으로 Map2 리스폰 지점(`RespawnPoint` `IsBossReturnPoint=true`) 필요, 개발 완료 전까지는 맵 내 즉시 부활 유지(4장 참고, 보류 확정)
+- [ ] 낙인 틱 코루틴에 결정 로그 없음 — 다만 4페이즈는 리와인드 재현이 필수는 아니라 실질적 문제 없음(스택은 리와인드해도 그대로 흐름, 4페이즈 재시작 시에도 코루틴 자체는 멈추지 않고 스택만 리셋)
+- [ ] `BossDataSO.CloneCount`(Boss1) 미참조 정리 — 실제 분신 수는 씬 배치가 결정, SO 값과 어긋날 수 있음
+- [ ] 2페이즈 종료 연출(화면 흔들림+ScreenFade+BGM 전환) — 전환 골격은 있음, 연출만 미완
+- [ ] 보스 입장 연출(ScreenFade+BGM 전환, AudioManager 연동 — 카메라 줌아웃은 구현 완료)
+- [ ] 닉네임 등록/클리어 타임 제출/랭킹 조회/네트워크 Fallback (Backend 클리어 연동) — 보스와 직접 연결되나 백엔드 별도 작업
+
+### 8-4. 방향 협의 필요 (구현 방식 미확정)
+
+- [ ] 보스 이펙트(후광/잔상 등) 비주얼 꾸미기
+- [ ] 보스 근접 공격 패턴 추가(현재 돌진 1종뿐 — 손아귀 신규 구현이 사실상 이 항목의 답이 될 수 있음)
+
+## 9. 자주 나는 함정 체크리스트
+
+| 증상 | 원인 후보 | 확인할 곳 |
+|---|---|---|
+| 보스가 안 움직인다 | `_dataSo` 미연결 | `BossFloatMovement` 인스펙터의 `_dataSo` |
+| 보스가 뚝뚝 끊겨 보인다 | `Rigidbody2D` 없거나 `interpolation` 꺼짐 | 인스펙터, `Awake()` 정상 실행 여부 |
+| 오브 공격이 이상한 위치에 맞는다 | 콜라이더가 `HitCenter`가 아닌 다른 오브젝트에 있음 | `HitCenter`의 `BoxCollider2D`/`Boss2Health` 존재 여부 |
+| 플레이어가 보스한테 밀린다 | `Boss` 루트 `BoxCollider2D.isTrigger` 꺼짐 | `Boss`의 `BoxCollider2D` |
+| 공격해도 반응이 없다 | **Unity 에디터가 Pause 상태**(제일 흔함) | 에디터 상단 Pause 버튼 |
+| 낙뢰가 이상하게 보인다 | `_lightningColor`가 흰색이 아님(스프라이트 원색과 곱해짐) | `Boss2DB.asset` 인스펙터 |
+| 되감기 후 체력/위치가 안 풀린다 | 되감기 브로드캐스트 중 다른 곳(Player 등)에서 예외 발생 → 뒤 순서 리와인더가 콜백을 못 받음 | 콘솔 에러, 5-5절 참고 |
+| 새로 만든 컴포넌트를 다른 컴포넌트가 못 찾는다 | 같은 오브젝트 위 여러 컴포넌트의 `OnEnable` 순서는 Unity가 보장 안 함 | 동적으로 참조돼야 하는 컴포넌트는 `Awake()`에서 생성, 참조/구독 쪽은 `Start()`에서(둘 다 `Boss2EmotionController`/`Boss2EmotionHUD`에서 실제로 겪은 버그) |
+| 상호작용 오브젝트가 감지 안 됨 | 레이어가 `Interactable`이 아님(`PlayerInteractionSensor._itemLayer`와 다름) | 새 상호작용 오브젝트를 만들 때 항상 확인 |
+| 투명 여백 있는 스프라이트가 허공에 떠 보인다 | 피벗이 슬라이스 사각형 중심 기준(`sprite.bounds`는 신뢰 불가) | 실제 알파 콘텐츠 기준으로 `spritePivot` 재계산 필요 |
+| Play 모드 중 조정한 값이 정지 후 사라진다 | Unity 정상 동작(런타임 씬 변경은 저장 안 됨) | 에디트 모드에서 같은 값 재적용 후 저장 |
+| 리셋 직후 위치를 읽으면 이전 값이 보인다 | `Rigidbody2D.interpolation`이 렌더 동기화를 다음 프레임으로 미룸(테스트 방법론 문제, 실제 버그 아님) | 다음 tool 호출(프레임 경과) 후 재확인 |
+| Idle 말고 다른 애니메이션이 안 나온다 | `Boss2.controller`에 State가 Idle 하나뿐(의도된 미구현 상태) | `Assets/07.Animator/Boss2/Boss2.controller` |
+| 몸통박치기가 안 나간다 | `ChargeCooldown`(기본 6초) 안 지났거나 플레이어가 `ChargeRange` 밖 | `Boss2DB.asset` |
+
+## 10. 팀 협업 원칙 (반복 강조)
+
+- `Minsung.*` 네임스페이스 코드는 **절대 수정하지 않는다.** 재사용 가능하면 그대로 참조, 안 되면 Boss2 폴더에 동일한 이름(또는 충돌 시 `Boss2` 접두사)으로 새로 만든다.
+- Boss2 관련 신규 `*DataSO`는 전부 `Assets/01.Scripts/00.Common/Data/`에, 나머지 스크립트는 `Assets/01.Scripts/03.Boss/Boss2/`에 둔다.
+- 코드 작성 후 적용 전에 먼저 보여주고, 사용자가 확인하면 적용(작은 버그 수정은 바로 적용 가능).
+- Unity 작업은 UnityMCP로 직접: 컴파일 확인 → 씬 GameObject/컴포넌트 wiring → Play 모드 진입 후 `execute_code`(리플렉션)나 스크린샷으로 실동작 검증 → 저장. `.unity` 씬 파일을 텍스트로 직접 손대지 않는다.
+- 커밋은 사용자가 직접 진행 — 먼저 나서서 커밋하지 않는다.

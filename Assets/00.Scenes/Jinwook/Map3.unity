@@ -74469,7 +74469,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 2.4
+  orthographic size: 7.163289
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -74494,7 +74494,7 @@ Transform:
   m_GameObject: {fileID: 1936869355}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -5.689999, y: -0.5, z: -6}
+  m_LocalPosition: {x: 0.79678476, y: -1.6353465, z: -14.389551}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -80153,8 +80153,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 0/7
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: e6338b5254511d04799bc3d183d2e570, type: 2}
+  m_sharedMaterial: {fileID: 7122023444726670148, guid: e6338b5254511d04799bc3d183d2e570, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -80173,7 +80173,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2

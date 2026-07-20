@@ -14,6 +14,7 @@ namespace Minsung.Common
             public const KeyCode KEY_ATTACK        = KeyCode.X;
             public const KeyCode KEY_REWIND        = KeyCode.R;
             public const KeyCode KEY_CLEAR_CLONES  = KeyCode.T;
+            public const KeyCode KEY_DODGE_INVINCIBLE = KeyCode.E; // 전용 무적키(보스 즉사기 회피용) - 기본값은 상호작용키(E)와 동일
 
             public const string  AXIS_HORIZONTAL   = "Horizontal";
 

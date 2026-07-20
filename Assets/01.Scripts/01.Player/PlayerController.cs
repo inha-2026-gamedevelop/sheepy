@@ -85,7 +85,7 @@ namespace Minsung.Player
             }
 
             // 컴포넌트 간 참조 주입 = 코디네이터의 핵심 역할.
-            _input.Init(_movement, _combat, _rewind);
+            _input.Init(_movement, _combat, _rewind, _health);
             _movement.Init(this, _playerAnimator);
             _combat.Init(this, _playerAnimator, GetComponent<PlayerOrbs>(), _health);
             _interaction.Init(_movement);
