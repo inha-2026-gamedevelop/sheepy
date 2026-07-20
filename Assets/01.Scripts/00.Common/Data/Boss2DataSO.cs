@@ -129,7 +129,7 @@ public class Boss2DataSO : ScriptableObject
     [SerializeField] private float _horizontalAmplitude = 0.15f; // 좌우 왕복 폭(유닛)
     [SerializeField] private float _horizontalPeriod     = 3f;    // 좌우 왕복 1회 주기(초)
 
-    [Header("낙인 (4페이즈 전용)")]
+    [Header("낙인 (3페이즈 전용)")]
     [SerializeField] private float _brandInterval       = 10f; // 낙인 스택 부여 간격(초)
     [SerializeField] private int   _brandMaxStack       = 7;   // 즉사 임계 스택 수
     [SerializeField] private float _altarSpawnInterval  = 30f; // 제단 출현 간격(초)

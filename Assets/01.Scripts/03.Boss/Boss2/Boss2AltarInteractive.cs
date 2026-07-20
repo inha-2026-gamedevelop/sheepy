@@ -6,7 +6,7 @@ using Minsung.Interactive;
 using Minsung.Player;
 using Minsung.UI;
 
-// 4페이즈 낙인 정화 제단 - E키 3초 홀드로 Boss2BrandController의 낙인 스택을 0으로 초기화한다
+// 3페이즈 낙인 정화 제단 - E키 3초 홀드로 Boss2BrandController의 낙인 스택을 0으로 초기화한다
 // Minsung.Interactive.BaseInteractive/IHoldInteractable을 그대로 재사용(ElevatorButtonInteractive와 동일한 홀드 패턴)
 // 정화해도 제단 자체는 사라지지 않는다 - 보스 본체가 닿았을 때만(OnTriggerEnter2D) 소멸한다(기획 6번)
 public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable

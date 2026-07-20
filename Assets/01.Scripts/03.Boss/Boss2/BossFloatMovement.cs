@@ -29,7 +29,7 @@ public class BossFloatMovement : MonoBehaviour, IRewindable
     [SerializeField] private Transform _maxHeightAnchor; // 이 오브젝트 y + Boss2DataSO.MaxHeightMargin보다 위로 못 올라간다 (미연결 시 제한 없음)
 
     private Rigidbody2D _rb;
-    private Vector2     _spawnOrigin;   // Start 시점 스폰 위치(불변) - _origin과 달리 FollowTarget/돌진으로 바뀌지 않는다. 4페이즈 재시작 복귀 지점
+    private Vector2     _spawnOrigin;   // Start 시점 스폰 위치(불변) - _origin과 달리 FollowTarget/돌진으로 바뀌지 않는다. 3페이즈 재시작 복귀 지점
     private Vector2     _origin;        // 배회 반경의 중심 - Start 시점 위치
     private Vector2     _waypoint;      // 현재 목표 지점
     private Vector2     _velocity;      // SmoothDamp 내부 속도 상태
@@ -193,7 +193,7 @@ public class BossFloatMovement : MonoBehaviour, IRewindable
     *                Methods
     ****************************************/
 
-    // 4페이즈 재시작(Boss2BrandController - 낙인 7스택 즉사 후) - 스폰 지점으로 순간이동하고 배회/돌진을 그 자리에서 새로 시작한다
+    // 3페이즈 재시작(Boss2BrandController - 낙인 7스택 즉사 후) - 스폰 지점으로 순간이동하고 배회/돌진을 그 자리에서 새로 시작한다
     public void ResetToSpawn()
     {
         StopMovementLoops();

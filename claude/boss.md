@@ -64,7 +64,7 @@
 - **미해결 스펙 해석 이슈**: 기획 문구는 "1페이즈 분신 근접 패턴 유지"인데, 현재 구현은 `Phase1State.Exit`가 분신을 전부 비활성화하고 본체만 활성화한다. 분신을 실제로 유지할지, "본체가 같은 근접 패턴을 수행"으로 충족되는지 기획 해석 확인 필요(과거부터 미해결로 남아있던 항목)
 - **종료**: 아웃트로 영상 재생 → `GameManager.LoadSceneFadeInOnly`로 `Map3`(진욱 구역) 진입. `Map2`는 1~2페이즈만 담당하고 3~4페이즈는 `Map3`에서 별도 보스 오브젝트/DB로 진행
 
-### 4-3. 3페이즈 (Map3, 진욱) — ✅ 구현 완료 (낙인/제단은 🔧 이동 예정)
+### 4-3. 3페이즈 (Map3, 진욱) — ✅ 구현 완료 (낙인/제단 3P 이동은 🔧 코드 반영, Play 재검증 대기)
 
 - 화남(Angry) 감정 고정 + 2페이즈 패턴(근접+장풍류) 유지 + 맵을 가로지르는 레이저 추가
 - 레이저: 발사 전 1.5초 빨간 점멸 경고 → 1초 발사. 시작 방향/도착 지점 랜덤(현재 좌→우 고정, 높이만 랜덤 — 정지 빔이라 게임플레이 차이는 없음)
@@ -270,7 +270,7 @@ RewindManager.StartRewind()
 
 - [x] **타임리와인드 잠금 코드 제거** (2026-07-20) — `Boss2Health.AdvancePhase()`의 `RewindManager.AcquireRewindLock(this)` 호출부 및 `OnDestroy`의 `Dispose` 제거. 4페이즈 리와인드 정책 변경(사용 가능으로 전환)에 따른 후속 조치. `dotnet build Assembly-CSharp.csproj` 통과, Unity MCP 미연결로 Play 모드 실측은 대기
 - [ ] **전용 무적키 재검토/수정** — 현재 E 상호작용키와 중복된 구현은 완료로 보지 않는다. 별도 키(`LeftControl` 임시)로 분리하고, 무적 지속/쿨타임을 unscaled time으로 계산하며, 회피 가능 즉사에만 적용되는지 Play 모드에서 다시 검증한다.
-- [ ] **낙인/제단 시스템을 3페이즈로 이동** — 현재 코드는 `Boss2BrandController`가 `Boss2Health.OnPhaseChanged`로 **4페이즈 진입**을 감지해 스택 코루틴을 시작한다(트리거가 반대). 3페이즈 시작(보스 스폰) 시점부터 시작하고, `OnPhaseChanged`로 4페이즈 진입을 감지하면 **정지**하도록 로직을 반전해야 함. 7스택 즉사 시 리셋 대상도 "3페이즈 시작" 기준으로 맞춰야 함(`Boss2Health.ResetToPhaseStart()`가 `_phaseIndex` 기준이라 자연히 따라가지만, 트리거 시점 자체가 바뀌므로 재검증 필요)
+- [x] **낙인/제단 시스템을 3페이즈로 이동** (2026-07-20 코드 반영, Play 모드 재검증 대기) — `Boss2BrandController`/`Boss2AltarSpawner`/`Boss2BrandCountUI` 전부 `Start()`에서 즉시 코루틴/UI 시작(3페이즈=보스 조우 시작 시점)으로 바꾸고, `Boss2Health.OnPhaseChanged`(3->4 전환)를 **정지 트리거**로 반전했다. `Boss2BrandController.HandlePlayerDeath`의 리셋 가드도 `!IsFinalPhase`(옛 4P 전용) → `IsFinalPhase`면 관여 안 함(3P 전용)으로 반전. **Unity MCP 브리지가 작업 중 연결이 끊겨 컴파일/Play 모드 실측은 못했다 — 브리지 재연결 후 반드시 재검증할 것.** 낙인 스택은 여전히 게임 시간 기준으로만 흐르고 리와인드로 되감기지 않는다(사용자 확인 사항, 11-3절의 "리와인드 중 일시정지 권장"과는 다른 결정이니 참고)
 - [x] ~~패턴배너 Boss2 이식~~ — 불필요로 판명. `Minsung.UI.BossBannerUI`가 `BossController` 타입에 의존하지 않는 순수 텍스트+페이드 컴포넌트라 Boss2에서 `using Minsung.UI;`로 그대로 참조 가능(4-4절 참고)
 - [ ] **손아귀 / 원혼방출 신규 구현** (진욱) — 4장 표 참고
 - [ ] **공간찢기 신규 구현** (민성 담당) — 상세 설계 확정(4-4절: 체력 10% 1회 트리거, 동결→재타격 필요, 4개 프리셋+1개 대상지정 총 5회 돌진). 구현은 다음 5단계로 진행 예정:
