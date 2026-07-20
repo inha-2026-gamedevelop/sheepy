@@ -19,6 +19,8 @@ namespace Minsung.CameraSystem
         [SerializeField] private CinemachineCamera _focusCamera;  // 포커스 연출 전용 카메라 (씬에 하나, 여러 상호작용 오브젝트가 공유)
         [SerializeField] private CinemachineBrain  _brain;        // 블렌드 시간 조절용
 
+        private CinemachinePositionComposer _playerComposer; // 플레이어 카메라의 Composition(Screen Position 등) 담당
+
         /****************************************
         *              Unity Event
         ****************************************/
@@ -30,6 +32,11 @@ namespace Minsung.CameraSystem
 
             SetOrthographicSize(_playerCamera, Constants.Camera.PLAYER_ORTHOGRAPHIC_SIZE);
             SetOrthographicSize(_focusCamera, Constants.Camera.FOCUS_ORTHOGRAPHIC_SIZE);
+
+            if (_playerCamera != null)
+            {
+                _playerCamera.TryGetComponent(out _playerComposer);
+            }
         }
 
         /****************************************
@@ -44,6 +51,29 @@ namespace Minsung.CameraSystem
             }
 
             Vector3 focusPosition = cameraTip.position;
+            focusPosition.z = _focusCamera.transform.position.z;
+            _focusCamera.transform.position = focusPosition;
+
+            SetOrthographicSize(_focusCamera, orthographicSize);
+            SetBlendTime(blendTime);
+            SetPriority(_focusCamera, Constants.Camera.PRIORITY_FOCUS);
+        }
+
+        // 트리거 콜라이더의 바운즈에 맞춰 포커스 카메라 위치/사이즈를 자동 계산해 프레이밍한다 (zone 진입 연출용)
+        public void FocusZone(Collider2D zoneCollider, float blendTime = Constants.Camera.DEFAULT_BLEND_TIME)
+        {
+            if ((_focusCamera == null) || (zoneCollider == null))
+            {
+                return;
+            }
+
+            Bounds bounds = zoneCollider.bounds;
+            float  aspect = GetOutputAspect();
+
+            // 세로/가로 중 더 크게 요구하는 쪽 기준으로 사이즈를 잡아야 바운즈 전체가 잘리지 않고 화면에 들어온다
+            float orthographicSize = Mathf.Max(bounds.extents.y, bounds.extents.x / aspect);
+
+            Vector3 focusPosition = bounds.center;
             focusPosition.z = _focusCamera.transform.position.z;
             _focusCamera.transform.position = focusPosition;
 
@@ -71,6 +101,17 @@ namespace Minsung.CameraSystem
         public void ResetPlayerOrthographicSize()
         {
             SetOrthographicSize(_playerCamera, Constants.Camera.PLAYER_ORTHOGRAPHIC_SIZE);
+        }
+
+        // CinemachineBrain이 실제로 출력 중인 카메라의 aspect ratio (없으면 화면 비율로 대체)
+        private float GetOutputAspect()
+        {
+            if ((_brain != null) && (_brain.OutputCamera != null))
+            {
+                return _brain.OutputCamera.aspect;
+            }
+
+            return (float)Screen.width / Screen.height;
         }
 
         private static void SetPriority(CinemachineCamera camera, int priority)
@@ -122,6 +163,19 @@ namespace Minsung.CameraSystem
         public void ResetPlayerZoom()
         {
             SetOrthographicSize(_playerCamera, Constants.Camera.PLAYER_ORTHOGRAPHIC_SIZE);
+        }
+
+        /// <summary> 플레이어 카메라 Composition의 Screen Position Y를 변경 (zone 진입 연출 등). 존을 나가도 되돌아가지 않고 값이 유지된다 </summary>
+        public void SetPlayerScreenPositionY(float y)
+        {
+            if (_playerComposer == null)
+            {
+                return;
+            }
+
+            ScreenComposerSettings composition = _playerComposer.Composition;
+            composition.ScreenPosition.y = y;
+            _playerComposer.Composition  = composition;
         }
     }
 }

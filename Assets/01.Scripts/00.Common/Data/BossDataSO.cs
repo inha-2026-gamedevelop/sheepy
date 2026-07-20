@@ -27,8 +27,11 @@ namespace Minsung.Common.Data
         [Header("본체 근거리 (2페이즈부터 등장)")]
         [SerializeField] private float _moveSpeed        = 2.5f;  // 본체 추격 이동 속도 TODO: 밸런싱
         [SerializeField] private float _attackRange      = 2f;    // 본체 근거리 공격 사거리 TODO: 밸런싱
-        [SerializeField] private float _attackCooldown   = 2.5f;  // 본체 근거리 공격 간격(초) TODO: 밸런싱
+        [SerializeField] private float _attackCooldown   = 1.5f;  // 본체 Combat 재사용 대기시간(초)
+        [SerializeField] private float _castCooldown     = 1.5f;  // 본체 Casting 애니메이션 재사용 대기시간(초)
         [SerializeField] private float _attackActiveTime = 0.25f; // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
+        [SerializeField] private Vector2 _combatHitboxSize   = new Vector2(1.738f, 0.959f); // Combat 9프레임 모션 전체 범위
+        [SerializeField] private Vector2 _combatHitboxCenter = new Vector2(-0.082f, 0.16f); // 보스 루트 기준 모션 중심
 
         [Header("근접 유닛 공통 - 점프/회피 (본체·분신 공용, 개별 스탯 아님)")]
         [SerializeField] private float _jumpCooldown       = 4f;   // 최소 재사용 대기시간(초) TODO: 밸런싱
@@ -45,7 +48,8 @@ namespace Minsung.Common.Data
         [SerializeField] private float _cloneHealth           = 8000f; // 분신 1체 피통 (2체 합 = 1페이즈 피통)
         [SerializeField] private int   _cloneCount            = 2;
         [SerializeField] private float _cloneAttackRange      = 1.5f;  // 근거리 공격 사거리 TODO: 밸런싱
-        [SerializeField] private float _cloneAttackCooldown   = 2f;    // 근거리 공격 간격(초) TODO: 밸런싱
+        [SerializeField] private float _cloneAttackCooldown   = 1.5f;  // 분신 Combat 재사용 대기시간(초)
+        [SerializeField] private float _cloneActionOffset     = 0.75f; // 두 번째 분신의 행동 루프 시작 지연(Combat 쿨타임의 절반)
         [SerializeField] private float _cloneAttackActiveTime = 0.2f;  // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
         [SerializeField] private float _cloneMoveSpeed        = 2.6f;  // 추격 이동 속도 - 플레이어 MoveSpeed(2)보다 느리게 잡아 도망 가능하게 함
         [SerializeField] private float _cloneEntranceLeapHeight = 2f;  // 등장 도약 최대 높이
@@ -167,7 +171,10 @@ namespace Minsung.Common.Data
         public float MoveSpeed        => _moveSpeed;
         public float AttackRange      => _attackRange;
         public float AttackCooldown   => _attackCooldown;
+        public float CastCooldown     => _castCooldown;
         public float AttackActiveTime => _attackActiveTime;
+        public Vector2 CombatHitboxSize   => _combatHitboxSize;
+        public Vector2 CombatHitboxCenter => _combatHitboxCenter;
 
         public float JumpCooldown      => _jumpCooldown;
         public float JumpArcHeight     => _jumpArcHeight;
@@ -183,6 +190,7 @@ namespace Minsung.Common.Data
         public int   CloneCount            => _cloneCount;
         public float CloneAttackRange      => _cloneAttackRange;
         public float CloneAttackCooldown   => _cloneAttackCooldown;
+        public float CloneActionOffset     => _cloneActionOffset;
         public float CloneAttackActiveTime => _cloneAttackActiveTime;
         public float CloneMoveSpeed        => _cloneMoveSpeed;
         public float CloneEntranceLeapHeight => _cloneEntranceLeapHeight;

@@ -90,6 +90,7 @@ namespace Minsung.Boss
         private Coroutine _introCoroutine;
         private float _entranceRewindLockUntil; // 입장 시각 + RecordSeconds - 이 시각까지는 되감기를 잠가 입장 이전으로 돌아가는 것을 막는다
         private RewindManager.RewindLockHandle _entranceRewindLock;
+        private RewindManager.RewindLockHandle _phaseEndRewindLock; // CoPhaseEnd 진행 중 잠금 - 필드로 둬서 OnDestroy 안전망 Dispose 가능하게
         private bool _timeOverKilled;      // 제한시간 즉사 1회 처리 플래그
 
         private PlayerHealth _playerHealth;          // 즉사/반사 대상 (본체)
@@ -184,6 +185,7 @@ namespace Minsung.Boss
         private void OnDestroy()
         {
             _entranceRewindLock.Dispose();
+            _phaseEndRewindLock.Dispose(); // CoPhaseEnd가 완료 못하고 중단되는 경우의 안전망
             if (_emotionController != null)
             {
                 _emotionController.OnEmotionChanged -= HandleEmotionChanged;
@@ -320,9 +322,15 @@ namespace Minsung.Boss
             }
         }
 
-        // 보스전에서 사망하면 Map2를 다시 로드해 보스/분신/패턴/타이머를 전부 초기 상태로 되돌린다.
+        // 보스전에서 사망하면 Map2를 다시 로드해 보스/분신/패턴/타이머를 전부 초기 상태로 되돌린다
+        // 전투 시작 전(입장 트리거 이전) Map2 사망은 무관하므로 무시 - 그렇지 않으면 PlayerController의
+        // 일반 체크포인트 리스폰과 동시에 ScreenFade 슬롯을 다퉈 리와인드 잠금이 풀리지 않는 채로 남을 수 있음
         private void HandlePlayerDeath()
         {
+            if (!_battleInitialized)
+            {
+                return;
+            }
             RespawnManager.RestartBossAtReturnPoint();
         }
 
@@ -524,10 +532,10 @@ namespace Minsung.Boss
         {
             _transitioning = true;
             GameManager.Instance?.SetBossTimerTransitionPaused(true); // 기믹/아웃트로 컷신 동안 클리어 타이머 정지
-            RewindManager.RewindLockHandle phaseEndRewindLock = default;
+            _phaseEndRewindLock.Dispose();
             if (RewindManager.Instance != null)
             {
-                phaseEndRewindLock = RewindManager.Instance.AcquireRewindLock(this);
+                _phaseEndRewindLock = RewindManager.Instance.AcquireRewindLock(this);
             }
             PlayAnimTrigger(PARAM_ROAR); // 기믹 시전 시그널
 
@@ -540,7 +548,7 @@ namespace Minsung.Boss
             yield return _states[_phaseIndex].CoPhaseEndGimmick();
             _states[_phaseIndex].Exit();
 
-            phaseEndRewindLock.Dispose();
+            _phaseEndRewindLock.Dispose();
 
             if (_phaseIndex >= _finalPhaseIndex)
             {

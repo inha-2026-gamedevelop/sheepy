@@ -14,15 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.BossDataSO
   _cloneCrowdAvoidHorizontalRange: 0.75
   _cloneCrowdAvoidVerticalRange: 1.25
-  _totalHealth: 4000
+  _totalHealth: 1500
   _timeLimit: 600
   _attackHalves: 2
   _cloneAttackHalves: 1
   _reflectHalves: 2
   _moveSpeed: 2.5
   _attackRange: 0.7
-  _attackCooldown: 2.5
+  _attackCooldown: 1.5
+  _castCooldown: 1.5
   _attackActiveTime: 0.25
+  _combatHitboxSize: {x: 1.738, y: 0.959}
+  _combatHitboxCenter: {x: -0.082, y: 0.16}
   _jumpCooldown: 4
   _jumpArcHeight: 2
   _jumpLandActiveTime: 0.2
@@ -34,7 +37,8 @@ MonoBehaviour:
   _cloneHealth: 1000
   _cloneCount: 2
   _cloneAttackRange: 0.7
-  _cloneAttackCooldown: 2
+  _cloneAttackCooldown: 1.5
+  _cloneActionOffset: 0.75
   _cloneAttackActiveTime: 0.2
   _cloneMoveSpeed: 1.8
   _cloneEntranceLeapHeight: 2

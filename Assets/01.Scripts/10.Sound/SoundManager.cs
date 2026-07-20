@@ -118,16 +118,6 @@ namespace Minsung.Sound
         }
         private readonly List<PausedSfxData> _pausedSfx = new();
 
-        // 라디오처럼 원래 BGM 위에 잠시 다른 곡을 틀었다가 되돌아올 때 쓰는 스냅샷 (null이면 오버레이 중 아님)
-        private class BgmSnapshot
-        {
-            public AudioClip Clip;
-            public bool      Loop;
-            public float     Pitch;
-            public float     Time;
-        }
-        private BgmSnapshot _pausedBgm;
-
         private Transform _root;      // 모든 AudioSource를 묶는 부모 ("@Sound")
         private bool _isSfxPaused;    // SFX 전체 일시정지 상태 (중복 Pause/Resume 방지)
 
@@ -137,11 +127,11 @@ namespace Minsung.Sound
         /// <summary> SFX 볼륨 변경 통지 (설정 UI 연동용) </summary>
         public static event Action<float> OnSfxVolumeChanged;
 
-        /// <summary> PlayBGMOverride로 튼 곡이 끝나(수동 정지든 자연 종료든) 원래 BGM으로 복귀했음을 통지 </summary>
-        public static event Action OnBgmOverrideEnded;
-
         public float BgmVolume => _bgmVolume;
         public float SfxVolume => _sfxVolume;
+
+        /// <summary> 마지막으로 PlayBGM에 성공한 카테고리. BGM 존 트리거처럼 이전 곡으로 되돌아가야 하는 경우 조회용 </summary>
+        public EBgm CurrentBgm { get; private set; }
 
         /****************************************
         *              Unity Event
@@ -154,7 +144,6 @@ namespace Minsung.Sound
             Instance            = null;
             OnBgmVolumeChanged  = null;
             OnSfxVolumeChanged  = null;
-            OnBgmOverrideEnded  = null;
         }
 
         // 씬에 배치하지 않아도 동작하도록 씬 로드 후 자동 생성
@@ -180,15 +169,6 @@ namespace Minsung.Sound
 
             CreateAudioSources();
             PreloadAllSounds();
-        }
-
-        // 오버레이 BGM(라디오 등)이 루프 없이 자연 종료되면 원래 BGM으로 자동 복귀
-        private void Update()
-        {
-            if ((_pausedBgm != null) && !_bgmSource.loop && !_bgmSource.isPlaying)
-            {
-                RestoreBgmSnapshot();
-            }
         }
 
         /****************************************
@@ -220,6 +200,8 @@ namespace Minsung.Sound
             _bgmSource.clip  = clip;
             _bgmSource.time  = 0f;
             _bgmSource.Play();
+
+            CurrentBgm = bgm;
         }
 
         /// <summary> BGM 일시정지 (메뉴 열림 등에서 호출) </summary>
@@ -243,33 +225,10 @@ namespace Minsung.Sound
             }
         }
 
-        /// <summary> 현재 BGM을 스냅샷으로 저장한 뒤 다른 BGM으로 교체 (라디오처럼 잠시 다른 곡을 틀었다가 StopBGMOverride로 복귀할 때 사용, 중첩 호출 시 최초 스냅샷 유지) </summary>
-        public void PlayBGMOverride(EBgm bgm, int clipIndex = -1, bool isLoop = true, float pitch = 1f)
+        /// <summary> BGM 카테고리에서 클립만 조회 (재생하지 않음). 라디오처럼 BGM 카테고리의 클립을 SFX 채널로 재생하고 싶을 때 클립 해석용으로 사용 </summary>
+        public AudioClip GetBgmClip(EBgm bgm, int clipIndex = -1)
         {
-            if ((_pausedBgm == null) && _bgmSource.isPlaying && (_bgmSource.clip != null))
-            {
-                _pausedBgm = new BgmSnapshot
-                {
-                    Clip  = _bgmSource.clip,
-                    Loop  = _bgmSource.loop,
-                    Pitch = _bgmSource.pitch,
-                    Time  = _bgmSource.time,
-                };
-            }
-
-            PlayBGM(bgm, clipIndex, isLoop, pitch);
-        }
-
-        /// <summary> PlayBGMOverride로 저장해둔 원래 BGM으로 복귀. 저장된 스냅샷이 없으면 그냥 정지 </summary>
-        public void StopBGMOverride()
-        {
-            if (_pausedBgm == null)
-            {
-                StopBGM();
-                return;
-            }
-
-            RestoreBgmSnapshot();
+            return _soundDB != null ? _soundDB.GetBgmClip(bgm, clipIndex) : null;
         }
 
         /****************************************
@@ -328,6 +287,19 @@ namespace Minsung.Sound
             DurationAudioData data = GetDurationAudio();
             data.Source.volume = _sfxVolume;
             data.Play(clip, state, index, identity, pitch, isLoop);
+        }
+
+        /// <summary> 클립을 직접 지정하는 지속형 SFX 재생. 라디오처럼 BGM 카테고리에서 고른 클립 등 SFX DB 인덱스에 매이지 않는 클립을 SFX 채널로 재생할 때 사용. StopSFX_Duration(ESfxState.NONE, -1, identity)로 정지 </summary>
+        public void PlaySFX_Duration(AudioClip clip, int identity = -1, float pitch = 1f, bool isLoop = false)
+        {
+            if ((clip == null) || IsDuplicatePlay(clip))
+            {
+                return;
+            }
+
+            DurationAudioData data = GetDurationAudio();
+            data.Source.volume = _sfxVolume;
+            data.Play(clip, ESfxState.NONE, -1, identity, pitch, isLoop);
         }
 
         /// <summary> 키가 일치하는 지속형 SFX를 찾아 정지. 첫 일치 채널만 처리 </summary>
@@ -510,26 +482,6 @@ namespace Minsung.Sound
 
             _lastPlayFrame[clip] = currentFrame;
             return false;
-        }
-
-        // 저장해둔 스냅샷 상태로 BGM을 복원(재생 위치까지 이어서)하고 오버레이 종료를 통지
-        private void RestoreBgmSnapshot()
-        {
-            BgmSnapshot snapshot = _pausedBgm;
-            _pausedBgm = null;
-
-            if (_bgmSource.isPlaying)
-            {
-                _bgmSource.Stop();
-            }
-
-            _bgmSource.loop  = snapshot.Loop;
-            _bgmSource.pitch = snapshot.Pitch;
-            _bgmSource.clip  = snapshot.Clip;
-            _bgmSource.time  = Mathf.Clamp(snapshot.Time, 0f, snapshot.Clip.length);
-            _bgmSource.Play();
-
-            OnBgmOverrideEnded?.Invoke();
         }
 
         // 재생 중인 소스의 상태를 스냅샷으로 저장하고 정지

@@ -17,6 +17,14 @@ Shader "Minsung/BossHazardFog"
 
         [Header(Shape)]
         _EdgeFade ("Edge Fade (테두리 전체 페이드 폭)", Range(0, 0.5)) = 0.3
+
+        [Header(Safe_Zone_Map2)]
+        _SafeBaseColor ("Safe Base (Deep Navy)", Color) = (0.055, 0.09, 0.16, 1)
+        _SafeTintAmount ("Safe Color Tint", Range(0, 1)) = 0.42
+        _SafeFlowScale ("Safe Vertical Flow Scale", Range(1, 16)) = 6.5
+        _SafeFlowSpeed ("Safe Vertical Flow Speed", Range(0, 3)) = 0.45
+        _SafeEdgeWidth ("Safe Border Width", Range(0.005, 0.2)) = 0.045
+        _SafeModeThreshold ("Safe Alpha Threshold", Range(0, 1)) = 0.7
     }
 
     SubShader
@@ -61,6 +69,12 @@ Shader "Minsung/BossHazardFog"
                 half   _Softness;
                 half4  _ScrollSpeed;
                 half   _EdgeFade;
+                half4  _SafeBaseColor;
+                half   _SafeTintAmount;
+                half   _SafeFlowScale;
+                half   _SafeFlowSpeed;
+                half   _SafeEdgeWidth;
+                half   _SafeModeThreshold;
             CBUFFER_END
 
             struct Attributes
@@ -139,6 +153,28 @@ Shader "Minsung/BossHazardFog"
 
                 half3 rgb   = _FogColor.rgb * tint.rgb;
                 half  alpha = fogAmount * edge * mask * tint.a * _Intensity;
+
+                // 안전구역은 낮은 SpriteRenderer 알파로 구분한다. Map2의 청회색 배경에 맞춰
+                // 원색 안개 대신 딥 네이비 장막 + 저채도 색 결 + 얇은 경계광으로 표현한다.
+                half safeMode = 1.0 - step(_SafeModeThreshold, tint.a);
+                half safeColorStrength = lerp(_SafeTintAmount * 0.65, _SafeTintAmount, fogAmount);
+                half3 safeRgb = lerp(_SafeBaseColor.rgb, tint.rgb, safeColorStrength);
+
+                float verticalFlow = sin((i.positionWS.y * _SafeFlowScale)
+                                         + (noise * 4.0)
+                                         - (_Time.y * _SafeFlowSpeed));
+                half flowBand = smoothstep(0.35, 0.95, verticalFlow * 0.5 + 0.5);
+
+                half2 edgeUv = min(i.uv, 1.0 - i.uv);
+                half nearestEdge = min(edgeUv.x, edgeUv.y);
+                half border = 1.0 - smoothstep(0.0, _SafeEdgeWidth, nearestEdge);
+
+                safeRgb += tint.rgb * ((flowBand * 0.09) + (border * 0.22));
+                half safeAlpha = mask * tint.a * _Intensity
+                                 * (0.32 + (fogAmount * 0.24) + (flowBand * 0.08) + (border * 0.24));
+
+                rgb = lerp(rgb, safeRgb, safeMode);
+                alpha = lerp(alpha, safeAlpha, safeMode);
 
                 return half4(rgb, alpha);
             }

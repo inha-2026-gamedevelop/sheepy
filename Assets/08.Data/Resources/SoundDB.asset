@@ -15,30 +15,73 @@ MonoBehaviour:
   _bgmDatas:
   - _clips: []
   - _clips:
-    - {fileID: 8300000, guid: fd495982740c6e84a95cd5dc9026b792, type: 3}
-  - _clips: []
-  - _clips: []
+    - {fileID: 8300000, guid: 163b3f2a4907fa648a6741d0f61669aa, type: 3}
+    - {fileID: 8300000, guid: 6bc229f6c04c5f143bf21c4003b6498a, type: 3}
+    - {fileID: 8300000, guid: 163b3f2a4907fa648a6741d0f61669aa, type: 3}
+    - {fileID: 8300000, guid: 163b3f2a4907fa648a6741d0f61669aa, type: 3}
+  - _clips:
+    - {fileID: 8300000, guid: 5ceaef15bbced6e4f9bd623cb8e3f6a3, type: 3}
+  - _clips:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   - _clips: []
   - _clips: []
   - _clips:
-    - {fileID: 8300000, guid: 859c4f716ebfed54093eb8c62125a66d, type: 3}
-    - {fileID: 8300000, guid: 975842b385c77bd49b9ea61da94885f9, type: 3}
+    - {fileID: 8300000, guid: d557133e2caf8d54998ee8718e41ea54, type: 3}
+    - {fileID: 8300000, guid: aca7943f9c6b7e04d96a82459c241690, type: 3}
+    - {fileID: 8300000, guid: d134dc18e4eb7534bbb8878b2e132323, type: 3}
+    - {fileID: 8300000, guid: 15ede25bc5b9f894fac373327c8716b3, type: 3}
+    - {fileID: 8300000, guid: cb752f8f3e6063d488d011f829f86426, type: 3}
+    - {fileID: 8300000, guid: ca1c5912ce03d6e479cab429efd32711, type: 3}
+    - {fileID: 8300000, guid: b5656d50f2b5bd44b97855b576c70a3e, type: 3}
+    - {fileID: 8300000, guid: bb64e4d9c380d9944ae665122f1df811, type: 3}
+    - {fileID: 8300000, guid: da3a5f284af8aee43b51d7cd97c1cead, type: 3}
+    - {fileID: 8300000, guid: 1452dc86e2dc4a04ab097ca208f6ce78, type: 3}
+    - {fileID: 8300000, guid: 4d480e7c3877c1f418b43a9c4c046193, type: 3}
+    - {fileID: 8300000, guid: 906b65ccd5519324a87be4df006aaf64, type: 3}
+    - {fileID: 8300000, guid: 64645441aa0b3a8489531ccec2897b74, type: 3}
+    - {fileID: 8300000, guid: 7a706820f82bf53449ab5f83a7acf3bb, type: 3}
+    - {fileID: 8300000, guid: a5492befe21287f4191831c1dfd050a6, type: 3}
+    - {fileID: 8300000, guid: 6377c4709700fc44982ca36051636a01, type: 3}
+    - {fileID: 8300000, guid: c1ee8da8d4a25444a8927a36c2926a8e, type: 3}
   _sfxDatas:
   - _sfxName: Player
     _clips:
     - {fileID: 8300000, guid: 96e9c657c378d4b4386aa72783308226, type: 3}
-    - {fileID: 8300000, guid: 364b085e152ed5c4ab441653e9dcbdac, type: 3}
+    - {fileID: 0}
     - {fileID: 8300000, guid: 9e7fa5492d1db57439abb1af08ec2a77, type: 3}
     - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   - _sfxName: Time
-    _clips: []
+    _clips:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   - _sfxName: Monster
-    _clips: []
+    _clips:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   - _sfxName: Boss
-    _clips: []
+    _clips:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   - _sfxName: Object
     _clips:
     - {fileID: 8300000, guid: 294cdd99656a2854bab430b53630848b, type: 3}
     - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   - _sfxName: UI
-    _clips: []
+    _clips:
+    - {fileID: 0}
+    - {fileID: 0}
