@@ -111,3 +111,7 @@ MonoBehaviour:
   _verticalPeriod: 2
   _horizontalAmplitude: 0.15
   _horizontalPeriod: 3
+  _brandInterval: 3
+  _brandMaxStack: 7
+  _altarSpawnInterval: 5
+  _altarHoldDuration: 3

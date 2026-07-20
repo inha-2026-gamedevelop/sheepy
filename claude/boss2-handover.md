@@ -1,8 +1,8 @@
 # Boss2 (Map3, 3~4페이즈 부유 보스) 인수인계
 
-> 작성일: 2026-07-20
+> 작성일: 2026-07-20 (최종 갱신: 2026-07-20, 4페이즈 낙인/제단 시스템 추가)
 > 대상: `Assets/00.Scenes/Jinwook/Map3.unity`의 부유 보스(Boss2) 시스템
-> 관련 커밋: `c44a956`(이동) / `2bade9c`(HP UI·히트박스·돌진) / `bd70503`(원거리 패턴)
+> 관련 커밋: `c44a956`(이동) / `2bade9c`(HP UI·히트박스·돌진) / `bd70503`(원거리 패턴) / `2e4a0e8`(4페이즈 낙인/제단 패턴 초기 구현)
 > **이 문서는 진욱 작업분 전용이다. `claude/PLAN.md`(민성 구현 목록)는 건드리지 않았다.**
 
 ---
@@ -28,7 +28,11 @@ Assets/01.Scripts/03.Boss/Boss2/
 ├── Boss2LaserPattern.cs      # 레이저
 ├── Boss2Emotion.cs           # 감정 enum + 판정 헬퍼 (Minsung.Boss.BossEmotion 이식, 이름은 Boss2Emotion)
 ├── Boss2EmotionController.cs # 감정 상태/결정 로그/부가효과 (Minsung.Boss.BossEmotionController 이식)
-└── Boss2EmotionHUD.cs        # 감정 아이콘 UI (Minsung.Boss.BossEmotionHUD 이식)
+├── Boss2EmotionHUD.cs        # 감정 아이콘 UI (Minsung.Boss.BossEmotionHUD 이식)
+├── Boss2BrandController.cs   # 4페이즈 전용 "낙인" 스택 시스템 (10초마다 +1, 최대치 도달 시 즉사+페이즈 재시작)
+├── Boss2AltarInteractive.cs  # 낙인 정화 제단 - E키 홀드 상호작용 (BaseInteractive/IHoldInteractable 재사용)
+├── Boss2AltarSpawner.cs      # 제단 주기 소환 코디네이터 (아레나 바닥 랜덤 위치, 1개 재사용)
+└── Boss2BrandCountUI.cs      # 플레이어 머리 위 낙인 카운트 UI (HUD_Player 월드캔버스 하위)
 
 Assets/01.Scripts/00.Common/Data/
 └── Boss2DataSO.cs            # Boss2 전용 밸런싱 DB (GameDB 트리에는 연결 안 함)
@@ -51,6 +55,12 @@ Assets/01.Scripts/00.Common/Data/
     ├── HitCenter                     (BoxCollider2D Trigger + Boss2Health)
     └── ReflectIcon                   (SpriteRenderer, 머리 위 반사 아이콘 - 반사 감정일 때만 표시)
 
+--------Boss------------------ (컨테이너, Boss와 형제)
+└── Altar[OFF]                        (Layer: Interactable, BoxCollider2D Trigger + Boss2AltarInteractive,
+                                        기본 비활성 - Boss2AltarSpawner가 4페이즈 중 주기 활성화)
+    ├── Visual                        (SpriteRenderer, altar.png - Single 스프라이트, 커스텀 피벗(하단))
+    └── HoldUI[OFF]                   (World Space Canvas + UI.Slider - E키 홀드 진행도, 포커스 시에만 표시)
+
 GameHUD (Assets/02.Prefabs/UI/GameHUD.prefab 인스턴스)
 ├── BossUI/BossHealthBar[ON]          (Slider + BossHealthBarUI, Boss2Health 구독)
 │   ├── PhaseNotch_2만 활성(중앙 50% 표시선), 1/3은 비활성 — 2분할용
@@ -58,6 +68,12 @@ GameHUD (Assets/02.Prefabs/UI/GameHUD.prefab 인스턴스)
 ├── BossUI/BossTimer[ON]              (Minsung.UI.BossTimerUI, GameManager.IsBossRunActive/BossClearTimeMs 구독)
 │   └── TimerFrame / Label("BOSS") / TimerText("00:00") / Label (1)("TIMER") — Map2의 BossTimer[ON]을 좌표/폰트/색상까지 동일하게 복제
 └── PlayerHUD/Hearts                  (PlayerHeartUI, 기존 그대로 재사용)
+
+Player/HUD_Player (기존 Panel_KeyGuide[OFF]와 동일한 월드스페이스 캔버스, Player 자식)
+└── Panel_BrandCount[ON]              (RectTransform, 항상 활성 - Boss2BrandCountUI가 매 프레임 위치 추적)
+    └── Visual_BrandCount[OFF]        (기본 비활성, 4페이즈 진입 시 표시)
+        ├── Img_Count[ON]             (Image, count.png)
+        └── Text_BrandCount[ON]       (TextMeshProUGUI, "n/7")
 ```
 
 - **`BossTimer[ON]`**: `Minsung.UI.BossTimerUI`는 수정 없이 그대로 재사용(프리팹이 아니라 Map2처럼 씬에 개별로 얹은 비-프리팹 오브젝트). Boss1은 `BossController.BeginBattle()`(입구 트리거 경유)에서 `GameManager.Instance.StartBossTimer()`를 호출하지만, Boss2엔 별도 입장 트리거가 없어서 [Boss2AttackPatterns.cs:47](Assets/01.Scripts/03.Boss/Boss2/Boss2AttackPatterns.cs#L47) `Start()`(보스 스폰 시점)에서 바로 호출하도록 함 — "보스 스폰 == 전투 시작"으로 단순화한 것. `Minsung.Common` using 추가, `RewindManager.Instance?.Register(this)` 바로 다음 줄에 추가. `Boss2Health.TakeDamage`가 체력 0 도달 시 `GameManager.Instance?.StopBossTimer()`도 같이 호출한다.
@@ -118,6 +134,42 @@ IsBossRunActive after defeat=False   # StopBossTimer 정상 호출 확인
 ```
 
 **주의 - `MaxHealth`는 현재 테스트용으로 `2`(실제 값 `5000`이 아님)로 바뀐 상태다.** `Assets/08.Data/Boss2/Boss2DB.asset`에서 되돌려야 함 - 밸런싱 확정 전까지는 이 상태로 페이즈 전환/데미지 상한을 빠르게 반복 테스트하기 위해 일부러 낮춰둔 것.
+
+## 7.7 4페이즈 "낙인(Brand)" / 정화 제단(Altar) 시스템
+
+사용자 기획(2026-07-20 구두 전달, `boss-design.md`엔 미기재 - 4페이즈 "나머지 세부 패턴은 추후 확정"의 첫 확정분):
+
+1. 4페이즈부터 10초마다 플레이어에게 "낙인" 스택 1개 부여
+2. 낙인이 7개 쌓이면 즉사 + 4페이즈를 처음부터 재시작
+3. 낙인은 `count.png` 배경 위에 `n/7`로 표시, 플레이어 머리 위(Player HUD)에 위치
+4. `altar.png` 오브젝트(제단)가 낙인을 해소하는 상호작용 오브젝트
+5. 제단은 30초마다 맵 바닥 랜덤 좌표에 출현, E키를 3초 홀드하면 낙인이 0으로 초기화(진행도 게이지 표시)
+6. 보스가 제단에 닿으면 제단 소멸
+
+**구현 (전부 신규 파일, Minsung 코드 미변경)**
+
+- **`Boss2BrandController`** — `Boss` 루트에 부착. `Boss2Health.OnPhaseChanged`로 4페이즈 진입을 감지해 10초 주기 코루틴 시작. 스택이 `Boss2DataSO.BrandMaxStack`(7) 도달 시 `PlayerHealth.Kill()`(기존 즉사 API, 재사용 - 별도 즉사 로직 새로 안 만듦) 호출. `PlayerHealth.OnDeath` 구독해서 **4페이즈 중**(`Boss2Health.IsFinalPhase`) 사망이면 낙인 0 + `Boss2Health.ResetToPhaseStart()`(체력을 4페이즈 상한으로) + `BossFloatMovement.ResetToSpawn()`(보스를 스폰 지점으로) 전부 호출 - "처음부터 다시 시작"을 체력/위치 둘 다로 구현(사용자 확인사항).
+- **`Boss2AltarInteractive`** — `Minsung.Interactive.BaseInteractive` + `IHoldInteractable` 그대로 재사용(`ElevatorButtonInteractive`와 완전히 동일한 홀드 패턴 - 홀드 시작/갱신/취소, 진행 슬라이더). 홀드 완료 시 `Boss2BrandController.ClearStacks()`만 호출하고 **제단 자체는 사라지지 않는다** - `OnTriggerEnter2D`로 보스 본체(`BossFloatMovement` 보유 오브젝트) 접촉을 감지했을 때만 `SetActive(false)`.
+- **`Boss2AltarSpawner`** — `Boss` 루트에 부착. 4페이즈 진입 후 `AltarSpawnInterval`마다 제단이 **비활성 상태일 때만** 아레나 바닥 랜덤 x에 재활성(제단 오브젝트 1개 재사용, `Boss2EmotionController.SpawnHeartPickup()`과 동일한 랜덤 배치 패턴).
+- **`Boss2BrandCountUI`** — `Player/HUD_Player`(기존 `Panel_KeyGuide[OFF]`가 쓰는 것과 같은 월드스페이스 캔버스, `PlayerInteractionSensor`의 "머리 위 고정" 기법을 그대로 본떠 직접 구현: `Start`에서 플레이어 대비 오프셋을 스냅샷, `LateUpdate`에서 매 프레임 `transform.SetPositionAndRotation(player.position + offset, Quaternion.identity)`로 회전 무시하고 재적용). 4페이즈 진입 시 자식 `Visual_BrandCount[OFF]`를 활성화, 스택 변경마다 텍스트 갱신.
+- **밸런싱 값**은 전부 `Boss2DataSO`에 신규 필드로 추가: `BrandInterval`(10s)/`BrandMaxStack`(7)/`AltarSpawnInterval`(30s, **현재 테스트 목적으로 5s로 낮춰둔 상태**)/`AltarHoldDuration`(3s).
+- `Boss2Health`에 `IsFinalPhase`를 public으로 노출 + `ResetToPhaseStart()` 추가. `BossFloatMovement`에 `_spawnOrigin`(Start 시점 불변 스폰 좌표) 필드 + `ResetToSpawn()` 추가 - 둘 다 4페이즈 재시작 전용.
+
+**함정들**
+
+- **상호작용 레이어 불일치** — 제단 GameObject를 처음 만들 때 기본 `Default` 레이어로 뒀더니, `PlayerInteractionSensor`의 `CircleCast`가 `Interactable` 레이어만 감지하도록 되어 있어서 플레이어가 아무리 가까이 가도 `OnFocus`/홀드 게이지가 전혀 뜨지 않았다(리플렉션으로 `OnHoldStart`를 직접 호출하는 테스트에서는 안 걸러져서 처음엔 못 알아챔). 제단 레이어를 `Interactable`로 바꾸자 실제 Play 모드에서 정상 감지됨. **새 상호작용 오브젝트를 만들 때는 반드시 `PlayerInteractionSensor._itemLayer`와 같은 레이어로 맞출 것.**
+- **스프라이트 피벗 = 공중 부양** — `altar.png`는 1254x1254 캔버스에 실제 알파 콘텐츠가 상하 여백을 두고 들어있는데, 기본 피벗이 캔버스 정중앙(자동 슬라이스 사각형 기준)이었다. 제단 루트 위치를 지면 y로 맞춰도 피벗이 콘텐츠 중심 근처에 있어 시각적으로 살짝 떠 보이는 정도가 아니라, 카메라가 워낙 타이트한(orthoSize 1.3) 씬 특성상 그 오차가 확연히 "허공에 떠 있다"로 보였다. `Texture2D.GetPixels32`로 알파 임계값 이상 픽셀의 최소/최대 y를 스캔해 콘텐츠 하단 실제 위치(정규화 0.0901)를 구하고, 텍스처를 Single 스프라이트 모드로 전환 + `TextureImporterSettings.spritePivot`을 그 값으로 커스텀 지정해서 해결. **투명 여백이 있는 아트 에셋을 지면에 배치할 땐 스프라이트 bounds가 아니라 실제 알파 콘텐츠 기준으로 피벗을 잡아야 한다** - `sprite.bounds`는 슬라이스된 사각형 전체 기준이라 여백이 있으면 신뢰할 수 없다.
+- **Play 모드 중 스크립트로 만든 변경은 정지 시 전부 사라짐** — 처음에 카운트 UI 크기/위치를 Play 모드에서 `execute_code`로 조정하고 바로 스크린샷 확인까지 했는데, Play 모드를 종료하니 전부 원상복구됐다(Unity의 정상 동작 - 런타임 중 씬 오브젝트 변경은 저장 안 됨). **에디트 모드 UI/씬 조정 → 확인용으로만 Play 진입 → 정지 → 필요하면 에디트 모드에서 같은 값 재적용 → 저장, 순서를 지킬 것.**
+- **Rigidbody2D interpolation과 즉시 읽기** — `ResetToSpawn()` 직후 같은 execute_code 호출 안에서 바로 `transform.position`을 읽으면 텔레포트 이전 위치가 보인다(Interpolate가 렌더 프레임 동기화를 다음 프레임으로 미루기 때문 - 실제 버그 아니라 테스트 방법론 문제). 다음 tool 호출(=몇 프레임 경과)에서 재확인하면 정상적으로 반영돼 있다.
+
+**Play 모드 실사 검증** (`MaxHealth=2`로 4페이즈 빠르게 진입, `execute_code` 리플렉션 + 실제 물리 상호작용 혼합 검증):
+- 4페이즈 진입 -> `Boss2BrandController`/`Boss2AltarSpawner` 코루틴 자동 시작, `Panel_BrandCount`의 `Visual_BrandCount` 자동 표시 확인
+- 낙인 스택 변경 -> UI 텍스트 "n/7" 실시간 갱신 확인
+- 플레이어를 제단 근처로 이동 -> `PlayerInteractionSensor._currentInteractable`이 실제로 `Altar[OFF]`를 잡고 `HoldUI` 자동 표시(레이어 수정 후) 확인
+- 제단 3초 홀드 완료 -> 낙인 0으로 정화 확인
+- 보스가 제단에 물리적으로 접촉 -> 제단 소멸 -> 이후 5초 주기로 스포너가 자동으로 새 랜덤 위치에 재소환하는 것까지 자율 사이클로 확인
+- 플레이어 즉사(`PlayerHealth.Kill()`) -> 낙인 0 + 보스 체력 4페이즈 상한 복원 + 보스 위치 스폰 지점 복귀(다음 프레임 기준) 확인
+- 카메라를 제단 좌표에 직접 맞춘 스크린샷으로 지면 안착 + 축소된 크기(스케일 0.16) 육안 확인
 
 - **`HitCenter`**: 원래 `Boss`(루트)에 콜라이더+체력이 있었는데, 플레이어 오브 공격이 루트 피벗(시각적으로 턱 근처)에 꽂히는 버그가 있어서 시각적 중심(스프라이트 world bounds 기준 오프셋 `0.34, 1.07`)에 자식으로 분리했다. `AttackHitBox`도 같은 오프셋으로 옮겨서 돌진 판정이 실제 몸통에서 나가게 했다.
 - `Boss` 루트의 `BoxCollider2D`는 **Trigger**로 되어 있다 — 처음엔 non-trigger라 플레이어를 물리적으로 밀쳐냈음.
@@ -200,6 +252,12 @@ Unity MCP로 Play 모드 진입 후 직접 확인한 것:
 - [ ] 아레나 경계 값(`-10~10`, `y=-3`) 실제 Map3 스테이지 크기에 맞춰 재조정
 - [ ] `AttackHitBox`/`HitCenter` 콜라이더 크기·오프셋은 특정 애니메이션 프레임 기준 근사값 — 정밀 조정 필요
 - [ ] `HeartPickup` 씬 미배치 — Blue 감정이 하트 픽업을 생성하려 해도 `Boss2AttackPatterns._heartPickup`이 비어 있어 no-op. 배치하려면 `Minsung.Boss.HeartPickup` 컴포넌트(콜라이더 Trigger + 스프라이트) 붙은 오브젝트를 씬에 두고 인스펙터에 연결(Boss1도 실전 미배치 상태라 참고할 예시 씬이 없음)
+- [ ] **`AltarSpawnInterval`이 테스트 목적으로 `5`초로 낮춰진 상태다(원래 기획값 `30`초).** `Assets/08.Data/Boss2/Boss2DB.asset`에서 되돌려야 함 - `MaxHealth`와 마찬가지로 밸런싱 확정 전까지는 이 상태로 반복 테스트하기 위해 일부러 낮춰둔 것
+- [ ] 제단 홀드 진행 UI(`HoldUI`)가 Unity 기본 `Slider` 스타일 그대로임 - 아트 적용 안 됨 (`ElevatorButtonInteractive`의 실제 프로덕션 홀드 UI를 참고해서 교체하면 좋음)
+- [ ] `Panel_BrandCount`(낙인 카운트 UI) 크기/폰트/위치는 카메라가 워낙 타이트해서(orthoSize 1.3) 대략 맞춘 값 - 정밀 폴리싱은 에디터에서 직접 눈으로 보며 조정 권장
+- [ ] 낙인 7스택 즉사 순간 전용 연출 없음 (`Boss2BrandController.CoBrandLoop` 안에 TODO 훅만 있고 `PlayerHealth.Kill()`만 호출) - 연출 확정되면 그 지점에 추가
+- [ ] 4페이즈 사망 시 플레이어 복귀 위치가 Map3의 "기본 체크포인트"(보스룸과 무관, `GameManager` 전역 체크포인트) - 보스룸 앞에 `Minsung.Player.RespawnPoint`(`IsBossReturnPoint=true`)를 배치하면 Boss1처럼 그 자리로 바로 복귀 가능. 사용자가 일단 보류하기로 함
+- [ ] 낙인 틱 코루틴(`Boss2BrandController.CoBrandLoop`)엔 결정 로그가 없음 - 다만 4페이즈는 리와인드 자체가 영구 잠기므로(7.6절) 재현이 필요 없어 실질적으로 문제 없음. 4페이즈 재시작 시에도 낙인 코루틴 자체는 멈추지 않고 계속 도는 설계(스택만 0으로 리셋) - 의도된 동작
 
 ## 10. 팀 협업 원칙 (반복 강조)
 
