@@ -18,6 +18,8 @@ public class PlayerRetireZone : MonoBehaviour
         // 충돌한 오브젝트의 레이어가 3번(Player)인지 확인
         if (collision.gameObject.layer == 3)
         {
+            Minsung.Achievement.AchievementTrigger.PlayerFellIntoRetireZone(); // "이걸 떨어져?" - 처음으로 낙하
+
             // 플레이어의 위치를 지정된 스폰 포인트 위치로 이동
             collision.transform.position = spawnPoint.position;
 
