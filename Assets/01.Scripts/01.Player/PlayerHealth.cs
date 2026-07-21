@@ -29,12 +29,18 @@ namespace Minsung.Player
         private bool _dodgeInvincibleOnCooldown;
         private float _dodgeInvincibleDuration;
         private float _dodgeInvincibleCooldown;
+        private float _dodgeCooldownEndTime; // unscaled 기준 쿨타임 종료 시각 - UI 잔여 시간 계산용
 
         public int MaxHalves => _maxHalves;
         public int CurrentHalves => _currentHalves;
         public bool IsInvincible => _isInvincible;
         public bool IsDodgeInvincible => _isDodgeInvincible;
         public bool IsDodgeInvincibleReady => !_dodgeInvincibleOnCooldown;
+        public float DodgeInvincibleCooldownDuration => _dodgeInvincibleCooldown;
+
+        /// <summary> 쿨타임 중 남은 시간(초). 쿨타임 중이 아니면 0 - UI 표시용 </summary>
+        public float DodgeInvincibleCooldownRemaining =>
+            _dodgeInvincibleOnCooldown ? Mathf.Max(0f, _dodgeCooldownEndTime - Time.unscaledTime) : 0f;
 
         /// <summary> (현재 반칸, 최대 반칸). UI는 반칸 단위로 하트를 그린다. </summary>
         public event Action<int, int> OnHealthChanged;
@@ -167,8 +173,8 @@ namespace Minsung.Player
         private IEnumerator CoDodgeCooldown()
         {
             _dodgeInvincibleOnCooldown = true;
-            float endTime = Time.unscaledTime + _dodgeInvincibleCooldown;
-            while (Time.unscaledTime < endTime)
+            _dodgeCooldownEndTime = Time.unscaledTime + _dodgeInvincibleCooldown;
+            while (Time.unscaledTime < _dodgeCooldownEndTime)
             {
                 yield return null;
             }
