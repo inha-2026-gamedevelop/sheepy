@@ -23,11 +23,21 @@ public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable
     [SerializeField] private GameObject _holdUi;         // 진행도 UI 루트
     [SerializeField] private Slider     _progressSlider; // 홀드 진행도 0~1
 
+    [Header("타임아웃 & 페이드")]
+    [SerializeField] private float _activeDuration = 15f; // 제단 유지 시간
+    [SerializeField] private float _fadeDuration   = 0.5f; // 페이드 아웃 시간
+
     private GameObject _interactor;
     private float      _holdElapsed;
     private bool       _isHolding;
 
-    public bool CanHoldInteract => true;
+    private Coroutine        _timeoutRoutine;
+    private Coroutine        _fadeRoutine;
+    private bool             _isFading;
+    private SpriteRenderer[] _renderers;
+    private CanvasGroup      _uiCanvasGroup;
+
+    public bool CanHoldInteract => !_isFading;
 
     /****************************************
     *              Unity Event
@@ -36,8 +46,93 @@ public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable
     protected override void Awake()
     {
         base.Awake();
+        _renderers = GetComponentsInChildren<SpriteRenderer>(true);
+        if (_holdUi != null)
+        {
+            _uiCanvasGroup = _holdUi.GetComponent<CanvasGroup>();
+            if (_uiCanvasGroup == null)
+            {
+                _uiCanvasGroup = _holdUi.AddComponent<CanvasGroup>();
+            }
+        }
         SetHoldUiVisible(false);
-        SetProgress(0f);
+        SetProgress(1f);
+    }
+
+    private void OnEnable()
+    {
+        if (_activeDuration <= 0f) _activeDuration = 15f;
+        if (_fadeDuration <= 0f) _fadeDuration = 0.5f;
+
+        _isFading = false;
+
+        foreach (var r in _renderers)
+        {
+            if (r != null)
+            {
+                Color c = r.color;
+                c.a = 1f;
+                r.color = c;
+            }
+        }
+        if (_uiCanvasGroup != null)
+        {
+            _uiCanvasGroup.alpha = 1f;
+        }
+
+        if (_timeoutRoutine != null) StopCoroutine(_timeoutRoutine);
+        _timeoutRoutine = StartCoroutine(CoTimeout());
+    }
+
+    private System.Collections.IEnumerator CoTimeout()
+    {
+        yield return new WaitForSeconds(_activeDuration);
+        StartFadeOut();
+    }
+
+    private void StartFadeOut()
+    {
+        if (_isFading) return;
+        _isFading = true;
+
+        if (_timeoutRoutine != null)
+        {
+            StopCoroutine(_timeoutRoutine);
+            _timeoutRoutine = null;
+        }
+
+        OnHoldCancel(_interactor);
+
+        if (_fadeRoutine != null) StopCoroutine(_fadeRoutine);
+        _fadeRoutine = StartCoroutine(CoFadeOut());
+    }
+
+    private System.Collections.IEnumerator CoFadeOut()
+    {
+        float elapsed = 0f;
+        while (elapsed < _fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Clamp01(1f - (elapsed / _fadeDuration));
+
+            foreach (var r in _renderers)
+            {
+                if (r != null)
+                {
+                    Color c = r.color;
+                    c.a = alpha;
+                    r.color = c;
+                }
+            }
+            if (_uiCanvasGroup != null)
+            {
+                _uiCanvasGroup.alpha = alpha;
+            }
+
+            yield return null;
+        }
+
+        gameObject.SetActive(false);
     }
 
     /****************************************
@@ -68,7 +163,7 @@ public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable
         _interactor  = interactor;
         _holdElapsed = 0f;
         _isHolding   = true;
-        SetProgress(0f);
+        SetProgress(1f);
 
         if (interactor.TryGetComponent(out PlayerController playerController))
         {
@@ -87,7 +182,7 @@ public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable
 
         float holdDuration = (_dataSo != null) ? _dataSo.AltarHoldDuration : 3f;
         _holdElapsed += deltaTime;
-        SetProgress(_holdElapsed / holdDuration);
+        SetProgress(1f - (_holdElapsed / holdDuration));
 
         if (_holdElapsed < holdDuration)
         {
@@ -97,7 +192,7 @@ public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable
         _isHolding = false;
         _brandController?.ClearStacks();
         ReleaseInteractor(interactor);
-        SetHoldUiVisible(false);
+        StartFadeOut();
         return true;
     }
 
@@ -109,7 +204,7 @@ public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable
         }
         _isHolding   = false;
         _holdElapsed = 0f;
-        SetProgress(0f);
+        SetProgress(1f);
         ReleaseInteractor(interactor);
     }
 
@@ -124,8 +219,7 @@ public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable
         {
             return;
         }
-        OnHoldCancel(_interactor);
-        gameObject.SetActive(false);
+        StartFadeOut();
     }
 
     private void ReleaseInteractor(GameObject interactor)
