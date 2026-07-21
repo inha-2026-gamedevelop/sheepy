@@ -19,7 +19,7 @@ public class Boss2DodgeableKillHazard : MonoBehaviour
         {
             return; // 전용 무적키로 회피 성공
         }
-        AchievementManager.Instance?.Unlock(AchievementIds.DOMAIN_EXPANSION); // 아자토스 공간찢기에 실제로 피격
+        AchievementTrigger.DomainExpansionHit(); // 아자토스 공간찢기에 실제로 피격
         health.Kill(); // Kill()의 사망 가드가 중복 호출을 막는다
     }
 }
