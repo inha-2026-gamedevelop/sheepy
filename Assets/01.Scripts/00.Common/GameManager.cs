@@ -245,6 +245,7 @@ namespace Minsung.Common
             // 보스 클리어 여부: 로컬 저장(주) + 서버 미러(백업, 닉네임 없으면 자동 스킵)
             SaveManager.Instance?.SetBossCleared(true);
             BackendMirror.Instance?.MirrorBossCleared();
+            BackendMirror.Instance?.SubmitBossClearScore(_bossElapsedMs); // 랭킹용 클리어 타임 제출
         }
 
         /// <summary> 진행 중이던 기록을 폐기한다 (보스전 중 사망 - 보스방에서 쫓겨남 / 보스전 재시작). </summary>

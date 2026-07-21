@@ -53,3 +53,26 @@ create policy player_achievements_upsert
 drop policy if exists player_achievements_delete on public.player_achievements;
 create policy player_achievements_delete
     on public.player_achievements for delete using (true);
+
+create table if not exists public.scores (
+    id            bigint generated always as identity primary key,
+    username      text        not null references public.players(username) on delete cascade,
+    score         integer     not null,
+    duration_ms   integer     not null,
+    ghost         jsonb,
+    boss_enter_at timestamptz,
+    boss_end_at   timestamptz,
+    created_at    timestamptz not null default now()
+);
+
+create index if not exists idx_scores_score on public.scores (score desc);
+
+alter table public.scores enable row level security;
+
+drop policy if exists scores_select on public.scores;
+create policy scores_select
+    on public.scores for select using (true);
+
+drop policy if exists scores_insert on public.scores;
+create policy scores_insert
+    on public.scores for insert with check (true);
