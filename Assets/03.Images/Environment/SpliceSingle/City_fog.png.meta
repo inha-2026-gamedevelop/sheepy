@@ -1,0 +1,1105 @@
+fileFormatVersion: 2
+guid: 2f883cc8fbcb38245af79a993de465fa
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2476741099042959176
+    second: City_fog_0
+  - first:
+      213: 5951884942401219420
+    second: City_fog_1
+  - first:
+      213: -7524499016354378687
+    second: City_fog_2
+  - first:
+      213: 5700716026684791687
+    second: City_fog_3
+  - first:
+      213: -1152484643642456820
+    second: City_fog_4
+  - first:
+      213: 6473168614128150608
+    second: City_fog_5
+  - first:
+      213: -462514989586754190
+    second: City_fog_6
+  - first:
+      213: 7004773363684848319
+    second: City_fog_7
+  - first:
+      213: -2130199423340527936
+    second: City_fog_8
+  - first:
+      213: -8460165294053148721
+    second: City_fog_9
+  - first:
+      213: 8907007099016960989
+    second: City_fog_10
+  - first:
+      213: 6871234201513964114
+    second: City_fog_11
+  - first:
+      213: 5495132353539389424
+    second: City_fog_12
+  - first:
+      213: 5791297743142777603
+    second: City_fog_13
+  - first:
+      213: -5244355714922982787
+    second: City_fog_14
+  - first:
+      213: -1272145560639890919
+    second: City_fog_15
+  - first:
+      213: -5797676737907568093
+    second: City_fog_16
+  - first:
+      213: 1732046686492895212
+    second: City_fog_17
+  - first:
+      213: 1677336593847717756
+    second: City_fog_18
+  - first:
+      213: -4068859582664120539
+    second: City_fog_19
+  - first:
+      213: -4983869037558583591
+    second: City_fog_20
+  - first:
+      213: -957090517637581243
+    second: City_fog_21
+  - first:
+      213: 3747590602526288781
+    second: City_fog_22
+  - first:
+      213: -3340888167486784201
+    second: City_fog_23
+  - first:
+      213: -2647789671523264135
+    second: City_fog_24
+  - first:
+      213: -1558410048234684289
+    second: City_fog_25
+  - first:
+      213: 6644368654064906729
+    second: City_fog_26
+  - first:
+      213: 4285919026545396298
+    second: City_fog_27
+  - first:
+      213: 7332664119438828455
+    second: City_fog_28
+  - first:
+      213: -3442476625190501932
+    second: City_fog_29
+  - first:
+      213: -5607332950530438638
+    second: City_fog_30
+  - first:
+      213: 4948924637568893315
+    second: City_fog_31
+  - first:
+      213: -55752817748724473
+    second: City_fog_32
+  - first:
+      213: 6876604135457224870
+    second: City_fog_33
+  - first:
+      213: 6493596763526363422
+    second: City_fog_34
+  - first:
+      213: -6712808683742040041
+    second: City_fog_35
+  - first:
+      213: -2570803775138889440
+    second: City_fog_36
+  - first:
+      213: -3348182882367060000
+    second: City_fog_37
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: City_fog_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 640
+        height: 1345
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84fe01148e62f5220800000000000000
+      internalID: 2476741099042959176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_1
+      rect:
+        serializedVersion: 2
+        x: 21
+        y: 1316
+        width: 13
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5b22d712d7599250800000000000000
+      internalID: 5951884942401219420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_2
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 1317
+        width: 21
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14ccb69d20c939790800000000000000
+      internalID: -7524499016354378687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_3
+      rect:
+        serializedVersion: 2
+        x: 117
+        y: 1313
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78b5ce7c5030d1f40800000000000000
+      internalID: 5700716026684791687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_4
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 1312
+        width: 24
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c05499e925d8100f0800000000000000
+      internalID: -1152484643642456820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_5
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 1311
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 058e058ee8055d950800000000000000
+      internalID: 6473168614128150608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_6
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 1314
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27553664111d499f0800000000000000
+      internalID: -462514989586754190
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_7
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 1318
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb2bd8ae244f53160800000000000000
+      internalID: 7004773363684848319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_8
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 1312
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cebb0729e20072e0800000000000000
+      internalID: -2130199423340527936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_9
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 1316
+        width: 13
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc7bfda2d74779a80800000000000000
+      internalID: -8460165294053148721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_10
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 1317
+        width: 21
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddbd9c4e3cb0c9b70800000000000000
+      internalID: 8907007099016960989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_11
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 1313
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25231c5d9178b5f50800000000000000
+      internalID: 6871234201513964114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_12
+      rect:
+        serializedVersion: 2
+        x: 565
+        y: 1312
+        width: 24
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f7b876d2c1a24c40800000000000000
+      internalID: 5495132353539389424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_13
+      rect:
+        serializedVersion: 2
+        x: 607
+        y: 1311
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 303fb802d92de5050800000000000000
+      internalID: 5791297743142777603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_14
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 1305
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d72d938534e4837b0800000000000000
+      internalID: -5244355714922982787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_15
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 1310
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91a187b4a5e685ee0800000000000000
+      internalID: -1272145560639890919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_16
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 1305
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 322597a69b38a8fa0800000000000000
+      internalID: -5797676737907568093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_17
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 1310
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce72dcad847790810800000000000000
+      internalID: 1732046686492895212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_18
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 1300
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7f8e05ceb8174710800000000000000
+      internalID: 1677336593847717756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_19
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 1306
+        width: 12
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5276c5e64c18887c0800000000000000
+      internalID: -4068859582664120539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_20
+      rect:
+        serializedVersion: 2
+        x: 109
+        y: 1307
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dea049148db5dab0800000000000000
+      internalID: -4983869037558583591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_21
+      rect:
+        serializedVersion: 2
+        x: 124
+        y: 1301
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 546315ebe3bb7b2f0800000000000000
+      internalID: -957090517637581243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_22
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 1305
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8beb232ccd120430800000000000000
+      internalID: 3747590602526288781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_23
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 1306
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73df4a699e7c2a1d0800000000000000
+      internalID: -3340888167486784201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_24
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 1303
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97958e48259214bd0800000000000000
+      internalID: -2647789671523264135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_25
+      rect:
+        serializedVersion: 2
+        x: 436
+        y: 1305
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f708294615a6f5ae0800000000000000
+      internalID: -1558410048234684289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_26
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 1310
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e17746661a853c50800000000000000
+      internalID: 6644368654064906729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_27
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 1305
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4a835995a4aa7b30800000000000000
+      internalID: 4285919026545396298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_28
+      rect:
+        serializedVersion: 2
+        x: 479
+        y: 1310
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a36760aa2bd2c560800000000000000
+      internalID: 7332664119438828455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_29
+      rect:
+        serializedVersion: 2
+        x: 515
+        y: 1300
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d14fe79fbdd930d0800000000000000
+      internalID: -3442476625190501932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_30
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 1306
+        width: 12
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21a4a42f360ce22b0800000000000000
+      internalID: -5607332950530438638
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_31
+      rect:
+        serializedVersion: 2
+        x: 544
+        y: 1307
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3810972ccbc1ea440800000000000000
+      internalID: 4948924637568893315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_32
+      rect:
+        serializedVersion: 2
+        x: 559
+        y: 1301
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7053cde8b1de93ff0800000000000000
+      internalID: -55752817748724473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_33
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 1305
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a8f8e2070b9e6f50800000000000000
+      internalID: 6876604135457224870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_34
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 37
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e197d941ad3ed1a50800000000000000
+      internalID: 6493596763526363422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_35
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 39
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 710f560711057d2a0800000000000000
+      internalID: -6712808683742040041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_36
+      rect:
+        serializedVersion: 2
+        x: 425
+        y: 39
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0210d93569ba25cd0800000000000000
+      internalID: -2570803775138889440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: City_fog_37
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 38
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e7c77d686dd881d0800000000000000
+      internalID: -3348182882367060000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      City_fog_0: 2476741099042959176
+      City_fog_1: 5951884942401219420
+      City_fog_10: 8907007099016960989
+      City_fog_11: 6871234201513964114
+      City_fog_12: 5495132353539389424
+      City_fog_13: 5791297743142777603
+      City_fog_14: -5244355714922982787
+      City_fog_15: -1272145560639890919
+      City_fog_16: -5797676737907568093
+      City_fog_17: 1732046686492895212
+      City_fog_18: 1677336593847717756
+      City_fog_19: -4068859582664120539
+      City_fog_2: -7524499016354378687
+      City_fog_20: -4983869037558583591
+      City_fog_21: -957090517637581243
+      City_fog_22: 3747590602526288781
+      City_fog_23: -3340888167486784201
+      City_fog_24: -2647789671523264135
+      City_fog_25: -1558410048234684289
+      City_fog_26: 6644368654064906729
+      City_fog_27: 4285919026545396298
+      City_fog_28: 7332664119438828455
+      City_fog_29: -3442476625190501932
+      City_fog_3: 5700716026684791687
+      City_fog_30: -5607332950530438638
+      City_fog_31: 4948924637568893315
+      City_fog_32: -55752817748724473
+      City_fog_33: 6876604135457224870
+      City_fog_34: 6493596763526363422
+      City_fog_35: -6712808683742040041
+      City_fog_36: -2570803775138889440
+      City_fog_37: -3348182882367060000
+      City_fog_4: -1152484643642456820
+      City_fog_5: 6473168614128150608
+      City_fog_6: -462514989586754190
+      City_fog_7: 7004773363684848319
+      City_fog_8: -2130199423340527936
+      City_fog_9: -8460165294053148721
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
