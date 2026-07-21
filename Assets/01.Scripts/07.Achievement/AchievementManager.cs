@@ -19,6 +19,7 @@ namespace Minsung.Achievement
 
         private const string SAVE_KEY           = "Achievements_UnlockedIds";
         private const string COUNTER_KEY_PREFIX = "Achievements_Counter_"; // 누적 카운트 업적(사망 100회 등) 저장용
+        private const string UNIQUE_KEY_PREFIX  = "Achievements_Unique_";  // 고유 항목 집합 업적(라디오 5개 등) 저장용
 
         // 씬에 직접 배치할 때만 인스펙터로 지정. 비어 있으면 Resources에서 자동 로드.
         [SerializeField] private AchievementDatabase _database;
@@ -103,12 +104,58 @@ namespace Minsung.Achievement
                 return; // 이미 해제됨 - 더 셀 필요 없음
             }
 
+            int count = IncrementCounter(counterKey);
+            if (count >= target)
+            {
+                Unlock(achievementId);
+            }
+        }
+
+        /// <summary>
+        /// counterKey의 누적 횟수를 1 증가시키고 PlayerPrefs에 저장한다. 목표 도달 판정 없이 순수 증가만 필요할 때
+        /// (예: 클리어 시점에야 판정하는 "보스에게 500번 죽고도 클리어" 업적) 사용한다.
+        /// </summary>
+        public int IncrementCounter(string counterKey)
+        {
             string prefKey = COUNTER_KEY_PREFIX + counterKey;
             int count = PlayerPrefs.GetInt(prefKey, 0) + 1;
             PlayerPrefs.SetInt(prefKey, count);
             PlayerPrefs.Save();
+            return count;
+        }
 
-            if (count >= target)
+        /// <summary> counterKey의 현재 누적 횟수를 증가 없이 조회한다. </summary>
+        public int GetCounter(string counterKey)
+        {
+            return PlayerPrefs.GetInt(COUNTER_KEY_PREFIX + counterKey, 0);
+        }
+
+        /// <summary>
+        /// 고유 항목 누적 기반 업적 진행 (예: 라디오 5개를 각각 들어야 하는 경우). groupKey(예: "radio")의
+        /// 집합에 itemId를 추가하고, 서로 다른 항목이 target개에 도달하면 achievementId를 해제한다.
+        /// 같은 itemId를 여러 번 넣어도 한 번만 카운트된다. 이미 해제된 업적이면 무시.
+        /// </summary>
+        public void MarkUniqueProgress(string groupKey, string itemId, int target, string achievementId)
+        {
+            if (IsUnlocked(achievementId) || string.IsNullOrEmpty(itemId))
+            {
+                return;
+            }
+
+            string prefKey = UNIQUE_KEY_PREFIX + groupKey;
+            string json = PlayerPrefs.GetString(prefKey, "");
+            UniqueSaveData save = string.IsNullOrEmpty(json)
+                ? new UniqueSaveData { Ids = new List<string>() }
+                : JsonUtility.FromJson<UniqueSaveData>(json);
+
+            if (!save.Ids.Contains(itemId))
+            {
+                save.Ids.Add(itemId);
+                PlayerPrefs.SetString(prefKey, JsonUtility.ToJson(save));
+                PlayerPrefs.Save();
+            }
+
+            if (save.Ids.Count >= target)
             {
                 Unlock(achievementId);
             }
@@ -127,6 +174,13 @@ namespace Minsung.Achievement
         private class SaveData
         {
             public List<string> UnlockedIds;
+        }
+
+        // MarkUniqueProgress가 groupKey별 고유 항목 집합을 저장하는 래퍼.
+        [Serializable]
+        private class UniqueSaveData
+        {
+            public List<string> Ids;
         }
 
         // 해제 목록 전체를 PlayerPrefs에 저장. 해제는 드문 이벤트라 매번 전체 저장해도 부담 없음.

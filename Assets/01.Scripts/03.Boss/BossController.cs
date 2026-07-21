@@ -92,6 +92,7 @@ namespace Minsung.Boss
         private RewindManager.RewindLockHandle _entranceRewindLock;
         private RewindManager.RewindLockHandle _phaseEndRewindLock; // CoPhaseEnd 진행 중 잠금 - 필드로 둬서 OnDestroy 안전망 Dispose 가능하게
         private bool _timeOverKilled;      // 제한시간 즉사 1회 처리 플래그
+        private bool _finalHitWasClone;    // 최종 페이즈 하한을 돌파시킨 피해의 출처가 분신이었는지 ("너한테 모든걸 맡긴다" 업적 판정용)
 
         private PlayerHealth _playerHealth;          // 즉사/반사 대상 (본체)
         private readonly List<IBossPattern> _patterns = new List<IBossPattern>(); // 전 페이즈 공통 패턴 (낙뢰 등)
@@ -331,6 +332,7 @@ namespace Minsung.Boss
             {
                 return;
             }
+            AchievementTrigger.PlayerDiedToBoss(_currentHealth / GameDB.Boss.TotalHealth);
             RespawnManager.RestartBossAtReturnPoint();
         }
 
@@ -447,6 +449,10 @@ namespace Minsung.Boss
             // 페이즈별 자체 트리거(예: 1페이즈 분신 전멸)를 쓰는 경우 피통 하한 도달만으로는 기믹을 시작하지 않는다
             if ((_currentHealth <= PhaseFloorHealth) && (_states[_phaseIndex].UsesHealthFloorTrigger))
             {
+                if (_phaseIndex >= _finalPhaseIndex)
+                {
+                    _finalHitWasClone = (source == DamageSource.PlayerClone); // 최종 페이즈를 끝낸 막타의 출처 기록
+                }
                 TriggerPhaseEnd();
             }
             return true;
@@ -455,7 +461,12 @@ namespace Minsung.Boss
         /// <summary> 감정 반사 판정 - 반사되면 공격자가 대신 피해를 입고 true 반환 (본체/분신이 규칙 공유) </summary>
         public bool ReflectIfNeeded(DamageSource source, PlayerHealth attacker)
         {
-            return (_emotionController != null) && _emotionController.ReflectIfNeeded(source, attacker);
+            bool reflected = (_emotionController != null) && _emotionController.ReflectIfNeeded(source, attacker);
+            if (reflected)
+            {
+                AchievementTrigger.AttackReflected();
+            }
+            return reflected;
         }
 
         /// <summary> 페이즈 종료 시퀀스(피통 동결 + 종료 기믹) 시작 - 피통 하한 도달 시 자동 호출되거나 페이즈가 자체 조건으로 직접 호출 </summary>
@@ -567,12 +578,9 @@ namespace Minsung.Boss
                     yield break;
                 }
 
-                AchievementManager.Instance?.Unlock(AchievementIds.BOSS_DEFEATED);
-                // 이번 보스 런 내내 되감기를 한 번도 안 썼다면 "되감기 없이 클리어" 업적 - StopBossTimer는 이 플래그를 건드리지 않으므로 순서 무관
-                if ((GameManager.Instance != null) && !GameManager.Instance.RewindUsedDuringBossRun)
-                {
-                    AchievementManager.Instance?.Unlock(AchievementIds.NO_REWIND);
-                }
+                // 이번 보스 런 내내 되감기를 한 번도 안 썼다면 "되감기 없이 클리어"까지 함께 - StopBossTimer는 이 플래그를 건드리지 않으므로 순서 무관
+                bool usedRewind = (GameManager.Instance != null) && GameManager.Instance.RewindUsedDuringBossRun;
+                AchievementTrigger.BossDefeated(usedRewind, _finalHitWasClone);
                 PlayAnimTrigger(PARAM_DEATH);
                 StartCoroutine(CoActivateDeathLightFx());
                 CameraManager.Instance?.ResetPlayerZoom();
@@ -584,7 +592,7 @@ namespace Minsung.Boss
             ++_phaseIndex;
             if (_phaseIndex == 1)
             {
-                AchievementManager.Instance?.Unlock(AchievementIds.BOSS_PHASE1_CLEAR);
+                AchievementTrigger.BossPhase1Cleared();
                 StartEmotionLoop(applyImmediately: true); // 2페이즈 시작과 동시에 첫 감정 즉시 적용 (3페이즈는 SetAutoEmotionSuspended로 정지)
             }
 
