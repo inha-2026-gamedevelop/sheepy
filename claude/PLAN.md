@@ -307,8 +307,8 @@
 
 - [ ] **닉네임 등록 플로우**
   - 첫 실행 시 팝업 → 중복체크(`Register`의 409 처리 활용) → PlayerPrefs 저장
-- [ ] **클리어 타임 제출**
-  - 보스 사망 이벤트(`BossController.OnBossDefeated`) → `GameManager.StopRunTimerMs` → `SubmitScore`
+- [x] **클리어 타임 제출** (2026-07-22) — `GameManager.StopBossTimer`가 `MirrorBossCleared`와 함께 `BackendMirror.SubmitBossClearScore(_bossElapsedMs)` 호출. score는 `SCORE_TIME_BASE - durationMs` 역산값이라 `GetLeaderboard`의 score 내림차순 정렬에서 빠른 기록이 상위에 옴. 고스트 리플레이는 기록 기능이 없어 빈 리스트로 제출
+  - 실측 중 `scores` 테이블 자체가 Supabase 프로젝트에 없어(`PGRST205`) 제출이 조용히 실패하던 것 발견 - `supabase_schema.sql`에 테이블/인덱스/RLS 추가 (대시보드 SQL Editor 실행 필요)
 - [ ] **랭킹 조회**
   - `GetLeaderboard` Top 10 → 명진 랭킹 UI로 데이터 전달
 - [ ] **네트워크 Fallback**
@@ -378,6 +378,10 @@
 - `AchievementListPanel`/`AchievementListItemUI`(07.Achievement) 신설 - `AchievementDatabase` 전체 항목을 스크롤 리스트로 표시, 해제 여부를 `AchievementManager.IsUnlocked`로 조회해 항목별로 반영. 잠긴 업적은 제목만 보이고 설명은 `???`로 가림 + 진행률("N / 10") 표시
 - `AchievementListItem.prefab`(02.Prefabs/UI) 신설, `MainMenuController`에 `_achievementPanel`/`_achievementBackdrop` 필드 + `OnClickAchievements()` 추가 - 기존 설정 패널과 동일한 블러 배경 캡처 절차(`PauseController.CoCaptureSettingsBackdrop`) 재사용
 - `MainMenu.unity`에 업적 버튼(MenuPanel, 기존 5번째 버튼 추가로 메뉴 전체가 화면 아래로 밀려 마지막 2개 버튼이 화면 밖으로 벗어나던 문제 발견 - `MenuPanel` 앵커 위치를 2행만큼 올려 수정) + 업적 패널(`AchievementPanel[OFF]`, 스크롤뷰) 배치
+
+**버그 수정 — 신규 계정 등록 시 같은 기기에 남은 이전 계정 로컬 기록 미제거**
+- 같은 기기로 여러 계정을 테스트하면(공용 개발 머신) `RegisterOrLogin`의 신규 등록 성공 경로가 `SaveManager.SaveUsername`만 호출하고 이전 계정이 남긴 `Save_PlayerState`/`Achievements_UnlockedIds`는 그대로 둬서, 실제로는 아무것도 안 한 새 계정인데도 "이어하기"가 뜨거나 업적이 이미 해제된 것처럼 보여 새 해제가 조용히 무시되던 문제(`AchievementManager.Unlock`은 이미 해제된 id면 무시)
+- `BackendMirror.ClearStaleLocalDataForNewAccount(username)` 신설 - 신규 등록 성공 시 `SaveManager.ClearPlayerState()` + `AchievementManager.ClearAll()`(로컬만, 서버 데이터는 그대로) 후 닉네임 저장. 리플렉션으로 직접 호출해 PlayerPrefs가 실제로 지워짐을 확인
 
 **버그 수정 — Map1에 GameHUD 프리팹 누락으로 업적 토스트 미노출**
 - `Map1.unity`에는 `GameHUD.prefab`(업적 토스트 UI 포함)이 배치되어 있지 않아, 업적이 실제로 해제돼도 이를 구독해 토스트를 띄울 `AchievementToastUI` 인스턴스 자체가 씬에 없던 문제. Map2/Map3/Boss 씬에는 이미 배치되어 있었음
