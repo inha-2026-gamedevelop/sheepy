@@ -21,6 +21,8 @@ namespace Minsung.UI
         [SerializeField] private GameObject           _continueButton;
         [SerializeField] private GameObject           _settingsPanel;
         [SerializeField] private SettingsBackdropView _settingsBackdrop;
+        [SerializeField] private GameObject           _achievementPanel;
+        [SerializeField] private SettingsBackdropView _achievementBackdrop;
 
         [Header("선택 파티클 버스트")]
         [SerializeField] private UiClickBurst  _clickBurst;
@@ -43,9 +45,14 @@ namespace Minsung.UI
 
         private void Update()
         {
-            if ((_settingsPanel != null) && _settingsPanel.activeSelf && Input.GetKeyDown(Constants.System.KEY_PAUSE))
+            if ((_settingsPanel != null) && (_settingsPanel.activeSelf) && Input.GetKeyDown(Constants.System.KEY_PAUSE))
             {
                 CloseSettings();
+            }
+
+            if ((_achievementPanel != null) && (_achievementPanel.activeSelf) && Input.GetKeyDown(Constants.System.KEY_PAUSE))
+            {
+                CloseAchievements();
             }
         }
 
@@ -110,6 +117,42 @@ namespace Minsung.UI
         private void CloseSettings()
         {
             _settingsPanel.SetActive(false);
+            PauseController.Instance?.ReleaseCapturedSettingsBackdrop();
+        }
+
+        /// <summary> 업적 패널 토글 - 전체 업적 진행 현황(깬 것/안 깬 것)을 보여준다 </summary>
+        public void OnClickAchievements()
+        {
+            if (_achievementPanel == null)
+            {
+                return;
+            }
+
+            if (_achievementPanel.activeSelf)
+            {
+                CloseAchievements();
+                return;
+            }
+
+            StartCoroutine(CoOpenAchievements());
+        }
+
+        // 설정 패널과 동일한 블러 배경 캡처 절차 재사용
+        private IEnumerator CoOpenAchievements()
+        {
+            if (PauseController.Instance != null)
+            {
+                yield return PauseController.Instance.CoCaptureSettingsBackdrop();
+            }
+
+            _achievementBackdrop?.Refresh();
+            _achievementPanel.SetActive(true);
+        }
+
+        // 업적 패널을 닫고 캡처해둔 배경 텍스처를 반납 - 닫기 버튼/ESC 공용
+        private void CloseAchievements()
+        {
+            _achievementPanel.SetActive(false);
             PauseController.Instance?.ReleaseCapturedSettingsBackdrop();
         }
 
