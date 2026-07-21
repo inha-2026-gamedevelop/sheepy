@@ -17,7 +17,8 @@ namespace Minsung.Achievement
         *                Fields
         ****************************************/
 
-        private const string SAVE_KEY = "Achievements_UnlockedIds";
+        private const string SAVE_KEY           = "Achievements_UnlockedIds";
+        private const string COUNTER_KEY_PREFIX = "Achievements_Counter_"; // 누적 카운트 업적(사망 100회 등) 저장용
 
         // 씬에 직접 배치할 때만 인스펙터로 지정. 비어 있으면 Resources에서 자동 로드.
         [SerializeField] private AchievementDatabase _database;
@@ -89,6 +90,36 @@ namespace Minsung.Achievement
             Save();
             BackendMirror.Instance?.MirrorAchievement(id); // 로컬 저장 후 서버 미러(닉네임 없으면 자동 스킵)
             OnAchievementUnlocked?.Invoke(data);
+        }
+
+        /// <summary>
+        /// 누적 횟수 기반 업적 진행. counterKey(예: "death_count")의 누적 횟수를 PlayerPrefs에 저장하고,
+        /// target에 도달하면 achievementId를 해제한다 (사망 100회/되감기 100회 등). 이미 해제된 업적이면 카운트하지 않는다.
+        /// </summary>
+        public void IncrementProgress(string counterKey, int target, string achievementId)
+        {
+            if (IsUnlocked(achievementId))
+            {
+                return; // 이미 해제됨 - 더 셀 필요 없음
+            }
+
+            string prefKey = COUNTER_KEY_PREFIX + counterKey;
+            int count = PlayerPrefs.GetInt(prefKey, 0) + 1;
+            PlayerPrefs.SetInt(prefKey, count);
+            PlayerPrefs.Save();
+
+            if (count >= target)
+            {
+                Unlock(achievementId);
+            }
+        }
+
+        /// <summary> 해제된 업적 기록을 전부 제거 (설정 - 데이터 초기화). 로컬만 지운다 - 서버 삭제는 BackendMirror.MirrorClearAchievements가 담당. </summary>
+        public void ClearAll()
+        {
+            _unlocked.Clear();
+            PlayerPrefs.DeleteKey(SAVE_KEY);
+            PlayerPrefs.Save();
         }
 
         // PlayerPrefs에 JSON으로 넣기 위한 직렬화 래퍼 (JsonUtility는 컬렉션 루트를 지원하지 않음).

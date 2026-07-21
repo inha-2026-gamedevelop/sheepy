@@ -11,8 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21bf5a37748611d45b8f793e429ba4ca, type: 3}
   m_Name: Achievement_FirstRewind
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   _id: first_rewind
-  _title: "시간을 거스른 자"
-  _description: "처음으로 시간을 되감았다."
+  _title: "\uC2DC\uAC04\uC744 \uAC70\uC2A4\uB978 \uC790"
+  _description: "\uCC98\uC74C\uC73C\uB85C \uC2DC\uAC04\uC744 \uB418\uAC10\uC558\uB2E4."
   _icon: {fileID: 0}

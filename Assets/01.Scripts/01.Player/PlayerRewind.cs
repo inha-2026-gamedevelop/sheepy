@@ -124,6 +124,8 @@ namespace Minsung.Player
         public void OnRewindStart()
         {
             AchievementManager.Instance?.Unlock(AchievementIds.FIRST_REWIND);
+            AchievementManager.Instance?.IncrementProgress("rewind_count", 100, AchievementIds.REWIND_100);
+            GameManager.Instance?.NotifyRewindUsed(); // 보스전 도중이면 "되감기 없이 클리어" 업적 조건 무효화
 
             _isRewinding = true;
             _interaction.ForceStop(); // 상호작용 애니메이션 중이었어도 되감기가 우선

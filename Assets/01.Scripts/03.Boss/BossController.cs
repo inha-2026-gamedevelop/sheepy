@@ -568,6 +568,11 @@ namespace Minsung.Boss
                 }
 
                 AchievementManager.Instance?.Unlock(AchievementIds.BOSS_DEFEATED);
+                // 이번 보스 런 내내 되감기를 한 번도 안 썼다면 "되감기 없이 클리어" 업적 - StopBossTimer는 이 플래그를 건드리지 않으므로 순서 무관
+                if ((GameManager.Instance != null) && !GameManager.Instance.RewindUsedDuringBossRun)
+                {
+                    AchievementManager.Instance?.Unlock(AchievementIds.NO_REWIND);
+                }
                 PlayAnimTrigger(PARAM_DEATH);
                 StartCoroutine(CoActivateDeathLightFx());
                 CameraManager.Instance?.ResetPlayerZoom();
