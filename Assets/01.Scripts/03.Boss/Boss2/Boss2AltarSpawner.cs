@@ -20,10 +20,13 @@ public class Boss2AltarSpawner : MonoBehaviour
     [SerializeField] private Boss2DataSO _dataSo;
 
     [Header("아레나 경계 (Boss2AttackPatterns와 동일한 값 권장)")]
-    [SerializeField] private float _arenaMinX    = -10f;
-    [SerializeField] private float _arenaMaxX    = 10f;
-    [SerializeField] private float _arenaGroundY = -3f;
+    [SerializeField] private float _arenaMinX    = -7.4f;
+    [SerializeField] private float _arenaMaxX    = 8.6f;
+    [SerializeField] private float _arenaGroundY = -3f; // 지면 마커가 비어있을 때의 폴백값
     [SerializeField] private float _altarHeight  = 0f; // 제단 피벗 기준 지면 위 여백
+
+    [Header("지면 마커 (씬의 다리/바닥 표면 위에 배치 - 가장 가까운 마커의 Y를 지면으로 사용)")]
+    [SerializeField] private Transform[] _groundMarkers;
 
     private Coroutine      _spawnLoop;
     private WaitForSeconds _waitSpawnInterval;
@@ -89,8 +92,31 @@ public class Boss2AltarSpawner : MonoBehaviour
         }
 
         float x = Random.Range(_arenaMinX, _arenaMaxX);
-        _altar.transform.position = new Vector3(x, _arenaGroundY + _altarHeight, 0f);
+        float groundY = GetGroundY(x);
+        _altar.transform.position = new Vector3(x, groundY + _altarHeight, 0f);
         _altar.SetActive(true);
+    }
+
+    // 가장 가까운 지면 마커의 Y를 지면 높이로 사용 - 마커가 없으면 _arenaGroundY로 폴백
+    private float GetGroundY(float x)
+    {
+        if ((_groundMarkers == null) || (_groundMarkers.Length == 0))
+        {
+            return _arenaGroundY;
+        }
+
+        Transform nearest = _groundMarkers[0];
+        float nearestDist = Mathf.Abs(nearest.position.x - x);
+        for (int i = 1; i < _groundMarkers.Length; i++)
+        {
+            float dist = Mathf.Abs(_groundMarkers[i].position.x - x);
+            if (dist < nearestDist)
+            {
+                nearest = _groundMarkers[i];
+                nearestDist = dist;
+            }
+        }
+        return nearest.position.y;
     }
 
     private void StopSpawnLoop()

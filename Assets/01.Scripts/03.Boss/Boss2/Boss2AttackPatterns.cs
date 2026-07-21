@@ -23,9 +23,12 @@ public class Boss2AttackPatterns : MonoBehaviour, IRewindable
     [SerializeField] private HeartPickup _heartPickup; // 파랑 감정 하트 픽업
 
     [Header("아레나 경계 (패턴 배치 기준)")]
-    [SerializeField] private float _arenaMinX    = -10f;
-    [SerializeField] private float _arenaMaxX    = 10f;
-    [SerializeField] private float _arenaGroundY = -3f;
+    [SerializeField] private float _arenaMinX    = -7.4f;
+    [SerializeField] private float _arenaMaxX    = 8.6f;
+    [SerializeField] private float _arenaGroundY = -3f; // 지면 마커가 비어있을 때의 폴백값 + 레이저 높이 기준
+
+    [Header("지면 마커 (씬의 다리/바닥 표면 위에 배치 - 낙뢰/강타가 가장 가까운 마커 Y로 스냅)")]
+    [SerializeField] private Transform[] _groundMarkers;
 
     private Boss2LightningPattern _lightning;
     private Boss2WavePattern      _wave;
@@ -57,9 +60,9 @@ public class Boss2AttackPatterns : MonoBehaviour, IRewindable
 
         _emotionController.Configure(player, _heartPickup, _dataSo, _arenaMinX, _arenaMaxX, _arenaGroundY, () => false);
 
-        _lightning = new Boss2LightningPattern(this, _target, _dataSo, _arenaMinX, _arenaMaxX, _arenaGroundY,
+        _lightning = new Boss2LightningPattern(this, _target, _dataSo, _arenaMinX, _arenaMaxX, GetGroundY,
             _emotionController.LightningRateMultiplier);
-        _wave      = new Boss2WavePattern(this, _dataSo, _arenaMinX, _arenaMaxX, _arenaGroundY);
+        _wave      = new Boss2WavePattern(this, _dataSo, _arenaMinX, _arenaMaxX, GetGroundY);
         _laser     = new Boss2LaserPattern(this, _dataSo, _arenaMinX, _arenaMaxX, _arenaGroundY);
 
         _lightning.Play();
@@ -81,6 +84,28 @@ public class Boss2AttackPatterns : MonoBehaviour, IRewindable
         _wave?.Dispose();
         _laser?.Dispose();
         RewindManager.Instance?.Unregister(this);
+    }
+
+    // 가장 가까운 지면 마커의 Y를 지면 높이로 사용 - 마커가 없으면 _arenaGroundY로 폴백
+    private float GetGroundY(float x)
+    {
+        if ((_groundMarkers == null) || (_groundMarkers.Length == 0))
+        {
+            return _arenaGroundY;
+        }
+
+        Transform nearest = _groundMarkers[0];
+        float nearestDist = Mathf.Abs(nearest.position.x - x);
+        for (int i = 1; i < _groundMarkers.Length; i++)
+        {
+            float dist = Mathf.Abs(_groundMarkers[i].position.x - x);
+            if (dist < nearestDist)
+            {
+                nearest = _groundMarkers[i];
+                nearestDist = dist;
+            }
+        }
+        return nearest.position.y;
     }
 
     /****************************************
