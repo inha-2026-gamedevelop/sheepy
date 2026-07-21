@@ -18,7 +18,7 @@ namespace Minsung.Item
                 return;
             }
 
-            AchievementManager.Instance?.Unlock(AchievementIds.MAP_TOP_ITEM);
+            AchievementTrigger.MapTopItemCollected();
             gameObject.SetActive(false);
         }
     }
