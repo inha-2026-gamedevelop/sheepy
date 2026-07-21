@@ -89,7 +89,7 @@ namespace Minsung.TimeSystem
         {
             if (on)
             {
-                AchievementManager.Instance?.Unlock(AchievementIds.FIRST_SLOW);
+                AchievementTrigger.SlowMotionUsed();
             }
 
             IsSlow       = on;
