@@ -6,6 +6,7 @@ using System.Globalization;
 // Unity
 using UnityEngine;
 
+using Minsung.Achievement;
 using Minsung.Common;
 using Minsung.Common.Data;
 using Minsung.Utility;
@@ -101,7 +102,7 @@ namespace Minsung.Backend
                             if (nameRow == null)
                             {
                                 _client.Register(username, deviceId,
-                                    onSuccess:  () => { SaveManager.Instance?.SaveUsername(username); onSuccess?.Invoke(); },
+                                    onSuccess:  () => { ClearStaleLocalDataForNewAccount(username); onSuccess?.Invoke(); },
                                     onConflict: () => onBlocked?.Invoke("이미 등록된 이름입니다."), // 조회~등록 레이스
                                     onError:    onError);
                             }
@@ -114,6 +115,15 @@ namespace Minsung.Backend
                         onError: onError);
                 },
                 onError: onError);
+        }
+
+        // 신규 계정 등록 직후 호출 - 같은 기기에 다른 계정으로 테스트하며 남은 로컬 진행/업적 기록을
+        // 새 계정 것으로 오인하지 않도록 제거한 뒤 닉네임을 저장한다 (서버 데이터는 건드리지 않음)
+        private void ClearStaleLocalDataForNewAccount(string username)
+        {
+            SaveManager.Instance?.ClearPlayerState();
+            AchievementManager.Instance?.ClearAll();
+            SaveManager.Instance?.SaveUsername(username);
         }
 
         /// <summary>
