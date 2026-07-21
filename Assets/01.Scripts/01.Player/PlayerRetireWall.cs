@@ -72,13 +72,19 @@ public class StomperTrap : MonoBehaviour
         {
             // 1. 내려찍기 시작: 통과 가능한 Trigger 모드로 변경
             isDropping = true;
-            if (trapCollider != null) trapCollider.isTrigger = true;
+            if (trapCollider != null)
+            {
+                trapCollider.isTrigger = true;
+            }
 
             yield return StartCoroutine(MovePosition(startPosition, targetPosition, dropDuration));
 
             // 2. 바닥 대기 시작: 단단한 벽(Solid) 모드로 변경
             isDropping = false;
-            if (trapCollider != null) trapCollider.isTrigger = false;
+            if (trapCollider != null)
+            {
+                trapCollider.isTrigger = false;
+            }
 
             yield return new WaitForSeconds(waitDuration);
 

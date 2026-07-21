@@ -216,6 +216,7 @@ namespace Minsung.Player
                 return; // 사망 중 입력 잠금
             }
             _input.HandleInput();
+            AchievementTrigger.IdleTick(Input.anyKeyDown, Time.deltaTime); // "잠만보" - 5분 무입력 판정
         }
 
         private void FixedUpdate()
@@ -259,7 +260,8 @@ namespace Minsung.Player
                 return;
             }
             GameManager.Instance?.ResetBossTimer(); // 보스전 중 사망 - 진행 중이던 클리어 타이머 폐기
-            AchievementManager.Instance?.IncrementProgress("death_count", 100, AchievementIds.DEATH_100);
+            AchievementTrigger.PlayerDied();
+            AchievementTrigger.ResetIdle(); // 사망은 "가만히 있기"가 아니므로 무입력 누적 리셋
             StartCoroutine(CoDeathRespawn());
         }
 

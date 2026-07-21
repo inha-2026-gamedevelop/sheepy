@@ -74,7 +74,7 @@ namespace Minsung.Achievement
                 bool unlocked = (AchievementManager.Instance != null) && AchievementManager.Instance.IsUnlocked(data.Id);
                 if (unlocked)
                 {
-                    unlockedCount++;
+                    ++unlockedCount;
                 }
 
                 AchievementListItemUI item = Instantiate(_itemPrefab, _content);
