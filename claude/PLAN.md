@@ -3,7 +3,7 @@
 > 기준: 노션 기능 투두리스트 기준 / 챕터 1 완성
 > GameManager / AudioManager / SaveManager 는 별도 작업 (이 목록 제외 — 단, 씬전환/체크포인트/런타이머용 경량 GameManager는 구현됨)
 > 순서는 의존성 기준 — 앞 항목 완료 후 다음 항목 가능
-> 최종 갱신: 2026-07-18 (포션 회복 아이템 / 엘리베이터 상호작용 / 몬스터 사망 모션 / Boss 페이즈 구간 씬 분할·아웃트로 전환 / Ex 폴더 완전 제거 반영)
+> 최종 갱신: 2026-07-21 (업적 목록 UI/토스트 효과음/설정 데이터 초기화 버튼 + Backend players UPDATE RLS 정책 수정 반영)
 
 ---
 
@@ -108,7 +108,8 @@
 |---|---|
 | 업적 매니저 (자동 생성, PlayerPrefs 저장) | AchievementManager.cs |
 | 업적 카탈로그 SO + 데이터 | AchievementDatabase.cs / AchievementData.cs / AchievementIds.cs |
-| 업적 토스트 UI (큐 순차 표시) | AchievementToastUI.cs |
+| 업적 토스트 UI (큐 순차 표시, 해제 효과음 재생) | AchievementToastUI.cs |
+| 업적 목록 UI (로비 '업적' 버튼 - 전체 목록, 잠긴 항목은 제목만/설명 ???) | AchievementListPanel.cs / AchievementListItemUI.cs / AchievementListItem.prefab |
 | Supabase 클라이언트 (등록/점수/리더보드/고스트) | SupabaseClient.cs |
 | Supabase 모델 / 고스트 프레임 | SupabaseModels.cs / Ghostframe.cs |
 | Supabase 스키마 / RLS | supabase_schema.sql |
@@ -370,6 +371,29 @@
 | **합계 (남은 작업)** | | **16개** | |
 
 ---
+
+## 🧹 리팩토링 이력 — 2026-07-21
+
+**기능 — 업적 목록 UI (로비 '업적' 버튼)**
+- `AchievementListPanel`/`AchievementListItemUI`(07.Achievement) 신설 - `AchievementDatabase` 전체 항목을 스크롤 리스트로 표시, 해제 여부를 `AchievementManager.IsUnlocked`로 조회해 항목별로 반영. 잠긴 업적은 제목만 보이고 설명은 `???`로 가림 + 진행률("N / 10") 표시
+- `AchievementListItem.prefab`(02.Prefabs/UI) 신설, `MainMenuController`에 `_achievementPanel`/`_achievementBackdrop` 필드 + `OnClickAchievements()` 추가 - 기존 설정 패널과 동일한 블러 배경 캡처 절차(`PauseController.CoCaptureSettingsBackdrop`) 재사용
+- `MainMenu.unity`에 업적 버튼(MenuPanel, 기존 5번째 버튼 추가로 메뉴 전체가 화면 아래로 밀려 마지막 2개 버튼이 화면 밖으로 벗어나던 문제 발견 - `MenuPanel` 앵커 위치를 2행만큼 올려 수정) + 업적 패널(`AchievementPanel[OFF]`, 스크롤뷰) 배치
+
+**버그 수정 — Map1에 GameHUD 프리팹 누락으로 업적 토스트 미노출**
+- `Map1.unity`에는 `GameHUD.prefab`(업적 토스트 UI 포함)이 배치되어 있지 않아, 업적이 실제로 해제돼도 이를 구독해 토스트를 띄울 `AchievementToastUI` 인스턴스 자체가 씬에 없던 문제. Map2/Map3/Boss 씬에는 이미 배치되어 있었음
+- `GameHUD` 프리팹 인스턴스를 Map1에 추가 (인스턴스화 직후 scale이 0으로 들어오는 툴 이슈 있어 1로 재설정)
+
+**기능 — 업적 토스트 해제 효과음**
+- `SoundData.EUISfx.AchievementToast` 슬롯(기존에 있었으나 비어 있던 자리)에 `steam-achievement.mp3` 연결(`SoundDB.asset`)
+- `AchievementToastUI.ShowQueueRoutine`이 토스트 페이드 인 직전 `SoundManager.PlaySFX(ESfxState.UI, EUISfx.AchievementToast)` 호출
+
+**기능 — 설정 패널 데이터 초기화 버튼 노출**
+- `SettingsPanelController.OnClickResetProgress`/`OnClickResetAchievements`(기록삭제/업적 기록 제거, "한 번 더 누르면 실행" 확인 패턴)는 코드로는 이미 구현돼 있었으나 실제로는 어떤 씬에도 버튼이 연결되어 있지 않던 상태였음 - `MainMenu.unity` 설정 패널에 버튼 2개 + `_resetMessageText` 추가로 실제 노출
+- 패널 높이 420->640으로 확장해 슬라이더 아래 공간 확보
+
+**버그 수정 — Backend players 테이블 UPDATE RLS 정책 누락으로 로비 나가기 시 서버 위치/씬 미저장**
+- "로비로 나가기" 시 `PlayerController.PersistProgress` -> `BackendMirror.MirrorPlayerProgress`가 정상 호출되는데도 서버에 위치/씬이 반영되지 않는 문제. `Prefer: return=representation` 헤더로 PATCH 응답을 직접 확인한 결과 `status=200, body=[]`(성공이지만 갱신된 행 0개) - `GetPlayer`로 같은 유저 행이 실제로 존재함은 확인됨(SELECT/INSERT 정책은 있음)을 볼 때 `players` 테이블에 UPDATE RLS 정책이 없어서 PostgREST가 조용히 0행 갱신하는 것으로 판단
+- `supabase_schema.sql`에 `players_update` 정책(`for update using (true) with check (true)`) 추가 - **Supabase 대시보드 SQL Editor에서 별도 실행 필요** (동일 PATCH 경로를 쓰는 `SetBossCleared`/`MirrorBossCleared`도 함께 수정됨)
 
 ## 🧹 리팩토링 이력 — 2026-07-19
 
