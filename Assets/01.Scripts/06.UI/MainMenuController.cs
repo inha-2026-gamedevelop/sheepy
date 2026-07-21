@@ -53,6 +53,8 @@ namespace Minsung.UI
         /// <summary> 게임 시작 (새로 시작) - 임시로 Map2 진입, 맵 완성 후 MAP_1로 교체 예정 </summary>
         public void OnClickStart()
         {
+            // 새로 시작이므로 이전 플레이어 위치 저장을 삭제 (이어하기 데이터 초기화)
+            SaveManager.Instance?.ClearPlayerState();
             PlayBurstThenLoad(_startButtonRect, Constants.Scene.MAP_2);
         }
 
@@ -62,6 +64,9 @@ namespace Minsung.UI
             string sceneName = (SaveManager.Instance != null)
                 ? SaveManager.Instance.LoadLastScene(Constants.Scene.MAP_1)
                 : Constants.Scene.MAP_1;
+
+            // 이어하기: 진입한 씬에서 플레이어를 저장된 위치로 1회 복원하도록 요청
+            GameManager.Instance?.RequestContinueRestore();
 
             RectTransform origin = (_continueButton != null) ? _continueButton.GetComponent<RectTransform>() : null;
             PlayBurstThenLoad(origin, sceneName);

@@ -279,6 +279,7 @@ GameObject:
   - component: {fileID: 4298312730112226991}
   - component: {fileID: 7111996726030078861}
   - component: {fileID: 7265190680715490144}
+  - component: {fileID: 7076350170267727316}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -396,7 +397,7 @@ CapsuleCollider2D:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7871254499066966236}
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -482,8 +483,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ffd7aba7a1856f44add453af7991349, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerMovement
-  _moveSpeed: 2
-  _jumpForce: 6
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -620,5 +619,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 730aa994a2be5b149a5590b6ff471aa7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerHealth
-  _maxHearts: 6
-  _invincibleDuration: 1
+--- !u!114 &7076350170267727316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7871254499066966236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1e2d4bab79d7fb4d9ceedc573f2a013, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerSaveOnExit

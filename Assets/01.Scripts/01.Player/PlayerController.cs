@@ -4,7 +4,9 @@ using System.Collections;
 
 // Unity
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
+using Minsung.Backend;
 using Minsung.Common;
 using Minsung.Common.Data;
 using Minsung.TimeSystem;
@@ -105,10 +107,80 @@ namespace Minsung.Player
 
         private void Start()
         {
+            // 이어하기로 진입한 경우, 저장된 위치/방향으로 1회 복원 (체크포인트 등록보다 먼저)
+            TryRestoreContinuePosition();
+
             // 시작 지점을 기본 체크포인트로 등록 - 체크포인트 오브젝트를 지나기 전에 죽어도 복귀 가능
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.SetCheckpoint(transform.position);
+            }
+
+            // 씬 전환(=새 씬 진입) 시점에 진행 상태를 저장+서버 미러 (종료 시점 웹요청이 불안정한 데스크톱 대비)
+            PersistProgress();
+        }
+
+        /// <summary>
+        /// 현재 진행 상태를 로컬 저장 + 서버 미러. 보스 진행 중이면 위치 대신 "Map2 기본 스폰"으로 기록해
+        /// 이어하기 때 보스 한가운데가 아니라 Map2 스폰에서 재개되도록 한다.
+        /// 호출: 씬 진입(Start) / 종료·일시정지(PlayerSaveOnExit) / 저장하고 나가기(PauseController).
+        /// </summary>
+        public void PersistProgress()
+        {
+            if (SaveManager.Instance == null)
+            {
+                return;
+            }
+
+            int facingDir = (_movement != null) ? _movement.FacingDir : 1;
+            bool bossActive = (GameManager.Instance != null) && GameManager.Instance.IsBossRunActive;
+
+            if (bossActive)
+            {
+                // 보스 중 저장 → Map2 기본 스폰으로 기록 (정확한 좌표 불필요)
+                SaveManager.Instance.SavePlayerState(Constants.Scene.MAP_2, Vector3.zero, facingDir, useDefaultSpawn: true);
+                BackendMirror.Instance?.MirrorPlayerProgress(Constants.Scene.MAP_2, Vector3.zero, facingDir, useDefaultSpawn: true);
+                return;
+            }
+
+            // Rigidbody2D 구동이라 SetPose 직후 transform.position은 다음 물리 스텝까지 반영이 늦다.
+            // 리지드바디 위치(_movement.Position)를 우선 사용해 복원 직후에도 정확한 좌표를 저장한다.
+            Vector3 position = (_movement != null) ? (Vector3)_movement.Position : transform.position;
+
+            string sceneName = SceneManager.GetActiveScene().name;
+            SaveManager.Instance.SavePlayerState(sceneName, position, facingDir);
+            BackendMirror.Instance?.MirrorPlayerProgress(sceneName, position, facingDir);
+        }
+
+        // 로비 '이어하기'로 진입했을 때만(1회 소비), 저장된 씬이 현재 씬과 일치하면 위치/방향을 복원한다.
+        private void TryRestoreContinuePosition()
+        {
+            if (!GameManager.ConsumeContinueRestore())
+            {
+                return;
+            }
+
+            if ((SaveManager.Instance == null) || !SaveManager.Instance.TryLoadPlayerState(out SaveData data))
+            {
+                return;
+            }
+
+            // 저장된 씬과 현재 씬이 다르면 위치 복원은 건너뛴다(다른 맵에 잘못 떨어지는 것 방지).
+            if (data.SceneName != SceneManager.GetActiveScene().name)
+            {
+                return;
+            }
+
+            // 보스 중 저장 등으로 "기본 스폰 사용"이면 위치 복원을 건너뛰고 씬 배치 스폰에 그대로 둔다.
+            if (data.UseDefaultSpawn)
+            {
+                return;
+            }
+
+            _movement.SetPose(data.PlayerPosition, Vector2.zero, false); // Rigidbody 위치까지 반영
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetFacing(data.FacingDir); // 바라보던 방향 복원
             }
         }
 

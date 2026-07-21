@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21bf5a37748611d45b8f793e429ba4ca, type: 3}
-  m_Name: Achievement_BossPhase1Clear
-  m_EditorClassIdentifier: 
-  _id: boss_phase1_clear
-  _title: "\uB3C4\uD50C\uAC31\uC5B4"
-  _description: "\uBCF4\uC2A4 \uBD84\uC2E0 \uB450\uAC1C \uD074\uB9AC\uC5B4"
+  m_Name: Achievement_Slow
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Achievement.AchievementData
+  _id: first_slow
+  _title: "\uB290\uB824"
+  _description: "\uCC98\uC74C\uC73C\uB85C \uC2AC\uB85C\uC6B0 \uC0AC\uC6A9"
   _icon: {fileID: 0}

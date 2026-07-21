@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21bf5a37748611d45b8f793e429ba4ca, type: 3}
-  m_Name: Achievement_BossPhase1Clear
-  m_EditorClassIdentifier: 
-  _id: boss_phase1_clear
-  _title: "\uB3C4\uD50C\uAC31\uC5B4"
-  _description: "\uBCF4\uC2A4 \uBD84\uC2E0 \uB450\uAC1C \uD074\uB9AC\uC5B4"
+  m_Name: Achievement_DomainExpansion
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Achievement.AchievementData
+  _id: domain_expansion
+  _title: "\uB8CC\uC774\uD0A4\uD150\uCE74\uC774 "
+  _description: "\uC544\uC790\uD1A0\uC2A4\uC758 \uC601\uC5ED\uC804\uAC1C \uB9DE\uAE30"
   _icon: {fileID: 0}

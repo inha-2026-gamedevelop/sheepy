@@ -5,6 +5,7 @@ using System.Collections.Generic;
 // Unity
 using UnityEngine;
 
+using Minsung.Backend;
 using Minsung.Utility;
 
 namespace Minsung.Achievement
@@ -86,6 +87,7 @@ namespace Minsung.Achievement
 
             _unlocked.Add(id);
             Save();
+            BackendMirror.Instance?.MirrorAchievement(id); // 로컬 저장 후 서버 미러(닉네임 없으면 자동 스킵)
             OnAchievementUnlocked?.Invoke(data);
         }
 

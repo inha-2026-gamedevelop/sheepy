@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21bf5a37748611d45b8f793e429ba4ca, type: 3}
-  m_Name: Achievement_BossPhase1Clear
-  m_EditorClassIdentifier: 
-  _id: boss_phase1_clear
-  _title: "\uB3C4\uD50C\uAC31\uC5B4"
-  _description: "\uBCF4\uC2A4 \uBD84\uC2E0 \uB450\uAC1C \uD074\uB9AC\uC5B4"
+  m_Name: Achievement_100Death
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Achievement.AchievementData
+  _id: 100Death
+  _title: "\uC774\uB7EC\uC2DC\uB294 \uC774\uC720\uAC00 \uC788\uC744\uAC83 \uC544\uB2C8\uC5D0\uC694"
+  _description: "\uD50C\uB808\uC774\uC5B4 100\uBC88 \uC8FD\uAE30"
   _icon: {fileID: 0}

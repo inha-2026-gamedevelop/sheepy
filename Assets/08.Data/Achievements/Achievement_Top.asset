@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21bf5a37748611d45b8f793e429ba4ca, type: 3}
-  m_Name: Achievement_BossPhase1Clear
-  m_EditorClassIdentifier: 
-  _id: boss_phase1_clear
-  _title: "\uB3C4\uD50C\uAC31\uC5B4"
-  _description: "\uBCF4\uC2A4 \uBD84\uC2E0 \uB450\uAC1C \uD074\uB9AC\uC5B4"
+  m_Name: Achievement_Top
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Achievement.AchievementData
+  _id: jumpking
+  _title: "\uB2F9\uC2E0\uC740 \uC810\uD504\uD0B9"
+  _description: "\uB9F5\uC758 \uAC00\uC7A5 \uB192\uC740\uACF3\uC5D0 \uC788\uB294
+    \uC544\uC774\uD15C \uD68D\uB4DD"
   _icon: {fileID: 0}

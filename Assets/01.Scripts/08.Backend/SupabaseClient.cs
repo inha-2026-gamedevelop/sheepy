@@ -103,6 +103,36 @@ namespace Minsung.Backend
             StartCoroutine(GetTopGhostRoutine(onSuccess, onError));
         }
 
+        /// <summary> players 행의 진행 상태(위치/방향/씬/보스클리어 등)를 부분 갱신. 해당 username 행이 있어야 반영됨. </summary>
+        public void UpdatePlayerProgress(string username, PlayerProgressUpdate update, Action onSuccess, Action<string> onError)
+        {
+            StartCoroutine(PatchPlayerRoutine(username, update, onSuccess, onError));
+        }
+
+        /// <summary> 보스 클리어 여부만 갱신하는 편의 메서드. </summary>
+        public void SetBossCleared(string username, bool cleared, Action onSuccess, Action<string> onError)
+        {
+            StartCoroutine(PatchPlayerRoutine(username, new PlayerProgressUpdate { BossCleared = cleared }, onSuccess, onError));
+        }
+
+        /// <summary> 업적 1개를 player_achievements에 upsert (중복이면 병합). </summary>
+        public void UpsertAchievement(string username, string achievementId, Action onSuccess, Action<string> onError)
+        {
+            UpsertAchievements(username, new[] { achievementId }, onSuccess, onError);
+        }
+
+        /// <summary> 업적 여러 개를 한 번에 upsert (로컬 목록 전체 동기화 등). </summary>
+        public void UpsertAchievements(string username, IEnumerable<string> achievementIds, Action onSuccess, Action<string> onError)
+        {
+            StartCoroutine(UpsertAchievementsRoutine(username, achievementIds, onSuccess, onError));
+        }
+
+        /// <summary> players 진행 상태 1행 조회. 없으면 null. </summary>
+        public void GetPlayerProgress(string username, Action<PlayerProgressRow> onSuccess, Action<string> onError)
+        {
+            StartCoroutine(GetPlayerProgressRoutine(username, onSuccess, onError));
+        }
+
         private IEnumerator RegisterRoutine(string username, Action onSuccess, Action<string> onError)
         {
             string body = JsonConvert.SerializeObject(new { username });
@@ -168,6 +198,67 @@ namespace Minsung.Backend
             onSuccess?.Invoke(((list != null) && (list.Count > 0)) ? list[0] : null);
         }
 
+        private IEnumerator PatchPlayerRoutine(string username, PlayerProgressUpdate update, Action onSuccess, Action<string> onError)
+        {
+            string body = JsonConvert.SerializeObject(update);
+            string url  = $"{Rest}/players?username=eq.{UnityWebRequest.EscapeURL(username)}";
+            using UnityWebRequest req = MakePatch(url, body);
+            yield return req.SendWebRequest();
+
+            if (HasError(req, onError))
+            {
+                yield break;
+            }
+            onSuccess?.Invoke();
+        }
+
+        private IEnumerator UpsertAchievementsRoutine(string username, IEnumerable<string> achievementIds, Action onSuccess, Action<string> onError)
+        {
+            List<AchievementRow> rows = new List<AchievementRow>();
+            if (achievementIds != null)
+            {
+                foreach (string id in achievementIds)
+                {
+                    if (!string.IsNullOrEmpty(id))
+                    {
+                        rows.Add(new AchievementRow { Username = username, AchievementId = id });
+                    }
+                }
+            }
+            if (rows.Count == 0)
+            {
+                onSuccess?.Invoke();
+                yield break;
+            }
+
+            string body = JsonConvert.SerializeObject(rows);
+            string url  = $"{Rest}/player_achievements?on_conflict=username,achievement_id";
+            using UnityWebRequest req = MakePost(url, body);
+            req.SetRequestHeader("Prefer", "resolution=merge-duplicates,return=minimal"); // 중복 PK는 병합(무해)
+            yield return req.SendWebRequest();
+
+            if (HasError(req, onError))
+            {
+                yield break;
+            }
+            onSuccess?.Invoke();
+        }
+
+        private IEnumerator GetPlayerProgressRoutine(string username, Action<PlayerProgressRow> onSuccess, Action<string> onError)
+        {
+            string url = $"{Rest}/players?username=eq.{UnityWebRequest.EscapeURL(username)}" +
+                         "&select=username,last_scene,pos_x,pos_y,pos_z,facing_dir,boss_cleared&limit=1";
+            using UnityWebRequest req = MakeGet(url);
+            yield return req.SendWebRequest();
+
+            if (HasError(req, onError))
+            {
+                yield break;
+            }
+            List<PlayerProgressRow> list = JsonConvert.DeserializeObject<List<PlayerProgressRow>>(req.downloadHandler.text);
+            onSuccess?.Invoke(((list != null) && (list.Count > 0)) ? list[0] : null);
+        }
+
         /****************************************
         *                Helper
         ****************************************/
@@ -194,6 +285,19 @@ namespace Minsung.Backend
             ApplyHeaders(req);
             req.SetRequestHeader("Content-Type", "application/json");
             req.SetRequestHeader("Prefer", "return=representation");
+            return req;
+        }
+
+        // JSON 본문을 담은 PATCH 요청 생성 (부분 갱신용).
+        private UnityWebRequest MakePatch(string url, string jsonBody)
+        {
+            UnityWebRequest req = new UnityWebRequest(url, "PATCH")
+            {
+                uploadHandler   = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonBody)),
+                downloadHandler = new DownloadHandlerBuffer()
+            };
+            ApplyHeaders(req);
+            req.SetRequestHeader("Content-Type", "application/json");
             return req;
         }
 
