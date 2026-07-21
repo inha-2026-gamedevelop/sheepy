@@ -1,5 +1,6 @@
 // System
 using System;
+using System.Collections;
 
 // Unity
 using UnityEngine;
@@ -37,6 +38,8 @@ namespace Minsung.Player
 
         // 경직(낙뢰 피격)
         private float _stunEndTime;
+
+        private Coroutine _coRestorePhysics; // 상호작용 종료 후 회전이 풀릴 때까지 물리 복구를 미루는 코루틴
 
         public bool IsGrounded => _grounded;
         public bool IsStunned  => Time.time < _stunEndTime;
@@ -131,18 +134,43 @@ namespace Minsung.Player
         /// Dynamic 상태면 밀어내기 보정 때문에 몸이 떠오르므로 연출 동안은 물리를 끈다. </summary>
         public void OnInteractingBegan()
         {
+            if (_coRestorePhysics != null)
+            {
+                StopCoroutine(_coRestorePhysics);
+                _coRestorePhysics = null;
+            }
             _rb.bodyType       = RigidbodyType2D.Kinematic;
             _rb.linearVelocity = Vector2.zero;
         }
 
-        /// <summary> 상호작용 종료 시 물리 복구. 되감기 중 해제되면 복구는 되감기 종료(OnRewindEnd)가 맡는다. </summary>
+        /// <summary> 상호작용 종료 시 물리 복구. 되감기 중 해제되면 복구는 되감기 종료(OnRewindEnd)가 맡는다.
+        /// 클립이 끝나도 Idle로 되돌아가는 전이 동안 회전이 서서히 0으로 풀리는데, 그 전에 Dynamic으로
+        /// 돌리면 아직 돌아간 콜라이더가 바닥에 박힌 채로 밀려나 몸이 위로 튄다. 고정 시간 대기 대신
+        /// 회전이 실제로 0에 가까워질 때까지 기다린다 - 애니메이션/전이 길이가 바뀌어도 안전하다. </summary>
         public void OnInteractingEnded()
         {
             if ((_coordinator != null) && _coordinator.IsRewinding)
             {
                 return;
             }
-            _rb.bodyType = RigidbodyType2D.Dynamic;
+            if (_coRestorePhysics != null)
+            {
+                StopCoroutine(_coRestorePhysics);
+            }
+            _coRestorePhysics = StartCoroutine(CoRestorePhysicsAfterRotationSettles());
+        }
+
+        private IEnumerator CoRestorePhysicsAfterRotationSettles()
+        {
+            while (Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z, 0f)) > 0.5f)
+            {
+                yield return null;
+            }
+            if ((_coordinator == null) || !_coordinator.IsRewinding)
+            {
+                _rb.bodyType = RigidbodyType2D.Dynamic;
+            }
+            _coRestorePhysics = null;
         }
 
         /****************************************
@@ -238,6 +266,11 @@ namespace Minsung.Player
             _wantJump  = false;
             _jumpCount = 0; // 되감기 후 위치가 바뀌므로 점프 횟수도 초기화
 
+            if (_coRestorePhysics != null)
+            {
+                StopCoroutine(_coRestorePhysics); // 상호작용 물리 복구 대기 중 되감기가 끼어들면 취소
+                _coRestorePhysics = null;
+            }
             _rb.bodyType = RigidbodyType2D.Kinematic; // 되감기 중 물리 끄기
             _rb.linearVelocity = Vector2.zero;
         }
