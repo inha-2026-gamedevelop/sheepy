@@ -22,10 +22,13 @@ create trigger trg_players_updated_at
     before update on public.players
     for each row execute function public.touch_players_updated_at();
 
--- 기기당 계정 1개: device_id 유니크 (null 기존 행은 제외하는 부분 유니크 인덱스)
 create unique index if not exists players_device_id_unique
     on public.players (device_id)
     where device_id is not null;
+
+drop policy if exists players_update on public.players;
+create policy players_update
+    on public.players for update using (true) with check (true);
 
 create table if not exists public.player_achievements (
     username       text        not null references public.players(username) on delete cascade,
@@ -47,7 +50,6 @@ drop policy if exists player_achievements_upsert on public.player_achievements;
 create policy player_achievements_upsert
     on public.player_achievements for insert with check (true);
 
--- 설정 - "업적 기록 제거" 기능(BackendMirror.MirrorClearAchievements)이 DELETE 요청을 보낸다.
 drop policy if exists player_achievements_delete on public.player_achievements;
 create policy player_achievements_delete
     on public.player_achievements for delete using (true);
