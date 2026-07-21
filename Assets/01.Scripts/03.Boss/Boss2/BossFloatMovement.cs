@@ -40,6 +40,7 @@ public class BossFloatMovement : MonoBehaviour, IRewindable
     private bool         _isCharging;   // 몸통박치기 돌진 중 - true면 배회/추적/흔들림을 멈추고 직선 돌진만 수행
     private Vector2      _chargeTarget; // 돌진 시작 시점에 스냅샷한 목표 지점 (도중 방향을 바꾸지 않는다)
     private bool         _isRewinding;  // 되감기 중 - true면 배회/추적/돌진 로직을 멈추고 기록된 위치만 따른다
+    private bool         _scriptedMovement; // 외부 패턴(공간찢기 등)이 이동을 독점 - true면 배회/추적/흔들림/클램프 없이 _baseX/_baseY만 그대로 적용
     private Coroutine    _roamLoop;
     private Coroutine    _chargeLoop;
     private RingBuffer<Vector2> _rewindBuffer; // 틱마다 최종 위치(흔들림 포함) 기록
@@ -101,6 +102,21 @@ public class BossFloatMovement : MonoBehaviour, IRewindable
     {
         if ((_dataSo == null) || (_isRewinding))
         {
+            return;
+        }
+
+        // 외부 패턴이 이동을 독점하면 흔들림/추적/클램프 없이 스크립트가 지정한 _baseX/_baseY를 그대로 적용한다
+        if (_scriptedMovement)
+        {
+            Vector2 scripted = new Vector2(_baseX, _baseY);
+            if (_rb != null)
+            {
+                _rb.MovePosition(scripted);
+            }
+            else
+            {
+                transform.position = new Vector3(scripted.x, scripted.y, _baseZ);
+            }
             return;
         }
 
@@ -192,6 +208,61 @@ public class BossFloatMovement : MonoBehaviour, IRewindable
     /****************************************
     *                Methods
     ****************************************/
+
+    /// <summary> 외부 패턴용 이동 독점 시작 - 배회/돌진 코루틴을 멈추고 스크립트 돌진 모드로 들어간다(성공 시 true) </summary>
+    public bool TryBeginScriptedMovement()
+    {
+        if (_scriptedMovement)
+        {
+            return false;
+        }
+        StopMovementLoops(); // 배회/돌진 코루틴 정지 + 히트박스 off + _isCharging=false
+        _scriptedMovement = true;
+        return true;
+    }
+
+    /// <summary> start로 순간이동한 뒤 end까지 등속 직선 이동한다(공간찢기 5회 돌진 각 1회). FixedUpdate가 _baseX/_baseY를 적용 </summary>
+    public IEnumerator CoScriptedDash(Vector2 start, Vector2 end, float speed)
+    {
+        _baseX = start.x;
+        _baseY = start.y;
+        ApplyPosition(start);
+        FaceTo(end.x - start.x);
+
+        float dist = Vector2.Distance(start, end);
+        float timeout = ((speed > 0.01f) ? (dist / speed) : 0f) + 0.5f;
+        float elapsed = 0f;
+
+        while ((Vector2.Distance(new Vector2(_baseX, _baseY), end) > 0.05f) && (elapsed < timeout))
+        {
+            Vector2 next = Vector2.MoveTowards(new Vector2(_baseX, _baseY), end, speed * Time.deltaTime);
+            _baseX = next.x;
+            _baseY = next.y;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        _baseX = end.x;
+        _baseY = end.y;
+    }
+
+    /// <summary> 이동 독점 해제 - 현재 위치를 새 배회 기준으로 삼고 배회/돌진 코루틴을 재시작한다 </summary>
+    public void EndScriptedMovement()
+    {
+        if (!_scriptedMovement)
+        {
+            return;
+        }
+        _scriptedMovement = false;
+        _origin   = new Vector2(_baseX, _baseY);
+        _waypoint = _origin;
+
+        if (_dataSo != null)
+        {
+            _roamLoop   = StartCoroutine(CoRoamLoop());
+            _chargeLoop = StartCoroutine(CoChargeLoop());
+        }
+    }
 
     // 3페이즈 재시작(Boss2BrandController - 낙인 7스택 즉사 후) - 스폰 지점으로 순간이동하고 배회/돌진을 그 자리에서 새로 시작한다
     public void ResetToSpawn()

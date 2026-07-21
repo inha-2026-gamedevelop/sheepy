@@ -95,10 +95,13 @@
 
 - **트리거**: 4페이즈 진입 후 `Boss2Health.CurrentHealth`가 `MaxHealth`의 10%에 처음 도달하는 순간 딱 1회만 발동한다. 발동 즉시 체력을 10% 지점에서 **동결**(더 이상 데미지가 안 먹힘) - 5회 돌진 시퀀스가 끝날 때까지 유지
 - **처치 조건**: 동결은 영구가 아니다. 시퀀스가 끝나면(생존 성공/실패 무관) 동결이 풀리고, 그 뒤로 다시 정상적으로 데미지가 들어가야 남은 체력을 마저 깎아 처치할 수 있다 - "생존 = 즉시 승리"가 아니라 "생존해야 마무리 타격을 넣을 기회가 생기는" 구조
-- **5회 돌진 구성**: 총 5개 라인을 동시에 예고 표시한 뒤 순서대로 5회 연속 돌진한다
-  - 4개는 **시작점/종료점을 민성이 직접 지정**(씬/인스펙터에 좌표로 배치, 로스트아크 영전처럼 아레나를 가로지르는 고정 선)
-  - 나머지 1개는 **반드시 플레이어를 향함** - 시작점은 보스의 (돌진 시퀀스 시작 시점) 위치, 종료점은 그 시점 플레이어 위치로 고정한 직선
-- **파훼**: 각 돌진의 충돌 판정은 회피 가능 즉사(`Boss2DodgeableKillHazard`)다. 이 판정에 맞기 직전 전용 무적키(위 항목)로 회피해야 한다. 기존 `DamageHazard._instantKill`은 절대 즉사 계약이므로 사용하지 않는다.
+- **5회 돌진 구성 (2026-07-21 화면 연출 재설계 - 아래 내용이 최신)**: 4개 고정 라인(**시작점/종료점을 민성이 직접 지정**, 아레나를 가로지르는 고정 선) + 1개 플레이어 조준 라인 총 5회
+  - 고정 4개의 **실행 순서는 매번 랜덤**(발동마다 셔플) - 어느 라인이 몇 번째로 나갈지 고정되어 있지 않다
+  - 예고(텔레그래프)는 고정 4개만 동시에 점멸 표시. 플레이어 조준 라인은 사전 예고하지 않는다(아래 화면 연출 자체가 예고 역할)
+  - 플레이어 조준 라인은 **항상 마지막(5번째)** - 시작점은 전용 앵커(`_playerLineStart`, 없으면 보스 현재 위치로 대체), 종료점은 **그 라인이 실행되는 순간의 플레이어 위치**(시퀀스 시작 시점이 아니라 4개 고정 라인이 전부 끝난 뒤 재조준)
+- **화면 연출(로스트아크 영전 순차 파훼)**: 화면 균열 연출(`ScreenTearOverlay`)은 5조각으로 미리 갈라지는 게 아니라, 처음엔 전 조각이 원본과 이음매 없이 동일하게 보인다. 고정 라인이 실행되는 동안 그 순번에 해당하는 조각의 카메라만 보스를 실시간으로 추적하다가(`BeginTrackBoss`), 돌진이 끝나면 그 자리(End)에 고정된다(`FreezeShard`) - 한 번에 한 조각씩, 시간차로 갈라져 보인다. 마지막 라인이 시작되는 순간 그 조각만 흑백에서 컬러로 복귀(`SetShardColor`)해 "이게 진짜다"를 예고하고, 그 직후 보스가 실제로 플레이어를 향해 돌진한다 - 이 컬러 복귀 타이밍이 사실상 5번째 라인의 예고를 대신한다
+- **파훼**: 각 돌진의 충돌 판정은 회피 가능 즉사(`Boss2DodgeableKillHazard`)다. 이 판정에 맞기 직전 전용 무적키(위 항목)로 회피해야 한다 - 특히 컬러 복귀 직후(마지막 돌진 직전)가 핵심 반응 타이밍이다. 기존 `DamageHazard._instantKill`은 절대 즉사 계약이므로 사용하지 않는다.
+- **카메라 줌**: 공간찢기와 별개로, Boss2(Map3) 진입 시 플레이어 카메라 줌이 Boss1(Map2)과 다른 문제가 있었다 - `CameraManager`는 `PersistentSingleton`이라 Awake에서 항상 `Constants.Camera.PLAYER_ORTHOGRAPHIC_SIZE`(1.3)로 리셋되고, Boss1은 `BossController.BeginBattle()`에서 `SetPlayerZoom(Constants.Camera.BOSS_ORTHOGRAPHIC_SIZE)`(3.2, "아레나가 한 화면에 들어오는 값")를 호출해 덮어쓰지만 Boss2엔 이 호출이 없었다. `Boss2AttackPatterns.Start()`(보스 스폰 시점)에 동일 호출을 추가하고, `Boss2Health` 처치 시 `ResetPlayerZoom()`을 추가해 Boss1과 대칭을 맞췄다(2026-07-21).
 
 **전용 무적키 (설계 수정 필요, `Minsung.Player`)** — 공간찢기 파훼용 키는 Shift 슬로우모션 및 E 상호작용과 반드시 분리한다. 현재 문서의 E키 재사용안은 제단 홀드와 회피가 동시에 발동하므로 폐기한다. 임시 기본값은 `LeftControl`로 두되 실제 Input 설정과 충돌 검사를 거쳐 확정한다. 무적 지속 1초(`PlayerDataSO.DodgeInvincibleDuration`) + 쿨타임 30초(`PlayerDataSO.DodgeInvincibleCooldown`, 발동 즉시부터 카운트)이며, 슬로우모션 중에도 실제 체감 시간이 변하지 않도록 `Time.unscaledTime` 또는 `WaitForSecondsRealtime` 기준으로 계산한다. `PlayerHealth.RequestDodgeInvincible()`은 `_isDodgeInvincible`을 켜 일반 피해와 **회피 가능 즉사**만 막고, 절대 즉사는 막지 않는다.
 
@@ -106,13 +109,13 @@
 
 **패턴배너는 새로 안 만든다**: `Minsung.UI.BossBannerUI`(`_bannerObject`/`_bannerText`/`_fadeDuration`만 갖는 순수 텍스트+페이드 컴포넌트, `BossController` 타입 의존 없음)를 Boss2에서 `using Minsung.UI;`로 그대로 참조하면 된다 - 명명 충돌도 없다(Boss2가 동명 클래스를 만드는 게 아니라 기존 타입을 소비만 하므로 5-1절의 "이름 충돌" 규칙과 무관). 기존에 예정했던 "Boss1 배너를 이식" 작업 자체가 불필요해짐 - 아래 8-1 TODO에서 제거.
 
-**구현 계획 (코드 레벨, 미착수)**
+**구현 계획 (코드 레벨) — [x] 전부 완료 + Play 검증(2026-07-20~21). 상세는 8-1절 참고**
 
-1. 신규 `Boss2DodgeableKillHazard` - 공간찢기 전용 회피 가능 즉사 판정. 기존 `DamageHazard`와 `PlayerHealth.Kill()`은 수정하지 않는다.
-2. `Boss2Health` - 4페이즈이며 총 HP 10%를 처음 통과할 때 정확히 10%로 클램프하고 1회 동결(`_spaceTearActive`) + `OnSpaceTearTriggered` 이벤트 + 시퀀스 종료 후 풀어주는 `EndSpaceTearFreeze()` 추가. 발동 완료 플래그는 리와인드하지 않는다.
-3. `BossFloatMovement` - 범용 "스크립트 돌진"(지정 시작점 순간이동 → 지정 종료점까지 등속 직선 이동) 추가, 기존 몸통박치기(`CoBodySlam`) 로직은 그대로 두고 별도 경로로 구현. 실행 중 배회/몸통박치기 코루틴은 정지한다.
-4. 신규 `Boss2SpaceTearPattern`(기존 낙뢰/장풍/레이저와 동일한 순수 C# 패턴 클래스, `Boss2AttackPatterns`가 소유) - 배너 예고 → 전용 패턴 잠금 → 화면 채도 인하(흑백) + 슬로우 → 5개 라인 텔레그래프 → 5회 연속 스크립트 돌진 → 정리 + 화면/시간 복귀 + `Boss2Health.EndSpaceTearFreeze()`.
-5. 4개 프리셋 라인은 숫자 좌표 대신 `Transform Start/End` 앵커 배열로 노출해 Scene View에서 직접 배치하고 Gizmo로 확인한다. 나머지 1개는 시퀀스 시작 순간의 보스/플레이어 위치를 스냅샷한다. 타이밍 값은 `Boss2DataSO`에 둔다.
+1. [x] 신규 `Boss2DodgeableKillHazard` - 공간찢기 전용 회피 가능 즉사 판정. 기존 `DamageHazard`와 `PlayerHealth.Kill()`은 수정하지 않는다.
+2. [x] `Boss2Health` - 4페이즈이며 총 HP 10%를 처음 통과할 때 정확히 10%로 클램프하고 1회 동결(`_spaceTearActive`) + `OnSpaceTearTriggered` 이벤트 + 시퀀스 종료 후 풀어주는 `EndSpaceTearFreeze()` 추가. 발동 완료 플래그는 리와인드하지 않는다.
+3. [x] `BossFloatMovement` - 범용 "스크립트 돌진"(`TryBeginScriptedMovement`/`CoScriptedDash`/`EndScriptedMovement`) 추가, 기존 몸통박치기(`CoBodySlam`) 로직은 그대로 두고 별도 경로로 구현. 실행 중 배회/몸통박치기 코루틴은 정지한다.
+4. [x] 신규 `Boss2SpaceTearPattern`(MonoBehaviour, `Boss` 루트에 부착) - 배너 예고 → 리와인드 잠금 + 일반 패턴 정지 → `ScreenTearOverlay.Activate()`(흑백 물들기) → 고정 4라인 텔레그래프(랜덤 순서) → 4회 순차 돌진(조각별 추적→고정) → 마지막 조각 컬러 복귀 → 5번째(플레이어 조준) 돌진 → 정리(idempotent) + 화면/시간 복귀 + `Boss2Health.EndSpaceTearFreeze()`. **애초 설계였던 "5개 동시 텔레그래프 + 5번째를 시퀀스 시작 시점 스냅샷"은 2026-07-21에 위 방식(순차 파훼 + 마지막 실시간 재조준)으로 대체됨 - 4-4절 최신 내용 참고**
+5. [x] 4개 프리셋 라인은 `Transform Start/End` 앵커 배열(`_presetLines`)로 노출해 Scene View에서 직접 배치하고 Gizmo로 확인한다. 5번째(플레이어 조준)는 전용 시작 앵커(`_playerLineStart`) + 실행 순간 플레이어 위치. 타이밍/두께/색 값은 `Boss2DataSO`에 있다.
 
 ## 5. Boss2 구현 구조 (스크립트 / 씬 / 코드 흐름 — 디버깅 참고)
 
@@ -269,16 +272,60 @@ RewindManager.StartRewind()
 ### 8-1. 지금 반영해야 할 것 (이번 세션 결정)
 
 - [x] **타임리와인드 잠금 코드 제거** (2026-07-20) — `Boss2Health.AdvancePhase()`의 `RewindManager.AcquireRewindLock(this)` 호출부 및 `OnDestroy`의 `Dispose` 제거. 4페이즈 리와인드 정책 변경(사용 가능으로 전환)에 따른 후속 조치. `dotnet build Assembly-CSharp.csproj` 통과, Unity MCP 미연결로 Play 모드 실측은 대기
-- [x] **전용 무적키 재검토/수정** (2026-07-21 코드 반영 + Play 검증 완료) — `Constants.Player.KEY_DODGE_INVINCIBLE`를 `E`->`LeftControl`(임시)로 분리해 상호작용키 중복 해소. `PlayerHealth`의 무적 지속(1초)/쿨타임(30초)을 `WaitForSeconds`(scaled) -> `Time.unscaledTime` 수동 루프로 전환(슬로우모션 중 체감시간 왜곡 방지). 회피 가능 즉사 판정은 `Kill()`이 `_isDodgeInvincible`을 무시(절대 즉사 유지)하고 향후 `Boss2DodgeableKillHazard`가 `IsDodgeInvincible`을 보는 구조라 PlayerHealth 변경 불필요. `dotnet build Assembly-CSharp.csproj` 통과. **Play 검증(Map1)**: 키=LeftControl 확인, `RequestDodgeInvincible()`로 무적 발동/해제/쿨타임 진입 정상, `timeScale=0.15` 유지 상태에서 쿨타임이 실시간 30초(scaled였다면 200초)에 해제되어 unscaled 동작 확정. **회피 가능 즉사 실히트 판정은 `Boss2DodgeableKillHazard`(공간찢기) 구현 시 함께 검증.**
+- [ ] **전용 무적키 재검토/수정** — 현재 E 상호작용키와 중복된 구현은 완료로 보지 않는다. 별도 키(`LeftControl` 임시)로 분리하고, 무적 지속/쿨타임을 unscaled time으로 계산하며, 회피 가능 즉사에만 적용되는지 Play 모드에서 다시 검증한다.
 - [x] **낙인/제단 시스템을 3페이즈로 이동** (2026-07-20 코드 반영, Play 모드 재검증 대기) — `Boss2BrandController`/`Boss2AltarSpawner`/`Boss2BrandCountUI` 전부 `Start()`에서 즉시 코루틴/UI 시작(3페이즈=보스 조우 시작 시점)으로 바꾸고, `Boss2Health.OnPhaseChanged`(3->4 전환)를 **정지 트리거**로 반전했다. `Boss2BrandController.HandlePlayerDeath`의 리셋 가드도 `!IsFinalPhase`(옛 4P 전용) → `IsFinalPhase`면 관여 안 함(3P 전용)으로 반전. **Unity MCP 브리지가 작업 중 연결이 끊겨 컴파일/Play 모드 실측은 못했다 — 브리지 재연결 후 반드시 재검증할 것.** 낙인 스택은 여전히 게임 시간 기준으로만 흐르고 리와인드로 되감기지 않는다(사용자 확인 사항, 11-3절의 "리와인드 중 일시정지 권장"과는 다른 결정이니 참고)
 - [x] ~~패턴배너 Boss2 이식~~ — 불필요로 판명. `Minsung.UI.BossBannerUI`가 `BossController` 타입에 의존하지 않는 순수 텍스트+페이드 컴포넌트라 Boss2에서 `using Minsung.UI;`로 그대로 참조 가능(4-4절 참고)
 - [ ] **손아귀 / 원혼방출 신규 구현** (진욱) — 4장 표 참고
-- [ ] **공간찢기 신규 구현** (민성 담당) — 상세 설계 확정(4-4절: 체력 10% 1회 트리거, 동결→재타격 필요, 4개 프리셋+1개 대상지정 총 5회 돌진). 구현은 다음 5단계로 진행 예정:
-  1. [ ] `Boss2DodgeableKillHazard` 신규 작성. 기존 `DamageHazard`/`Kill()` 계약은 유지
-  2. [ ] `Boss2Health`에 4페이즈+10% 통과 1회 트리거, 10% 클램프, 동결, 이벤트, `EndSpaceTearFreeze()` 추가
-  3. [ ] `BossFloatMovement`에 범용 스크립트 돌진과 외부 패턴 독점 제어 API 추가, 기존 `CoBodySlam`은 유지
-  4. [ ] 신규 `Boss2SpaceTearPattern` - 배너→독점 잠금→흑백/슬로우→5라인 텔레그래프→5회 돌진→항상 정리+동결 해제
-  5. [ ] `Boss2AttackPatterns`에 프리셋 `Transform` 앵커 4쌍과 의존 컴포넌트 연결, 타이밍 값은 `Boss2DataSO`로 이동
+- [~] **공간찢기 신규 구현** (민성 담당) — 코드 5단계 전부 작성 + 컴파일 통과 + 런타임 스모크 테스트 완료(2026-07-21). **씬 배선/실전 파훼 테스트만 남음**(아래):
+  1. [x] `Boss2DodgeableKillHazard` 신규 작성 - `IsDodgeInvincible`이면 무시, 아니면 `Kill()`. 기존 `DamageHazard`/`Kill()` 불변
+  2. [x] `Boss2Health` 4페이즈+10% 첫 통과 1회 트리거 + 정확히 10% 클램프 + `_spaceTearActive` 동결 + `OnSpaceTearTriggered` 이벤트 + `EndSpaceTearFreeze()`. **검증**: Max=2, 최종페이즈, 0.3->임계0.2 통과 시 이벤트 발행+hp 0.2 클램프+동결 확인. 동결 중 피해 차단, 종료 후 재타격 가능 확인
+  3. [x] `BossFloatMovement` 스크립트 돌진 API(`TryBeginScriptedMovement`/`CoScriptedDash`/`EndScriptedMovement`) + FixedUpdate 독점 가드. 기존 `CoBodySlam`/배회 불변
+  4. [x] 신규 `Boss2SpaceTearPattern`(MonoBehaviour) - 배너→리와인드 잠금→`ScreenTearOverlay.Activate`(흑백 물들기+갈라짐)→5라인(프리셋4+플레이어조준1)→5회 스크립트 돌진(회피가능 즉사 히트박스 런타임 생성)→단일 `Cleanup()`(오버레이 Deactivate/패턴 재개/동결 해제/잠금 Dispose, idempotent). **검증**: Map3 실보스에 배선해 트리거→오버레이+돌진→종료 후 동결해제/카메라0/오버레이 비활성/패턴 재개 전부 확인, 에러 0
+  5. [x] `Boss2AttackPatterns.Suspend/ResumeNormalPatterns` 훅 + `Boss2DataSO`에 공간찢기 타이밍/히트박스 필드 추가. (프리셋 `Transform` 앵커는 `Boss2SpaceTearPattern._presetLines`로 노출)
+
+  **남은 것**: (a) [x] Map3 씬 배선 완료(2026-07-21 저장) - `SpaceTearCanvas`(풀스크린 `RectMask2D` `ShardRoot`) + `ScreenTearOverlay`(조각5/카메라오프셋/소스카메라=Main Camera) 세팅, `Boss2SpaceTearPattern`을 `Boss` 루트에 부착해 참조(_health=HitCenter, _movement/_patterns=Boss, _overlay, _player, _dataSo) 연결, `SpaceTearLineAnchors` 아래 고정 4라인 앵커(arena -10~10, gY-3 기준) 배치. **검증**: 저장 씬 재로드 후 체력 임계 통과 -> `OnSpaceTearTriggered`(OnEnable 자동 구독) -> 오버레이+돌진+정리(동결해제/카메라0/패턴재개) 자연 발동 확인, 에러 0. **배너**: [x] Map3에 `BossBannerCanvas`(sort 600) + `Banner[OFF]`(TMP, 한글 폰트 `DungGeunMo SDF` - 씬 기존 UI와 동일) + `BossBannerUI` 신설해 패턴 `_banner`에 연결·저장(2026-07-21). Play에서 "보스보다 시간을 느리게 하여 보스의 패턴을 막아보세요!" 한글 정상 렌더 확인 (b) [x] **파훼 판정 검증 완료**(2026-07-21) - 격리 `PlayerHealth`에 `Boss2DodgeableKillHazard` 직접 충돌: 비무적 12->0(즉사), 전용 무적키(LeftControl) 발동 시 12->12(생존, 회피가능 즉사 무시), 무적+`Kill()` ->0(절대 즉사는 관통) 3케이스 모두 기대대로. (c) [x] **월드 텔레그래프 비주얼 완료**(2026-07-21, 이후 (h)에서 "고정 4라인만 예고"로 범위 조정됨) - `Boss2SpaceTearPattern.CoShowTelegraph`가 `Minsung.Boss.BossHazardPool`(팀 공용 인프라, 판정 없는 슬롯) 재사용해 라인들을 사각형(center/length/angle/scale - `Boss2LaserPattern`과 동일 공식)으로 동시 표시 + 점멸(`SpaceTearTelegraphBlink`) 후 돌진 직전 `FreeAll()`. `Boss2DataSO`에 두께/색/점멸주기 필드 추가. 에디터 오서링 보조로 `OnDrawGizmosSelected`(Scene View 라인 번호 표시) + `OnValidate`(프리셋 4개 아니면 경고) 추가. **검증**: `dotnet build` 통과, Map3 Play에서 리플렉션으로 실제 좌표 계산 재현 - 5슬롯 전부 active + 아레나 폭(-10~10)에 맞는 center/scale 확인, 실카메라 프레임에서 레드 라인 육안 확인. 텔레그래프 풀은 `Cleanup()`(FreeAll)/`OnDestroy()`(Dispose)로 정리\n\n(h) [x] **화면 연출 재설계(1차) + 카메라 줌 통일 완료**(2026-07-21) — `ScreenTearOverlay`를 정적 오프셋 방식에서 순차 추적/고정 방식(`BeginTrackBoss`/`FreezeShard`/`SetShardColor`)으로 전면 재작성. 카메라 줌: `Boss2AttackPatterns.Start()`/`Boss2Health` 처치 시점에 Boss1과 동일한 `SetPlayerZoom(BOSS_ORTHOGRAPHIC_SIZE=3.2)`/`ResetPlayerZoom()` 호출 추가해 Map2/Map3 줌 통일.
+(i) [x] **화면 분할 방식 2차 재설계 - 임의 직선 순차 절단(유리 자르기)으로 전환**(2026-07-21, 사용자 레퍼런스 이미지 기준) — 로스트아크 영전 화면은 한 중심에서 뻗는 부채꼴이 아니라 **서로 다른 위치의 직선이 하나씩 그어지며 이미 있는 조각 하나를 둘로 쪼개는 방식**임을 확인, (h)의 부채꼴(`ShardConfig.BoundaryAngleDeg`) 모델을 폐기하고 아래로 교체:
+  - 신규 `ConvexPolygonSplitter`(순수 C#) - 화면 전체 사각형에서 시작해 절단선을 하나씩 적용, 그 선이 실제로 가로지르는 조각 하나만 Sutherland-Hodgman 반평면 클리핑으로 둘로 나눈다(종이 자르기와 동일 동작). `TryGetCrackSegment`로 절단 자국 좌표(균열선/파편 위치)도 함께 계산
+  - `ScreenTearShard`를 부채꼴 팬 메시 -> **임의 볼록다각형 팬 메시**로 교체(정점 리스트 기반)
+  - `ScreenTearOverlay`를 `CutLine[] _cutLines`(뷰포트 UV 두 점, 인스펙터 자유 배치, 5개 권장 -> 6조각) 기반으로 재작성. 조각 역할은 **면적으로 자동 판정**: 최소 면적=예비(`MiscRegionIndex`, 아무 동작 없음), 최대 면적=플레이어 전담(`PlayerRegionIndex`), 나머지=논리 "돌진 슬롯"(`BeginTrackBoss(dashSlot,...)`/`FreezeShard(dashSlot)`가 내부적으로 실제 조각 인덱스로 변환) - 슬롯 개수가 4가 아니면 `OnValidate`류 경고
+  - 신규 `BeginTrackPlayer(player)` - 플레이어 담당(최대 면적) 조각이 **시퀀스 내내** 실시간으로 플레이어를 추적(고정되지 않음, Deactivate까지 유지)
+  - 균열 자국은 기존의 지글거리는 `ScreenTearLines`(제거됨, 부채꼴 전용이라 더 이상 안 맞음) 대신 **직선 스트로크**(회전된 `Image`, 영구 표시)로 교체
+  - 신규 `ScreenTearGlassBurst` - 절단 순간 어두운 파편(파편 조각) + 흰 스파클 파티클을 UI 메시로 절차적 생성(ParticleSystem 대신 - Screen Space Overlay Canvas 안에서 안전하게 합성하기 위함, 프로젝트에 유리 파편 에셋이 없어 절차적 생성). 절단선은 `_cutStaggerTime`(기본 0.18초) 간격으로 하나씩 등장 + 그때마다 스트로크와 파편 버스트가 함께 재생
+  - `Boss2SpaceTearPattern`: `Activate()` 직후 `BeginTrackPlayer(_player)` 호출 추가. 마지막(플레이어 조준) 돌진은 더 이상 별도 슬롯으로 추적 전환하지 않고 - 플레이어 조각이 이미 플레이어를 계속 보여주고 있으므로 `SetShardColor(overlay.PlayerRegionIndex, true)`로 컬러 복귀만 트리거
+  - **검증**: `dotnet build` 통과. Play 모드에서 5개 절단선 예시 배치(UV 좌표) 적용 -> 6조각 생성 확인(면적: 예비 52255 / 돌진슬롯 4개 93312~209952 / 플레이어 1529420 - 최소/최대가 의도대로 분리됨), 균열선 5개 생성 확인, `BeginTrackPlayer`/`BeginTrackBoss(dashSlot)`/`FreezeShard(dashSlot)`/`SetShardColor(PlayerRegionIndex)` 전부 리플렉션으로 결정적 검증(가짜 타겟 이동 추적 확인, 고정 후 불변 확인, 지정 조각만 컬러 확인). Map3에 씬 배선(SpaceTearCanvas의 저장된 `ScreenTearOverlay._cutLines`) 갱신 후 저장, 자연 트리거로 전체 시퀀스 완주 에러 0(오버레이 비활성/카메라 0/동결 해제까지 확인). 테스트 중 실제 `Boss2_Laser_0`(빨강)가 화면을 덮은 적이 있었는데 이는 흑백 셰이더 버그가 아니라 정상 진행 중이던 보스 원거리 패턴이 우연히 겹친 것으로 확인(개별 원인 규명 완료)
+  - **후속 튜닝(2026-07-21)**: 사용자 피드백 반영 - (1) 절단선을 덜 깊게 파도록 좌표 재조정해 예비/돌진 슬롯 조각들을 전반적으로 키움(면적 대략 5만~29만 범위로, 이전 5만~21만보다 넓게 분포하면서도 플레이어 조각은 여전히 압도적으로 최대). (2) 신규 `_nonPlayerOrthoSizeMultiplier`(기본 1.6) 추가 - 플레이어 조각(`PlayerRegionIndex`)을 제외한 나머지 조각 카메라의 `orthographicSize`를 배율만큼 확대해 그 조각들이 더 넓은 범위를 보여주도록 함(줌아웃). **검증**: Play에서 플레이어 카메라=3.2(원본 유지)/나머지 카메라=5.12(=3.2x1.6) 확인, 조각 6개 유지(합산 면적=전체 화면 면적, 빈틈 없음 확인), Map3 저장. 테스트 중 화면에 순간적으로 컬러가 남은 사례가 있었는데 재확인 결과 흑백 셰이더는 전 조각 정상 적용(`_GrayAmount=1` 전부 확인) - 마침 지나가던 실제 보스 패턴이 우연히 겹친 것으로 확인(제 코드와 무관)
+  - **남은 것**: 절단선 좌표는 인스펙터(`_cutLines`)에서 계속 자유 조정 가능 - 정확한 비율은 계속 눈으로 보며 다듬는 대상. 균열 스트로크/파편 색상·타이밍도 실제 아트 톤에 맞춰 튜닝 필요
+(j) [x] **연출 페이싱 + 오버슈트 종료점 수정**(2026-07-21) — 사용자 피드백 3건 반영:
+  - **절단선 등장 속도**: `ScreenTearOverlay._cutStaggerTime` 기본값 0.18 -> **0.5초**(화면이 서서히 갈라지는 느낌)
+  - **절단 진행 중 보스 정지 + 일반 패턴 정지**: 기존엔 `TryBeginScriptedMovement()`(보스 정지)가 텔레그래프 이후(거의 돌진 직전)에 호출돼 배너/흑백/절단 단계에서 보스가 계속 배회했다. `_patterns?.SuspendNormalPatterns()`(낙뢰/강타/레이저 정지)와 함께 **트리거 즉시**(배너보다도 먼저) 호출하도록 이동 - 화면이 갈라지는 연출 내내 보스가 그 자리에 가만히 있는다
+  - **절단 완료 대기**: 신규 `ScreenTearOverlay.IsIntroComplete`(흑백 물들기 + 절단선 전부 등장 후 true) 추가. `Boss2SpaceTearPattern`이 `Activate()` 직후 `yield return new WaitUntil(() => overlay.IsIntroComplete)`로 대기한 뒤에야 고정 라인 텔레그래프/돌진을 시작 - "모든 선이 그어지면 그제서야 보스가 지나간다" 순서 보장
+  - **마지막(플레이어 조준) 돌진 종료점**: 플레이어 위치가 아니라 **시작점->플레이어 직선을 `_playerOvershootDistance`(기본 3)만큼 관통 연장한 지점**으로 변경(보스가 플레이어 지점에서 딱 멈추지 않고 뚫고 지나감). 종료점은 실행 순간 플레이어 위치 기준(사전 스냅샷 아님)
+  - **검증**: `dotnet build` 통과. Play에서 (1) 트리거 즉시 `_scriptedMovement=true`+위치 불변 확인(보스 즉시 정지) (2) 절단 진행 중 `IsIntroComplete=false`이면서 활성 레이저 슬롯 0개 확인(일반 패턴 정지 유지) (3) `CoScriptedDash`를 알려진 좌표로 고립 테스트해 목표 지점에 정확히 도달함을 확인(돌진 메커니즘 자체는 정확) (4) 전체 시퀀스 완주 확인 중 보스 최종 위치가 기대한 오버슈트 지점과 다소 어긋났는데, 원인 분석 결과 `Cleanup()` 직후 보스가 즉시 정상 배회를 재개하고 위치 확인까지의 툴 호출 지연 동안 배회 반경(`RoamRadius`=4)만큼 이동한 것으로 확인(관찰 오차 약 2.9로 배회 반경과 같은 자릿수) - 오버슈트 계산/돌진 자체는 버그 없음, 시퀀스 종료 직후 정상 AI 재개에 따른 자연스러운 위치 이동
+(k) [x] **난이도/속도 재조정 + 실전 파훼 재검증**(2026-07-21) — 사용자 피드백 3건:
+  - **절단선 등장 속도 추가 감속**: `_cutStaggerTime` 0.5 -> **0.9초**(여전히 빠르다는 피드백)
+  - **플레이어 조준 돌진 전용 속도 신설**: `Boss2DataSO`에 `SpaceTearPlayerDashSpeed`(신규, 기본 11 - 기존 고정 4라인 속도 26보다 느림)와 `SpaceTearPlayerWarningTime`(신규, 기본 0.6초 - 컬러 복귀 후 실제 돌진 시작까지 대기)을 추가. 고정 4라인(연출용, 결정타 아님)은 기존 속도(26) 유지, 마지막 진짜 위협만 반응 가능한 속도로 분리
+  - **실전 파훼 검증**: 이전엔 격리된 `PlayerHealth` 합성 오브젝트로만 확인했었는데, 이번엔 **씬의 실제 Player 오브젝트/실제 Collider2D**로 재검증 - (1) 무적키 발동 상태에서 실제 `Boss2DodgeableKillHazard` 트리거 충돌 -> 하트 12->12 생존 확인 (2) 무적키 없이 동일 충돌 -> 12->0 사망 확인 (3) 발동 직후 쿨타임 잔여시간이 실시간으로 20.25->10.18로 감소하는 것을 연속 확인(정상 카운트다운)
+  - **참고**: `Boss2DodgeableKillHazard`는 `Collider2D`(추상 타입)를 `RequireComponent`로 요구하므로 `AddComponent`만으로는 자동 생성 안 됨(Unity 제약, 구상 콜라이더 타입 필요) - 실제 `EnsureHitbox()`는 `BoxCollider2D`를 먼저 추가하므로 문제없음. 테스트 스크립트에서 이 순서를 빠뜨려 최초 1회 실패했었음(제품 코드 이슈 아님, 기록해 둠)
+(l) [x] **유리 파편 크기 확대 + 절단선 그어지는 애니메이션**(2026-07-21) — 사용자 레퍼런스 이미지 2건:
+  - **파편 크기**: `ScreenTearGlassBurst`의 파편(shard) 크기를 6~16px -> **50~140px**로, 종횡비를 0.35 -> **0.09**(칼날처럼 길고 얇게)로 변경. 큰 파편이 화면에 넓게 퍼지도록 `_glassSpeedMax` 상향, 수명 상향
+  - **선 그어지는 애니메이션**: 기존엔 절단선 전체가 한 번에 뜨고 파편도 전 구간에서 한꺼번에 튀었다. `DrawCrackStroke`(즉시 전체 표시)+`SpawnGlassBurst`(전 구간 일괄)를 **`CoDrawCrackAnimated`**로 교체 - 균열선 `Image`의 피벗을 시작점(A)에 두고 길이를 0->length로 `_crackDrawDuration`(기본 0.7초) 동안 늘려 A에서 B로 그어지듯 연출하고, 그어지는 동안 매 `_glassEmitInterval`(0.025초)마다 **현재 tip 위치**에서 파편을 방출한다(절단면을 따라 튀는 느낌). `CoDestroyWhenFinished`는 고정 대기 -> `burst.IsFinished` 폴링으로 변경(마지막 파편까지 살아있게)
+  - **검증**: `dotnet build` 통과. Play에서 `_crackDrawDuration`을 임시로 6~100초로 늘려 그어지는 도중을 포착 - 균열선이 부분 길이로 자라나는 중 tip에서 칼날형 파편+스파클이 튀어 중력으로 흩날리는 것 확인(레퍼런스 이미지와 동일). 깨끗한 세션에서 씬(회색조)+파편이 정상 합성됨 확인. Map3 저장값: `_crackDrawDuration=0.7`, `_cutStaggerTime=0.4`(그어지는 시간이 생겨 선 사이 텀 단축), per-emit 2 shards/3 sparkles
+  - **참고(반복된 함정)**: 이 세션 내내 파편이 "안 보인다"고 여러 번 오판했는데, 실제로는 (1) 툴 호출 지연(최대 ~30초) 동안 파편이 중력으로 화면 밖(y≈-120000)까지 떨어졌거나 (2) 장시간 세션에서 에디터 렌더 상태가 오염돼 화면이 검게 나온 것. `OnPopulateMesh` 로그로 지오메트리 생성은 정상임을 확인, Play 재시작으로 렌더 정상화. **파편/균열 연출 자체는 처음부터 정상 동작했음** - 스크린샷 캡처 타이밍/세션 오염이 원인
+  - **주의**: 이 과정에서 `ScreenTearOverlay._activateOnStart`가 `True`로 저장돼 있던 **실제 버그**를 발견·수정(Map3 로드 즉시 화면이 회색으로 덮이는 문제) - false로 되돌려 저장
+
+(m) [x] **순차 분할 구조 + 유리 파편 폴리곤/투명 개선**(2026-07-21) — 사용자 피드백 반영:
+  - **선 하나 그어짐 -> 그 선이 지나는 영역만 분할 -> 대기 -> 다음 선** 순서로 변경. 기존 `ScreenTearOverlay.Build()`는 Activate 시점에 모든 절단선을 한 번에 적용해 최종 6조각을 즉시 생성했는데, 이를 **화면 전체 1조각에서 시작**해 `CoPlayIntro`가 절단선을 하나씩 그은 뒤(`ApplyCutLine`)에야 그 선이 지나는 조각을 분할(`ConvexPolygonSplitter.SplitByLine` 조각별 적용 + 해당 조각 카메라/RT/그래픽만 `DestroyShardAt`->`CreateOneShard`로 교체)하도록 재작성. 조각 역할(면적 기준 player/misc/dash)과 `_tracking` 배열은 모든 선이 그어진 뒤 `AssignRegionRoles`에서 배정. `Boss2SpaceTearPattern`의 `BeginTrackPlayer`도 `IsIntroComplete` 이후로 이동(역할이 그때 정해지므로). 새로 생기는 조각 머티리얼은 현재 흑백 진행도(`_currentWipeRadius`)로 초기화해 이미 흑백이면 바로 흑백. **검증**: Play에서 Activate 직후 조각 1개 -> 선 그어질 때마다 1개씩 증가 -> 6개, 균열선도 선당 1개, `IsIntroComplete` 후 역할 배정(player/misc) 정상, 자연 트리거 전체 시퀀스 완주 에러 0. 저장값 `_cutStaggerTime=1.5`(선 사이 대기), `_crackDrawDuration=0.8`
+  - **그어지는 애니메이션 + 절단 헤드**: 균열선을 A->B로 길이 0->full 늘려 그어지듯 연출(`CoDrawCrackAnimated`), tip에 밝은 절단 헤드(`CutHead`) + tip에서 유리 파편 방출
+  - **유리 파편 개선**: (1) 사각형 하나 -> **절차적 볼록다각형 12종**(3~5각형, 일부 길쭉/납작) 랜덤 - 다양한 모양 (2) **가장자리=밝은 하늘빛(빛 반사) / 가운데=거의 투명(비침)** 팬 메시로 유리 질감 (3) 방사형 퍼짐(±38°)+약한 중력(-70)+공기저항(drag)으로 유리가 터지듯 흩어짐. `ScreenTearGlassBurst` 전면 재작성
+  - **캡처 함정 기록**: 이 파편들은 수명이 짧아(0.6~1초) 실게임에선 자연스럽지만, MCP 툴 호출 지연(수~30초) 동안 중력으로 화면 밖까지 떨어져 "안 보인다"고 착각하기 쉽다. 검증은 `EditorApplication.isPaused=true`로 Update 정지 후 위치 재설정+`Canvas.ForceUpdateCanvases()`로 정지 프레임을 캡처하거나, `_crackDrawDuration`을 임시로 크게(6~100초) 늘려 그어지는 중을 포착하는 방식이 확실
+
+(n) [x] **영역별 카메라 포인트 직접 지정 + 분할 가시화**(2026-07-21) — 사용자 요청:
+  - **분할 가시화**: 나뉜 두 조각의 카메라를 절단선 수직 방향으로 서로 반대로 살짝 어긋냄(`_shatterOffset`, 기본 0.5) - 같은 시점이라 안 보이던 분할을 눈에 보이게. `ApplyCutLine`에서 새 조각 카메라에 적용
+  - **영역별 카메라 포인트**: 최대 면적 조각은 플레이어 추적(유지), **나머지 조각은 씬에 배치한 고정 Transform 지점을 정적으로 비춘다**(보스 실시간 추적 대신). 매칭은 **샘플 점(뷰포트 UV)**으로 - 각 카메라 포인트에 대표 UV를 지정하면 그 점이 들어가는 조각이 해당 지점을 비춘다(분할 순서와 무관). 신규 `ScreenTearOverlay.RegionCameraAnchor{ Vector2 SampleUV; Transform Point; }` 배열 `_cameraAnchors` + `ApplyAuthoredCameraPoints()`(인트로 완료 시 적용) + `ConvexPolygonSplitter.ContainsPoint`(볼록다각형 내부 판정). 돌진 지점에 카메라 포인트를 두면 보스가 그 조각 화면에 돌진해 오는 게 보인다
+  - **패턴 변경**: `Boss2SpaceTearPattern` 고정 라인 돌진 루프에서 `BeginTrackBoss`/`FreezeShard`(보스 실시간 추적) 제거 - 이제 돌진 조각은 지정 카메라 포인트로 정적. 플레이어 조각의 `BeginTrackPlayer`만 유지
+  - **검증**: `dotnet build` 통과. **UnityMCP 브리지 끊김으로 에디터 씬 배선/Play 테스트는 대기** - 브리지 재연결 후 (1) Map3에 카메라 포인트용 빈 오브젝트를 돌진 지점들에 배치 (2) `SpaceTearCanvas`의 `ScreenTearOverlay._cameraAnchors`에 각 조각의 SampleUV+Point 연결 (3) Play로 트리거해 각 영역이 지정 지점을 비추는지 확인 필요
+
+**남은 것**: (d) 시간 기준 정리 - 배너 unscaled/돌진 scaled(11-3), 현재 `WaitForSeconds`(scaled) 통일 상태 (e) 임시 검증용 `Boss2DataSO.MaxHealth=2` 원복 (f) 빌드용 - `ScreenTearGrayWipe` 셰이더를 Always Included에 넣거나 `ScreenTearOverlay._shardMaterial`에 머티리얼 에셋 연결(현재 런타임 `Shader.Find`, 에디터에선 동작) (g) 실플레이 타이밍 회피 감각(무적키 1초/쿨30초 대 돌진 속도) 튜닝
 
 ### 8-2. 알려진 이슈 — 지금 당장은 안 고침(추후 이어받기)
 

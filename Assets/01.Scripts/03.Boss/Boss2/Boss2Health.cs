@@ -7,6 +7,7 @@ using UnityEngine;
 using Minsung.Common;
 using Minsung.Player;
 using Minsung.TimeSystem;
+using Minsung.CameraSystem;
 
 // 부유 보스(Boss2) 체력 - 플레이어 AttackHitbox가 IDamageable로 인식해 피해를 꽂는 대상
 // 페이즈 하한: 원본 BossController와 동일한 방식 - 피통을 PhaseCount로 균등 분할해 현재 페이즈 하한 아래로는 안 깎인다
@@ -26,6 +27,10 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
     private int   _phaseIndex; // 현재 페이즈 인덱스(0부터) - 0: 3페이즈, PhaseCount-1: 4페이즈(최종)
     private bool  _isRewinding; // 되감기 중 피해 차단 (플레이어/몬스터 체력 가드와 동일한 관례)
     private RingBuffer<float> _rewindBuffer;
+
+    // 공간찢기(4페이즈 즉사기): 체력 임계 첫 통과 시 1회 발동하고, 시퀀스가 끝날 때까지 피해를 동결한다
+    private bool _spaceTearTriggered; // 한 전투 1회 - 리와인드 대상 아님(무한 재발동 방지)
+    private bool _spaceTearActive;    // 시퀀스 동안 피해 동결
 
     // Boss 루트(부모)에 Boss2AttackPatterns가 붙이는 컴포넌트 - HitCenter는 자식이라 GetComponentInParent로 찾는다
     private Boss2EmotionController _emotionController;
@@ -69,9 +74,12 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
 
     public int PhaseIndex => _phaseIndex;
 
+    public bool IsSpaceTearActive => _spaceTearActive;
+
     public event Action<float, float> OnHealthChanged; // (현재, 최대)
     public event Action<int>          OnPhaseChanged;   // 새 페이즈 인덱스
     public event Action               OnDefeated;
+    public event Action               OnSpaceTearTriggered; // 4페이즈 체력 임계 첫 통과 - 공간찢기 시퀀스 시작 트리거
 
     /****************************************
     *              Unity Event
@@ -99,7 +107,8 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
 
     public bool TakeDamage(float dmg, DamageSource source = DamageSource.Player, PlayerHealth attacker = null)
     {
-        if ((_isRewinding) || (_currentHealth <= PhaseFloorHealth))
+        // 공간찢기 시퀀스 동안은 피해 동결 - 5회 돌진이 끝나 EndSpaceTearFreeze()가 풀어줄 때까지
+        if ((_isRewinding) || (_spaceTearActive) || (_currentHealth <= PhaseFloorHealth))
         {
             return false;
         }
@@ -113,7 +122,24 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
             return false;
         }
 
-        _currentHealth = Mathf.Max(PhaseFloorHealth, _currentHealth - dmg);
+        float projected = Mathf.Max(PhaseFloorHealth, _currentHealth - dmg);
+
+        // 4페이즈에서 체력 임계(기본 10%)를 처음 통과하는 순간 - 정확히 임계로 클램프하고 동결 + 공간찢기 발동(1회)
+        if ((!_spaceTearTriggered) && IsFinalPhase && (_dataSo != null))
+        {
+            float threshold = MaxHealth * _dataSo.SpaceTearHealthPercent;
+            if ((_currentHealth > threshold) && (projected <= threshold))
+            {
+                _currentHealth      = threshold;
+                _spaceTearTriggered = true;
+                _spaceTearActive    = true;
+                OnHealthChanged?.Invoke(_currentHealth, MaxHealth); // 이벤트 발행 전에 플래그를 먼저 세팅(콜백이 바로 시퀀스를 시작하므로)
+                OnSpaceTearTriggered?.Invoke();
+                return true;
+            }
+        }
+
+        _currentHealth = projected;
         OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
 
         if ((_currentHealth <= PhaseFloorHealth) && !IsFinalPhase)
@@ -124,9 +150,16 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
         if (_currentHealth <= 0f)
         {
             GameManager.Instance?.StopBossTimer();
+            CameraManager.Instance?.ResetPlayerZoom(); // Boss1(BossController) 처치 시 줌 복귀와 동일한 처리
             OnDefeated?.Invoke();
         }
         return true;
+    }
+
+    /// <summary> 공간찢기 시퀀스 종료 - 동결을 풀어 남은 체력을 마저 깎을 수 있게 한다(생존=즉시승리 아님). 여러 번 호출해도 안전 </summary>
+    public void EndSpaceTearFreeze()
+    {
+        _spaceTearActive = false;
     }
 
     // 페이즈 하한 도달 - 다음 페이즈로 넘어가 하한을 다시 계산한다(boss.md에 3~4페이즈 경계 전용 기믹이 없어 즉시 전환)

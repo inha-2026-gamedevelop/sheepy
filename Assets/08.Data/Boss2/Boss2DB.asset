@@ -26,7 +26,7 @@ MonoBehaviour:
   _chargeSpeed: 9
   _chargeDuration: 1.2
   _chargeArriveThreshold: 0.2
-  _maxHealth: 2
+  _maxHealth: 300
   _phaseCount: 2
   _lightningInterval: 4
   _lightningTelegraphTime: 0.8
@@ -111,7 +111,19 @@ MonoBehaviour:
   _verticalPeriod: 2
   _horizontalAmplitude: 0.15
   _horizontalPeriod: 3
-  _brandInterval: 3
+  _spaceTearHealthPercent: 0.1
+  _spaceTearBannerTime: 2
+  _spaceTearTelegraphTime: 1.2
+  _spaceTearDashCount: 5
+  _spaceTearDashSpeed: 26
+  _spaceTearDashInterval: 0.35
+  _spaceTearPlayerDashSpeed: 11
+  _spaceTearPlayerWarningTime: 0.6
+  _spaceTearHitboxSize: {x: 1.6, y: 1.6}
+  _spaceTearTelegraphThickness: 0.12
+  _spaceTearTelegraphBlink: 0.12
+  _spaceTearTelegraphColor: {r: 1, g: 0.15, b: 0.15, a: 0.55}
+  _brandInterval: 10
   _brandMaxStack: 7
   _altarSpawnInterval: 5
   _altarHoldDuration: 3

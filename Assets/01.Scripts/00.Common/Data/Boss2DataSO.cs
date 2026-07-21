@@ -129,6 +129,20 @@ public class Boss2DataSO : ScriptableObject
     [SerializeField] private float _horizontalAmplitude = 0.15f; // 좌우 왕복 폭(유닛)
     [SerializeField] private float _horizontalPeriod     = 3f;    // 좌우 왕복 1회 주기(초)
 
+    [Header("공간찢기 (4페이즈 즉사기)")]
+    [SerializeField, Range(0.01f, 0.5f)] private float _spaceTearHealthPercent = 0.1f; // 이 체력 비율 첫 통과 시 1회 발동 + 동결
+    [SerializeField] private float _spaceTearBannerTime    = 2f;   // 배너 예고 노출 시간(초)
+    [SerializeField] private float _spaceTearTelegraphTime = 1.2f; // 5개 라인 예고 표시 시간(초)
+    [SerializeField] private int   _spaceTearDashCount     = 5;    // 총 돌진 횟수(고정 4 + 플레이어 조준 1)
+    [SerializeField] private float _spaceTearDashSpeed     = 26f;  // 고정 4라인 돌진 속도(유닛/초) - 결정타가 아닌 연출용이라 빠르게 유지
+    [SerializeField] private float _spaceTearDashInterval  = 0.35f; // 돌진 사이 간격(초)
+    [SerializeField] private float _spaceTearPlayerDashSpeed   = 11f; // 마지막 플레이어 조준 돌진 전용 속도(유닛/초) - 실제 파훼 대상이라 고정 라인보다 느리게(2026-07-21 피드백: 너무 빨라 반응 불가)
+    [SerializeField] private float _spaceTearPlayerWarningTime = 0.6f; // 컬러 복귀(예고) 후 실제 돌진 시작까지 대기 시간(초) - 무적키 타이밍을 잡을 여유
+    [SerializeField] private Vector2 _spaceTearHitboxSize  = new Vector2(1.6f, 1.6f); // 돌진 즉사 판정 크기(유닛)
+    [SerializeField] private float   _spaceTearTelegraphThickness = 0.12f; // 예고선 두께(유닛)
+    [SerializeField] private float   _spaceTearTelegraphBlink     = 0.12f; // 예고선 점멸 주기(초)
+    [SerializeField] private Color   _spaceTearTelegraphColor = new Color(1f, 0.15f, 0.15f, 0.55f); // 예고선 색(경고 - 빨강 계열)
+
     [Header("낙인 (3페이즈 전용)")]
     [SerializeField] private float _brandInterval       = 10f; // 낙인 스택 부여 간격(초)
     [SerializeField] private int   _brandMaxStack       = 7;   // 즉사 임계 스택 수
@@ -222,6 +236,19 @@ public class Boss2DataSO : ScriptableObject
     public float   LaserFlowSpeed        => _laserFlowSpeed;
     public float   LaserFlowRate         => _laserFlowRate;
     public Color[] LaserFlowColors       => _laserFlowColors;
+
+    public float   SpaceTearHealthPercent => _spaceTearHealthPercent;
+    public float   SpaceTearBannerTime    => _spaceTearBannerTime;
+    public float   SpaceTearTelegraphTime => _spaceTearTelegraphTime;
+    public int     SpaceTearDashCount     => _spaceTearDashCount;
+    public float   SpaceTearDashSpeed     => _spaceTearDashSpeed;
+    public float   SpaceTearDashInterval  => _spaceTearDashInterval;
+    public float   SpaceTearPlayerDashSpeed   => _spaceTearPlayerDashSpeed;
+    public float   SpaceTearPlayerWarningTime => _spaceTearPlayerWarningTime;
+    public Vector2 SpaceTearHitboxSize    => _spaceTearHitboxSize;
+    public float   SpaceTearTelegraphThickness => _spaceTearTelegraphThickness;
+    public float   SpaceTearTelegraphBlink     => _spaceTearTelegraphBlink;
+    public Color   SpaceTearTelegraphColor     => _spaceTearTelegraphColor;
 
     public float BrandInterval      => _brandInterval;
     public int   BrandMaxStack      => _brandMaxStack;
