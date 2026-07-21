@@ -23,12 +23,13 @@ namespace Minsung.Backend
         {
             string name = "t" + (System.DateTime.Now.Ticks % 100000); // 16자 제한 대응
 
-            _client.Register(name,
+            _client.Register(name, SystemInfo.deviceUniqueIdentifier,
                 onSuccess: () =>
                 {
                     Debug.Log($"[1] 등록 성공: {name}");
                     SubmitAndFetch(name);
                 },
+                onConflict: () => Debug.LogWarning($"[1] 이미 등록된 이름: {name}"),
                 onError: err => Debug.LogError($"[1] 등록 실패: {err}"));
         }
 

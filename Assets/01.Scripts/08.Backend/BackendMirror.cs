@@ -1,11 +1,13 @@
 // System
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 // Unity
 using UnityEngine;
 
 using Minsung.Common;
+using Minsung.Common.Data;
 using Minsung.Utility;
 
 namespace Minsung.Backend
@@ -54,8 +56,17 @@ namespace Minsung.Backend
         *                Methods
         ****************************************/
 
-        /// <summary> 닉네임 등록 + 성공 시 로컬 영구 저장. 등록 UI가 호출하면 이후 미러가 활성화된다. </summary>
-        public void RegisterAndRemember(string username, Action onSuccess, Action<string> onError)
+        /// <summary>
+        /// 닉네임 등록 또는 본인 로그인. "한 기기당 계정 1개" 정책.
+        ///  1) 이 기기(device_id)로 이미 등록된 계정이 있으면
+        ///       - 입력한 이름과 같으면 → 본인 로그인(onSuccess)
+        ///       - 다르면 → 신규 등록 차단, onBlocked("이 기기는 이미 ...")
+        ///  2) 이 기기로 등록된 계정이 없으면
+        ///       - 입력한 이름이 서버에 없으면 → 기기값과 함께 신규 등록 후 로컬 저장(onSuccess)
+        ///       - 이미 있으면(=다른 기기 소유) → onBlocked("이미 등록된 이름입니다.")
+        /// 성공 시 이후 서버 미러가 활성화된다.
+        /// </summary>
+        public void RegisterOrLogin(string username, Action onSuccess, Action<string> onBlocked, Action<string> onError)
         {
             if (_client == null)
             {
@@ -63,13 +74,164 @@ namespace Minsung.Backend
                 return;
             }
 
-            _client.Register(username,
-                onSuccess: () =>
+            string deviceId = SystemInfo.deviceUniqueIdentifier; // 현재 PC 고유값
+
+            // 1) 이 기기로 이미 등록한 계정이 있는지 먼저 확인 (기기당 1계정)
+            _client.GetPlayerByDevice(deviceId,
+                onSuccess: deviceRow =>
                 {
-                    SaveManager.Instance?.SaveUsername(username);
-                    onSuccess?.Invoke();
+                    if (deviceRow != null)
+                    {
+                        if (deviceRow.Username == username)
+                        {
+                            SaveManager.Instance?.SaveUsername(username); // 같은 기기 + 같은 이름 = 본인 로그인
+                            onSuccess?.Invoke();
+                        }
+                        else
+                        {
+                            onBlocked?.Invoke($"이 기기는 이미 '{deviceRow.Username}' 이름으로 등록되어 있습니다.");
+                        }
+                        return;
+                    }
+
+                    // 2) 이 기기로 등록된 계정 없음 → 이름 중복 검사 후 신규 등록
+                    _client.GetPlayer(username,
+                        onSuccess: nameRow =>
+                        {
+                            if (nameRow == null)
+                            {
+                                _client.Register(username, deviceId,
+                                    onSuccess:  () => { SaveManager.Instance?.SaveUsername(username); onSuccess?.Invoke(); },
+                                    onConflict: () => onBlocked?.Invoke("이미 등록된 이름입니다."), // 조회~등록 레이스
+                                    onError:    onError);
+                            }
+                            else
+                            {
+                                // 이 기기 계정이 없는데 이름이 존재 → 다른 기기가 소유
+                                onBlocked?.Invoke("이미 등록된 이름입니다.");
+                            }
+                        },
+                        onError: onError);
                 },
                 onError: onError);
+        }
+
+        /// <summary>
+        /// 자동 로그인. 이 기기(device_id)로 등록된 계정을 서버에서 조회해,
+        ///  - 있으면  → 닉네임을 로컬에 반영하고, 서버/로컬 진행상황 중 더 최근 것을 기준으로 동기화(SyncProgress) 후 onLoggedIn
+        ///  - 없으면  → onNoAccount (등록 폼을 보여줘야 함)
+        /// 등록 씬 진입 시 호출한다.
+        /// </summary>
+        public void TryAutoLogin(Action onLoggedIn, Action onNoAccount, Action<string> onError)
+        {
+            if (_client == null)
+            {
+                onError?.Invoke("SupabaseClient 없음");
+                return;
+            }
+
+            string deviceId = SystemInfo.deviceUniqueIdentifier;
+
+            _client.GetPlayerByDevice(deviceId,
+                onSuccess: row =>
+                {
+                    if (row == null)
+                    {
+                        onNoAccount?.Invoke();
+                        return;
+                    }
+
+                    // 닉네임만 로컬 반영, 실제 진행상황은 최신성 비교 후 반영/역전송한다.
+                    SaveManager.Instance?.SaveUsername(row.Username);
+                    SyncProgress(row.Username, () => onLoggedIn?.Invoke());
+                },
+                onError: onError);
+        }
+
+        /// <summary>
+        /// 서버와 로컬의 진행상황(위치/보스클리어) 중 더 최근에 바뀐 쪽을 기준으로 맞춘다.
+        ///  - 서버가 더 최신(또는 로컬에 기록이 없음) → 서버 값을 로컬에 반영
+        ///  - 로컬이 더 최신(오프라인 저장 등으로 서버가 못 받은 경우) → 로컬 값을 서버로 밀어넣음
+        /// 실패해도 로그인/진행 자체는 막지 않는다.
+        /// </summary>
+        private void SyncProgress(string username, Action onDone)
+        {
+            _client.GetPlayerProgress(username,
+                onSuccess: prog =>
+                {
+                    if ((prog == null) || (SaveManager.Instance == null))
+                    {
+                        onDone?.Invoke();
+                        return;
+                    }
+
+                    bool serverHasProgress = !string.IsNullOrEmpty(prog.LastScene);
+                    bool localHasProgress  = SaveManager.Instance.HasPlayerState();
+
+                    bool useServer = serverHasProgress &&
+                        (!localHasProgress || (ParseUtc(prog.UpdatedAt) > SaveManager.Instance.GetLocalUpdatedAtUtc()));
+
+                    if (useServer)
+                    {
+                        ApplyServerProgress(prog);
+                    }
+                    else if (localHasProgress)
+                    {
+                        PushLocalProgress(username);
+                    }
+
+                    onDone?.Invoke();
+                },
+                onError: err =>
+                {
+                    LogError(err);
+                    onDone?.Invoke();
+                });
+        }
+
+        // 서버 값을 로컬 SaveManager에 그대로 반영 (서버가 더 최신일 때).
+        private void ApplyServerProgress(PlayerProgressRow prog)
+        {
+            // 위치는 저장된 적이 있을 때만 반영 (신규 계정은 컬럼이 null)
+            if (!string.IsNullOrEmpty(prog.LastScene) && prog.PosX.HasValue && prog.PosY.HasValue)
+            {
+                Vector3 pos = new Vector3(prog.PosX.Value, prog.PosY.Value, prog.PosZ ?? 0f);
+                SaveManager.Instance.SavePlayerState(prog.LastScene, pos, prog.FacingDir ?? 1, prog.UseDefaultSpawn ?? false);
+            }
+            SaveManager.Instance.SetBossCleared(prog.BossCleared ?? false);
+        }
+
+        // 로컬 값을 서버로 밀어넣는다 (로컬이 더 최신일 때 - 오프라인 저장 등으로 서버가 못 받은 경우 따라잡기).
+        private void PushLocalProgress(string username)
+        {
+            if (!SaveManager.Instance.TryLoadPlayerState(out SaveData data))
+            {
+                return;
+            }
+
+            _client.UpdatePlayerProgress(username, new PlayerProgressUpdate
+            {
+                LastScene       = data.SceneName,
+                PosX            = data.PlayerPosition.x,
+                PosY            = data.PlayerPosition.y,
+                PosZ            = data.PlayerPosition.z,
+                FacingDir       = data.FacingDir,
+                UseDefaultSpawn = data.UseDefaultSpawn,
+                BossCleared     = SaveManager.Instance.IsBossCleared()
+            }, null, LogError);
+        }
+
+        // Supabase timestamptz 문자열을 UTC DateTime으로 안전 파싱 (실패/빈 값이면 최솟값 -> 서버가 더 최신이 아닌 것으로 취급).
+        private static DateTime ParseUtc(string raw)
+        {
+            if (string.IsNullOrEmpty(raw))
+            {
+                return DateTime.MinValue;
+            }
+            return DateTime.TryParse(raw, CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out DateTime result)
+                ? result
+                : DateTime.MinValue;
         }
 
         /// <summary> 플레이어 위치/방향/씬을 서버 players 행에 미러. useDefaultSpawn=true면 이어하기 때 씬 기본 스폰 사용. </summary>
@@ -88,6 +250,30 @@ namespace Minsung.Backend
                 PosZ            = position.z,
                 FacingDir       = facingDir,
                 UseDefaultSpawn = useDefaultSpawn
+            }, null, LogError);
+        }
+
+        /// <summary>
+        /// 새로 시작 시 서버 진행상황을 초기화(Map1 기본 스폰, 보스 미클리어)한다.
+        /// 서버 권위 자동 로그인(TryAutoLogin)이 다음 실행 때 옛 위치를 다시 내려받아
+        /// "새로 시작"을 덮어써버리는 것을 방지하기 위함. 로컬 초기화(SaveManager.ClearPlayerState)와 짝을 이룬다.
+        /// </summary>
+        public void ResetProgress(string startScene)
+        {
+            if (!TryGetUser(out string username))
+            {
+                return;
+            }
+
+            _client.UpdatePlayerProgress(username, new PlayerProgressUpdate
+            {
+                LastScene       = startScene,
+                PosX            = 0f,
+                PosY            = 0f,
+                PosZ            = 0f,
+                FacingDir       = 1,
+                UseDefaultSpawn = true,
+                BossCleared     = false
             }, null, LogError);
         }
 
@@ -122,6 +308,17 @@ namespace Minsung.Backend
             }
 
             _client.UpsertAchievements(username, achievementIds, null, LogError);
+        }
+
+        /// <summary> 이 유저의 서버 업적 기록을 전부 삭제 (설정 - 업적 기록 제거). 로컬 삭제는 AchievementManager.ClearAll이 담당. </summary>
+        public void MirrorClearAchievements()
+        {
+            if (!TryGetUser(out string username))
+            {
+                return;
+            }
+
+            _client.DeleteAchievements(username, null, LogError);
         }
 
         /****************************************

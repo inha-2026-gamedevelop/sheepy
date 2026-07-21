@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace Minsung.Backend
 {
-    // Supabase REST API 래퍼. 닉네임 등록 / 점수 제출 / 리더보드 / 1등 고스트 조회를 담당한다.
+    // Supabase REST API 래퍼
     public class SupabaseClient : MonoBehaviour
     {
         /****************************************
@@ -78,10 +78,22 @@ namespace Minsung.Backend
             }
         }
 
-        /// <summary> 닉네임 등록. 중복 닉네임(409)이면 onError로 안내 문구를 돌려준다. </summary>
-        public void Register(string username, Action onSuccess, Action<string> onError)
+        /// <summary> 닉네임 + 기기값으로 신규 등록. 이미 존재하는 닉네임(409 unique)이면 onConflict를 호출한다. </summary>
+        public void Register(string username, string deviceId, Action onSuccess, Action onConflict, Action<string> onError)
         {
-            StartCoroutine(RegisterRoutine(username, onSuccess, onError));
+            StartCoroutine(RegisterRoutine(username, deviceId, onSuccess, onConflict, onError));
+        }
+
+        /// <summary> 닉네임으로 players 행 1건 조회 (username, device_id). 없으면 null. </summary>
+        public void GetPlayer(string username, Action<PlayerRow> onSuccess, Action<string> onError)
+        {
+            StartCoroutine(GetPlayerRoutine(username, onSuccess, onError));
+        }
+
+        /// <summary> 기기값(device_id)으로 players 행 1건 조회. 이 기기로 이미 등록한 계정이 있는지 판별용. 없으면 null. </summary>
+        public void GetPlayerByDevice(string deviceId, Action<PlayerRow> onSuccess, Action<string> onError)
+        {
+            StartCoroutine(GetPlayerByDeviceRoutine(deviceId, onSuccess, onError));
         }
 
         /// <summary> 점수 + 클리어 타임 + 고스트 리플레이 제출. bossEnterAt/bossEndAt은 보스 클리어 기록일 때만 채워 전달(GameManager.BossEnterAt/BossEndAt). </summary>
@@ -127,21 +139,27 @@ namespace Minsung.Backend
             StartCoroutine(UpsertAchievementsRoutine(username, achievementIds, onSuccess, onError));
         }
 
+        /// <summary> 이 유저의 해제 업적 기록을 서버에서 전부 삭제 (설정 - 업적 기록 제거). </summary>
+        public void DeleteAchievements(string username, Action onSuccess, Action<string> onError)
+        {
+            StartCoroutine(DeleteAchievementsRoutine(username, onSuccess, onError));
+        }
+
         /// <summary> players 진행 상태 1행 조회. 없으면 null. </summary>
         public void GetPlayerProgress(string username, Action<PlayerProgressRow> onSuccess, Action<string> onError)
         {
             StartCoroutine(GetPlayerProgressRoutine(username, onSuccess, onError));
         }
 
-        private IEnumerator RegisterRoutine(string username, Action onSuccess, Action<string> onError)
+        private IEnumerator RegisterRoutine(string username, string deviceId, Action onSuccess, Action onConflict, Action<string> onError)
         {
-            string body = JsonConvert.SerializeObject(new { username });
+            string body = JsonConvert.SerializeObject(new { username, device_id = deviceId });
             using UnityWebRequest req = MakePost($"{Rest}/players", body);
             yield return req.SendWebRequest();
 
             if (req.responseCode == 409)
             {
-                onError?.Invoke("이미 사용 중인 닉네임입니다."); // unique 제약 위반
+                onConflict?.Invoke(); // unique 제약 위반 - 이미 존재하는 닉네임
                 yield break;
             }
             if (HasError(req, onError))
@@ -149,6 +167,34 @@ namespace Minsung.Backend
                 yield break;
             }
             onSuccess?.Invoke();
+        }
+
+        private IEnumerator GetPlayerRoutine(string username, Action<PlayerRow> onSuccess, Action<string> onError)
+        {
+            string url = $"{Rest}/players?username=eq.{UnityWebRequest.EscapeURL(username)}&select=username,device_id&limit=1";
+            using UnityWebRequest req = MakeGet(url);
+            yield return req.SendWebRequest();
+
+            if (HasError(req, onError))
+            {
+                yield break;
+            }
+            List<PlayerRow> list = JsonConvert.DeserializeObject<List<PlayerRow>>(req.downloadHandler.text);
+            onSuccess?.Invoke(((list != null) && (list.Count > 0)) ? list[0] : null);
+        }
+
+        private IEnumerator GetPlayerByDeviceRoutine(string deviceId, Action<PlayerRow> onSuccess, Action<string> onError)
+        {
+            string url = $"{Rest}/players?device_id=eq.{UnityWebRequest.EscapeURL(deviceId)}&select=username,device_id&limit=1";
+            using UnityWebRequest req = MakeGet(url);
+            yield return req.SendWebRequest();
+
+            if (HasError(req, onError))
+            {
+                yield break;
+            }
+            List<PlayerRow> list = JsonConvert.DeserializeObject<List<PlayerRow>>(req.downloadHandler.text);
+            onSuccess?.Invoke(((list != null) && (list.Count > 0)) ? list[0] : null);
         }
 
         private IEnumerator SubmitScoreRoutine(string username, int score, int durationMs, List<GhostFrame> ghost,
@@ -247,7 +293,7 @@ namespace Minsung.Backend
         private IEnumerator GetPlayerProgressRoutine(string username, Action<PlayerProgressRow> onSuccess, Action<string> onError)
         {
             string url = $"{Rest}/players?username=eq.{UnityWebRequest.EscapeURL(username)}" +
-                         "&select=username,last_scene,pos_x,pos_y,pos_z,facing_dir,boss_cleared&limit=1";
+                         "&select=username,last_scene,pos_x,pos_y,pos_z,facing_dir,boss_cleared,use_default_spawn,updated_at&limit=1";
             using UnityWebRequest req = MakeGet(url);
             yield return req.SendWebRequest();
 
@@ -257,6 +303,19 @@ namespace Minsung.Backend
             }
             List<PlayerProgressRow> list = JsonConvert.DeserializeObject<List<PlayerProgressRow>>(req.downloadHandler.text);
             onSuccess?.Invoke(((list != null) && (list.Count > 0)) ? list[0] : null);
+        }
+
+        private IEnumerator DeleteAchievementsRoutine(string username, Action onSuccess, Action<string> onError)
+        {
+            string url = $"{Rest}/player_achievements?username=eq.{UnityWebRequest.EscapeURL(username)}";
+            using UnityWebRequest req = MakeDelete(url);
+            yield return req.SendWebRequest();
+
+            if (HasError(req, onError))
+            {
+                yield break;
+            }
+            onSuccess?.Invoke();
         }
 
         /****************************************
@@ -305,6 +364,15 @@ namespace Minsung.Backend
         private UnityWebRequest MakeGet(string url)
         {
             UnityWebRequest req = UnityWebRequest.Get(url);
+            ApplyHeaders(req);
+            return req;
+        }
+
+        // DELETE 요청 생성 (인증 헤더 포함, 응답 본문 대비 다운로드 핸들러 포함).
+        private UnityWebRequest MakeDelete(string url)
+        {
+            UnityWebRequest req = UnityWebRequest.Delete(url);
+            req.downloadHandler = new DownloadHandlerBuffer();
             ApplyHeaders(req);
             return req;
         }
