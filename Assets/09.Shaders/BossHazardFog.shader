@@ -1,5 +1,6 @@
-// 보스 1페이즈 즉사 기믹 - 위험 레이저/안전구역 공용 안개형 연출
+// 보스 1페이즈 즉사 기믹 - 위험 레이저/안전구역 공용 물결형 연출 (PSP XMB 스타일)
 // SpriteRenderer.color(알파)로 위험 스윕(진하게)과 안전구역(옅게)의 농도를 자연히 가른다 (Phase3LaserBeam과 동일 관례)
+// 물결은 UV 대각선을 따라 흐르는 "한 줄기" 소프트 하이라이트 하나로 표현한다 (줄무늬/얼룩 없음)
 Shader "Minsung/BossHazardFog"
 {
     Properties
@@ -10,10 +11,7 @@ Shader "Minsung/BossHazardFog"
         [Header(Fog)]
         _FogColor ("Fog Color", Color) = (1, 1, 1, 1)
         _Intensity ("Intensity", Range(0, 2)) = 1.0
-        _NoiseScale ("Noise Scale (world units)", Range(0.1, 8)) = 0.45
-        _Coverage ("Coverage (안개 밀도)", Range(0, 1)) = 0.55
-        _Softness ("Softness (뭉게뭉게 번지는 정도)", Range(0.05, 2)) = 0.9
-        _ScrollSpeed ("Scroll Speed (xy)", Vector) = (0.06, 0.03, 0, 0)
+        _Coverage ("Coverage (하이라이트 없을 때의 최소 농도)", Range(0, 1)) = 0.55
 
         [Header(Shape)]
         _EdgeFade ("Edge Fade (테두리 전체 페이드 폭)", Range(0, 0.5)) = 0.3
@@ -21,10 +19,13 @@ Shader "Minsung/BossHazardFog"
         [Header(Safe_Zone_Map2)]
         _SafeBaseColor ("Safe Base (Deep Navy)", Color) = (0.055, 0.09, 0.16, 1)
         _SafeTintAmount ("Safe Color Tint", Range(0, 1)) = 0.42
-        _SafeFlowScale ("Safe Vertical Flow Scale", Range(1, 16)) = 6.5
-        _SafeFlowSpeed ("Safe Vertical Flow Speed", Range(0, 3)) = 0.45
         _SafeEdgeWidth ("Safe Border Width", Range(0.005, 0.2)) = 0.045
         _SafeModeThreshold ("Safe Alpha Threshold", Range(0, 1)) = 0.7
+
+        [Header(Wave_PSP)]
+        _WaveWidth ("Wave Band Sharpness (클수록 좁고 또렷)", Range(0.5, 8)) = 2.2
+        _WaveSpeed ("Wave Flow Speed", Range(0, 3)) = 0.8
+        _WaveStrength ("Wave Highlight Brightness", Range(0, 1)) = 0.55
     }
 
     SubShader
@@ -64,17 +65,15 @@ Shader "Minsung/BossHazardFog"
                 half4  _Color;
                 half4  _FogColor;
                 half   _Intensity;
-                half   _NoiseScale;
                 half   _Coverage;
-                half   _Softness;
-                half4  _ScrollSpeed;
                 half   _EdgeFade;
                 half4  _SafeBaseColor;
                 half   _SafeTintAmount;
-                half   _SafeFlowScale;
-                half   _SafeFlowSpeed;
                 half   _SafeEdgeWidth;
                 half   _SafeModeThreshold;
+                half   _WaveWidth;
+                half   _WaveSpeed;
+                half   _WaveStrength;
             CBUFFER_END
 
             struct Attributes
@@ -88,49 +87,16 @@ Shader "Minsung/BossHazardFog"
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv         : TEXCOORD0;
-                float2 positionWS : TEXCOORD1;
                 half4  color      : COLOR;
             };
 
             Varyings Vert(Attributes v)
             {
                 Varyings o;
-                float3 positionWS = TransformObjectToWorld(v.positionOS);
-                o.positionCS = TransformWorldToHClip(positionWS);
+                o.positionCS = TransformObjectToHClip(v.positionOS);
                 o.uv         = TRANSFORM_TEX(v.uv, _MainTex);
-                o.positionWS = positionWS.xy;
                 o.color      = v.color;
                 return o;
-            }
-
-            float Hash21(float2 p)
-            {
-                p = frac(p * float2(123.34, 456.21));
-                p += dot(p, p + 45.32);
-                return frac(p.x * p.y);
-            }
-
-            float ValueNoise(float2 p)
-            {
-                float2 i = floor(p);
-                float2 f = frac(p);
-                float a = Hash21(i);
-                float b = Hash21(i + float2(1, 0));
-                float c = Hash21(i + float2(0, 1));
-                float d = Hash21(i + float2(1, 1));
-                float2 u = f * f * (3.0 - 2.0 * f);
-                return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y);
-            }
-
-            // 3옥타브 + 서로 다른 방향/속도로 흐르는 두 겹 - 뭉게뭉게 겹쳐 흐르는 안개 질감
-            float Fbm(float2 p, float2 drift1, float2 drift2)
-            {
-                // Broad, slowly drifting clouds make the zone read as fog from a distance.
-                float n  = ValueNoise(p * 0.55 + drift1 * 0.55) * 0.5;
-                // Smaller layers keep the silhouette from looking like a flat transparent block.
-                n       += ValueNoise(p * 1.7 - drift2) * 0.3;
-                n       += ValueNoise(p * 4.1 + drift1 * 1.7) * 0.2;
-                return n;
             }
 
             half4 Frag(Varyings i) : SV_Target
@@ -138,42 +104,39 @@ Shader "Minsung/BossHazardFog"
                 half mask = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).a;
                 half4 tint = i.color * _Color;
 
-                float2 drift1 = _Time.y * _ScrollSpeed.xy;
-                float2 drift2 = _Time.y * _ScrollSpeed.xy * half2(-0.8, 0.6);
-                float  noise  = Fbm(i.positionWS * _NoiseScale, drift1, drift2);
-
-                // smoothstep 대신 완만한 지수 커브로 - 뭉치기보다 부드럽게 번지는 농도 분포
-                half density = saturate((noise - (1.0 - _Coverage)) / max(_Softness, 0.001) + 0.5);
-                half fogAmount = density * density * (3.0 - 2.0 * density); // smootherstep
-
-                // 사각형 전체 테두리를 둥글게 접어 뭉게구름처럼 - UV 중심 기준 거리로 비네트
-                half2 fromCenter = abs(i.uv - 0.5) * 2.0; // 0=중심, 1=가장자리
+                // 사각형 테두리 비네트 - UV 중심 기준 거리
+                half2 fromCenter = abs(i.uv - 0.5) * 2.0;
                 half  edgeDist   = max(fromCenter.x, fromCenter.y);
                 half  edge       = smoothstep(1.0, 1.0 - _EdgeFade, edgeDist);
 
-                half3 rgb   = _FogColor.rgb * tint.rgb;
-                half  alpha = fogAmount * edge * mask * tint.a * _Intensity;
+                // PSP XMB 배경처럼 대각선을 따라 흐르는 소프트 하이라이트 "한 줄기"만 사용한다.
+                // 여러 겹 사인파를 섞지 않고 가우시안 밴드 하나만 이동시켜 줄무늬/얼룩 없이 매끈하게 흐른다.
+                half  diag   = i.uv.x + i.uv.y; // 0~2
+                half  travel = frac(_Time.y * _WaveSpeed * 0.15) * 2.6 - 0.3; // -0.3~2.3 사이를 슬라이드, 화면 밖에서 순환
+                half  d      = (diag - travel) * _WaveWidth;
+                half  sheen  = saturate(exp(-(d * d)));
 
-                // 안전구역은 낮은 SpriteRenderer 알파로 구분한다. Map2의 청회색 배경에 맞춰
-                // 원색 안개 대신 딥 네이비 장막 + 저채도 색 결 + 얇은 경계광으로 표현한다.
+                half3 shadowTone    = tint.rgb * 0.55;
+                half3 highlightTone = lerp(tint.rgb, half3(1, 1, 1), _WaveStrength);
+                half3 rgb   = lerp(shadowTone, highlightTone, sheen) * _FogColor.rgb;
+                // 위험 스윕 농도: 하이라이트가 없을 때도 Coverage만큼은 항상 보이고, 하이라이트 부분만 밝아진다 (반투명 유지)
+                half  alpha = lerp(_Coverage, 1.0, sheen) * edge * mask * tint.a * _Intensity;
+
+                // 안전구역은 낮은 SpriteRenderer 알파로 구분한다. 딥 네이비 장막 위에 같은 하이라이트 줄기로
+                // 은은한 색 결을 흘려보낸다.
                 half safeMode = 1.0 - step(_SafeModeThreshold, tint.a);
-                half safeColorStrength = lerp(_SafeTintAmount * 0.65, _SafeTintAmount, fogAmount);
+                half safeColorStrength = lerp(_SafeTintAmount * 0.6, _SafeTintAmount, sheen);
                 half3 safeRgb = lerp(_SafeBaseColor.rgb, tint.rgb, safeColorStrength);
+                safeRgb += tint.rgb * sheen * 0.18;
 
-                float verticalFlow = sin((i.positionWS.y * _SafeFlowScale)
-                                         + (noise * 4.0)
-                                         - (_Time.y * _SafeFlowSpeed));
-                half flowBand = smoothstep(0.35, 0.95, verticalFlow * 0.5 + 0.5);
+                half2 edgeUv     = min(i.uv, 1.0 - i.uv);
+                half  nearestEdge = min(edgeUv.x, edgeUv.y);
+                half  border      = 1.0 - smoothstep(0.0, _SafeEdgeWidth, nearestEdge);
+                safeRgb += tint.rgb * border * 0.22;
 
-                half2 edgeUv = min(i.uv, 1.0 - i.uv);
-                half nearestEdge = min(edgeUv.x, edgeUv.y);
-                half border = 1.0 - smoothstep(0.0, _SafeEdgeWidth, nearestEdge);
+                half safeAlpha = mask * tint.a * _Intensity * (0.32 + (sheen * 0.24) + (border * 0.24));
 
-                safeRgb += tint.rgb * ((flowBand * 0.09) + (border * 0.22));
-                half safeAlpha = mask * tint.a * _Intensity
-                                 * (0.32 + (fogAmount * 0.24) + (flowBand * 0.08) + (border * 0.24));
-
-                rgb = lerp(rgb, safeRgb, safeMode);
+                rgb   = lerp(rgb, safeRgb, safeMode);
                 alpha = lerp(alpha, safeAlpha, safeMode);
 
                 return half4(rgb, alpha);

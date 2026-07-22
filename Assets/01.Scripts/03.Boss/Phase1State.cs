@@ -17,7 +17,7 @@ namespace Minsung.Boss
         *                Fields
         ****************************************/
 
-        private const int POOL_SIZE = 4;  // 동시 사용 최대: 안전구역 3(색별) + 레이저 1
+        private const int POOL_SIZE = 3;  // 동시 사용 최대: 안전구역 3(색별) - 레이저 스윕은 신호 크리스탈로 대체되어 풀을 쓰지 않는다
         private const int SLOT_NONE = -1; // 풀 미할당 슬롯 표시 (BossHazardPool.Alloc 실패 반환값과 동일)
 
         private readonly WaitForSeconds _waitRefireDelay   = new WaitForSeconds(GameDB.Boss.GimmickRefireDelay);
@@ -185,7 +185,7 @@ namespace Minsung.Boss
             }
         }
 
-        // 예고 1발: 텔레그래프 대기 -> 전장 레이저 연출(판정 없음). 대기 중 매 프레임 안전구역 표시를 갱신한다
+        // 예고 1발: 텔레그래프 대기 -> 신호 크리스탈 점등(판정 없음). 대기 중 매 프레임 안전구역 표시를 갱신한다
         private IEnumerator CoTelegraphLaser(LaserColor color)
         {
             float elapsed = 0f;
@@ -199,7 +199,7 @@ namespace Minsung.Boss
             yield return CoFireLaser(color);
         }
 
-        // 실전 1발: 발사 순간 해당 색 안전구역 밖이면 보스전 재시작 -> 아니면 전장 레이저 연출
+        // 실전 1발: 발사 순간 해당 색 안전구역 밖이면 보스전 재시작 -> 아니면 신호 크리스탈 점등
         private IEnumerator CoJudgeLaser(LaserColor color)
         {
             if (!IsPlayerInSafeZone(color))
@@ -211,21 +211,39 @@ namespace Minsung.Boss
             yield return CoFireLaser(color);
         }
 
-        // 3섹터(좌측 구덩이~우측 구덩이) 전체를 덮는 레이저 연출 - 일반 아레나(ArenaMinX/MaxX, 중앙 단상)보다 넓다
-        // 즉사 판정은 위치 검사로 별도 처리하므로 콜라이더는 없다
+        private const float CRYSTAL_FADE_IN_TIME  = 0.15f; // 신호 색으로 - 즉각성은 유지하되 순간전환은 아니게 짧게
+        private const float CRYSTAL_FADE_OUT_TIME = 0.45f; // 원래 색으로 - 깜빡임 대신 서서히 돌아오도록 길게
+
+        // 즉사 판정은 위치 검사로 별도 처리하므로(IsPlayerInSafeZone) 이 신호는 순수 시각 효과다.
+        // 전장을 덮는 레이저 스윕 대신, 신호 크리스탈(겹쳐진 렌더러 전부)을 해당 색으로 밝혀 "지금 이 색이 발동 중"임을 알린다
         private IEnumerator CoFireLaser(LaserColor color)
         {
-            Vector2[] sectors = Boss.GimmickSectors;
-            float   width   = sectors[2].y - sectors[0].x;
-            float   centerX = (sectors[0].x + sectors[2].y) * 0.5f;
-            Vector2 pos     = GimmickHazardPosition(centerX);
-            Vector2 scale   = GimmickHazardScale(width);
-
-            int slot = _pool.Alloc(pos, scale, ColorOf(color), false);
-
-            // 레이저는 3섹터 전체 폭이라 안전구역(색별 1섹터)과 겹쳐 보이면 색이 섞여 보인다
             // 안전구역은 발사 전까지만 표시하고 발사 중엔 숨긴다 (실전 단계는 이미 미할당이라 무시됨)
             HideAllSafeZones();
+
+            SpriteRenderer[] crystals = Boss.GimmickSignalCrystalRenderers;
+            Color[] originalColors = null;
+
+            if (crystals != null)
+            {
+                originalColors = new Color[crystals.Length];
+                for (int i = 0; i < crystals.Length; ++i)
+                {
+                    if (crystals[i] != null)
+                    {
+                        originalColors[i] = crystals[i].color;
+                    }
+                }
+
+                Color signalColor = ColorOf(color);
+                Color[] signalColors = new Color[crystals.Length];
+                for (int i = 0; i < signalColors.Length; ++i)
+                {
+                    signalColors[i] = signalColor;
+                }
+
+                yield return CoFadeCrystals(crystals, signalColors, CRYSTAL_FADE_IN_TIME);
+            }
 
             float elapsed = 0f;
             while (elapsed < GameDB.Boss.GimmickLaserActiveTime)
@@ -233,9 +251,49 @@ namespace Minsung.Boss
                 elapsed += Time.deltaTime;
                 yield return null;
             }
-            _pool.Free(slot);
+
+            if (crystals != null)
+            {
+                yield return CoFadeCrystals(crystals, originalColors, CRYSTAL_FADE_OUT_TIME);
+            }
 
             // TODO: 레이저 발사 이펙트/사운드/화면 흔들림 (Constants.Audio / ParticlePresets)
+        }
+
+        // 크리스탈 렌더러들을 각자의 현재 색에서 targets[i]로 duration초에 걸쳐 부드럽게 보간한다
+        private static IEnumerator CoFadeCrystals(SpriteRenderer[] crystals, Color[] targets, float duration)
+        {
+            Color[] start = new Color[crystals.Length];
+            for (int i = 0; i < crystals.Length; ++i)
+            {
+                if (crystals[i] != null)
+                {
+                    start[i] = crystals[i].color;
+                }
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                for (int i = 0; i < crystals.Length; ++i)
+                {
+                    if (crystals[i] != null)
+                    {
+                        crystals[i].color = Color.Lerp(start[i], targets[i], t);
+                    }
+                }
+                yield return null;
+            }
+
+            for (int i = 0; i < crystals.Length; ++i)
+            {
+                if (crystals[i] != null)
+                {
+                    crystals[i].color = targets[i];
+                }
+            }
         }
 
         // 색별 안전구역 3개를 일괄 할당. 예고 단계 시작 시 호출한다
@@ -321,22 +379,23 @@ namespace Minsung.Boss
         *             색상 유틸
         ****************************************/
 
+        // 게임 전체의 저채도 분위기에 맞춰 원색을 크게 죽인다 (기존 0.35 -> 0.6)
+        private const float DESATURATE_AMOUNT = 0.6f;
+
+        // 초록만 확실히 초록으로 읽히도록 직접 지정 (RGB 47,250,47)
+        private static readonly Color GIMMICK_GREEN = new Color(47f / 255f, 250f / 255f, 47f / 255f, 1f);
+
         private static Color ColorOf(LaserColor color)
         {
-            Color pure;
             switch (color)
             {
                 case LaserColor.Red:
-                    pure = Color.red;
-                    break;
+                    return Color.Lerp(Color.red, Color.white, DESATURATE_AMOUNT);
                 case LaserColor.Blue:
-                    pure = Color.blue;
-                    break;
+                    return Color.Lerp(Color.blue, Color.white, DESATURATE_AMOUNT);
                 default:
-                    pure = Color.green;
-                    break;
+                    return GIMMICK_GREEN;
             }
-            return Color.Lerp(pure, Color.white, 0.35f);
         }
 
         private static Color SafeZoneColorOf(LaserColor color)

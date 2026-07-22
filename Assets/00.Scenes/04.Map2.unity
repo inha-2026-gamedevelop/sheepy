@@ -17214,7 +17214,7 @@ SpriteRenderer:
   m_Size: {x: 0.43, y: 0.43}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!4 &414550224
 Transform:
@@ -20781,7 +20781,7 @@ SpriteRenderer:
   m_Size: {x: 0.43, y: 0.43}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!4 &492357940
 Transform:
@@ -45267,6 +45267,15 @@ MonoBehaviour:
   _gimmickSectorLeft: {x: 8.16, y: 18.24}
   _gimmickSectorCenter: {x: 18.24, y: 21.6}
   _gimmickSectorRight: {x: 21.6, y: 29.6}
+  _gimmickSignalCrystalRenderers:
+  - {fileID: 2027285254}
+  - {fileID: 1401275221}
+  - {fileID: 299384494}
+  - {fileID: 716192112}
+  - {fileID: 815681590}
+  - {fileID: 1637079560}
+  - {fileID: 2028755716}
+  - {fileID: 725264783}
   _finalPhaseIndex: 1
   _transitionToNextScene: 1
   _outroVideo: {fileID: 504464628}
@@ -56883,7 +56892,7 @@ SpriteRenderer:
   m_Size: {x: 0.43, y: 0.43}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1325435971
 GameObject:

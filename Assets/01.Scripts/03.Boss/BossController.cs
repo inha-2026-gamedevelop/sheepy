@@ -65,6 +65,12 @@ namespace Minsung.Boss
         [SerializeField] private Vector2 _gimmickSectorCenter = new Vector2(-3.33f, 3.33f);
         [SerializeField] private Vector2 _gimmickSectorRight  = new Vector2(3.33f, 10f);
 
+        // 전장 레이저 스윕 대신 이 크리스탈들이 해당 색으로 빛난다.
+        // 크리스탈이 베이스 몸체(Crystal_16907, 불투명)와 빛 오라 레이어(crystal1_on_16911)로 겹쳐 있어
+        // 오라만 틴트하면 몸체에 가려 거의 안 보인다 - 두 렌더러를 함께 틴트해야 한다
+        [Header("1페이즈 즉사 기믹 - 색 신호용 크리스탈 (겹쳐진 렌더러 전부)")]
+        [SerializeField] private SpriteRenderer[] _gimmickSignalCrystalRenderers;
+
         [Header("페이즈 진행 범위 - 이 씬이 담당하는 구간만(총 피통은 GameDB.Boss.TotalHealth, 다른 구간은 별도 씬/오브젝트+DB에서 독립 설정)")]
         [SerializeField] private int _finalPhaseIndex = 3; // 이 인덱스(0=1페이즈)까지 진행 후 아래 종료 방식 실행
 
@@ -122,6 +128,9 @@ namespace Minsung.Boss
 
         // 1페이즈 즉사 기믹 색 배정용 지형 3섹터 (인덱스 순서 고정 - 좌측 구덩이/중앙 단상/우측 구덩이)
         public Vector2[] GimmickSectors => new[] { _gimmickSectorLeft, _gimmickSectorCenter, _gimmickSectorRight };
+
+        // 1페이즈 즉사 기믹 색 신호용 크리스탈 렌더러들 (씬 배치, 미연결 시 무시)
+        public SpriteRenderer[] GimmickSignalCrystalRenderers => _gimmickSignalCrystalRenderers;
 
         public float TotalHealth => GameDB.Boss.TotalHealth; // Minsung.UI.BossHealthBarUI가 정규화 기준으로 구독
 
