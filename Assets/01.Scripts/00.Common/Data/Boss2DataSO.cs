@@ -189,6 +189,11 @@ namespace Minsung.Boss2
         [SerializeField] private float _deathCameraZoomSize = 6f;   // 연출 동안 보스를 비추는 포커스 카메라 Orthographic Size(줌아웃)
         [SerializeField] private float _deathCameraBlend    = 0.5f; // 카메라 포커스 진입/복귀 블렌드 시간(초)
 
+        [Header("엔딩 포탈")]
+        [SerializeField] private float _endingHoldDuration = 5f;  // 포탈 상호작용(E키 홀드) 완료까지 걸리는 시간(초)
+        [SerializeField] private float _endingZoomEndSize  = 1.5f;// 홀드 완료 시점의 카메라 Orthographic Size(줌인 최종값) - 홀드 시작 시점 크기에서 이 값까지 진행도에 비례해 줄어든다
+        [SerializeField] private float _endingFadeDuration = 1.5f;// 홀드 완료 후 암전 시간(초)
+
         /****************************************
         *              Properties
         ****************************************/
@@ -328,5 +333,9 @@ namespace Minsung.Boss2
         public float DeathFadeDuration   => _deathFadeDuration;
         public float DeathCameraZoomSize => _deathCameraZoomSize;
         public float DeathCameraBlend    => _deathCameraBlend;
+
+        public float EndingHoldDuration => _endingHoldDuration;
+        public float EndingZoomEndSize  => _endingZoomEndSize;
+        public float EndingFadeDuration => _endingFadeDuration;
     }
 }

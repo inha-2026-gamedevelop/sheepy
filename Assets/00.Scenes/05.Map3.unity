@@ -20205,7 +20205,9 @@ GameObject:
   - component: {fileID: 575842866}
   - component: {fileID: 575842867}
   - component: {fileID: 575842868}
-  m_Layer: 0
+  - component: {fileID: 575842870}
+  - component: {fileID: 575842869}
+  m_Layer: 7
   m_Name: Portal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -20308,6 +20310,70 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &575842869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 575842865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 864951cf0690ffc46b35c0fb485faae5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Boss2.Boss2EndingPortal
+  _col: {fileID: 0}
+  _dataSo: {fileID: 11400000, guid: 7744d4dd47f44a34b823a2cea6d4e593, type: 2}
+  _focusCamera: {fileID: 706131018}
+  _cameraFocusOffset: {x: 0, y: -1}
+  _holdUi: {fileID: 0}
+  _progressSlider: {fileID: 0}
+--- !u!61 &575842870
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 575842865}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 7.23, y: 7.23}
+    newSize: {x: 7.23, y: 7.23}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 7.23, y: 7.23}
+  m_EdgeRadius: 0
 --- !u!1 &578966291
 GameObject:
   m_ObjectHideFlags: 0
@@ -70137,6 +70203,7 @@ MonoBehaviour:
   _movement: {fileID: 1684505830}
   _patterns: {fileID: 1684505834}
   _phase4Aim: {fileID: 1671844529}
+  _endingPortal: {fileID: 2146133433}
   _auraParticles: {fileID: 1511763658}
   _bodyRenderers:
   - {fileID: 1565207778}
@@ -80950,7 +81017,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 7.163289
+  orthographic size: 3.2
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -80975,7 +81042,7 @@ Transform:
   m_GameObject: {fileID: 1936869355}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.79678476, y: -1.6353465, z: -14.389551}
+  m_LocalPosition: {x: -5.689999, y: -0.5, z: -6}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -89531,7 +89598,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2146133434
 Transform:
   m_ObjectHideFlags: 0
