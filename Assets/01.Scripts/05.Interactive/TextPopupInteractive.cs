@@ -7,13 +7,13 @@ using TMPro;
 
 using Minsung.CameraSystem;
 using Minsung.Common;
+using Minsung.Sound;
 using Minsung.Utility;
 
 namespace Minsung.Interactive
 {
-    // 플레이어가 감지 범위에 들어오면 오브젝트 바로 위에 TextMeshPro 문구를 띄우는 표시 전용 상호작용
-    // PlayerInteractionSensor가 잡아주는 OnFocus/OnUnfocus 시점에 맞춰 표시/숨김만 처리한다(E키 동작 없음)
-    // 라디오와 동일하게 포커스 카메라 줌인 연출을 함께 켤 수 있다
+    // 플레이어가 감지 범위에 들어오면 오브젝트 바로 위에 문구 띄우는 표시 전용 상호작용
+    
     public class TextPopupInteractive : BaseInteractive
     {
         /****************************************
@@ -21,8 +21,8 @@ namespace Minsung.Interactive
         ****************************************/
 
         [Header("표시 대상")]
-        [SerializeField] private GameObject _textRoot; // 켜고 끌 루트(배경 포함 가능), 비우면 _label의 오브젝트를 사용
-        [SerializeField] private TMP_Text   _label;    // 문구를 출력할 TextMeshPro (UGUI/3D 둘 다 가능)
+        [SerializeField] private GameObject _textRoot; // 켜고 끌 루트
+        [SerializeField] private TMP_Text   _label;    // 문구를 출력할 TMP
 
         [Header("내용")]
         [SerializeField] [TextArea(1, 4)] private string _message = ""; // 표시할 문구
@@ -41,14 +41,15 @@ namespace Minsung.Interactive
         [SerializeField] private float     _blendTime      = Constants.Camera.DEFAULT_BLEND_TIME;      // 포커스 전환 블렌드 시간(초)
 
         [Header("연출")]
-        [SerializeField] private float _fadeDuration = 0.15f; // 0이면 즉시 표시/숨김 (CanvasGroup이 있어야 페이드 동작)
+        [SerializeField] private float _fadeDuration = 0.15f; // 0이면 즉시 표시/숨김
 
-        private CanvasGroup _canvasGroup;
-        private Collider2D  _boundsCollider;
-        private Renderer    _boundsRenderer;
-        private Coroutine   _fadeRoutine;
-        private bool        _isShown;
-        private bool        _hasCameraFocus; // 내가 잡은 포커스만 해제하기 위한 플래그
+        private CanvasGroup     _canvasGroup;
+        private Collider2D      _boundsCollider;
+        private Renderer        _boundsRenderer;
+        private Coroutine       _fadeRoutine;
+        private LocalSfxEmitter _sfxEmitter;    // 문구 표시/숨김에 붙일 개별 SFX
+        private bool            _isShown;
+        private bool            _hasCameraFocus; // 내가 잡은 포커스만 해제하기 위한 플래그
 
         /****************************************
         *              Unity Event
@@ -63,7 +64,6 @@ namespace Minsung.Interactive
                 _textRoot = _label.gameObject;
             }
 
-            // 자기 자신을 루트로 지정하면 SetActive(false) 순간 이 컴포넌트까지 죽어 감지가 끊긴다
             if (_textRoot == gameObject)
             {
                 Debug.LogWarning($"[{nameof(TextPopupInteractive)}] {nameof(_textRoot)}에 자기 자신을 지정할 수 없습니다 - 자식 오브젝트를 지정하세요", this);
@@ -74,6 +74,8 @@ namespace Minsung.Interactive
             {
                 _textRoot.TryGetComponent(out _canvasGroup);
             }
+
+            TryGetComponent(out _sfxEmitter);
 
             CacheBoundsSource();
             ApplyHidden();
@@ -119,7 +121,7 @@ namespace Minsung.Interactive
             // 표시 전용 오브젝트라 E키 동작 없음
         }
 
-        /// <summary> 문구를 띄운다 (컷신 등에서 외부 호출도 가능). </summary>
+        /// <summary> 문구를 띄운다 </summary>
         public void Show()
         {
             if (_textRoot == null)
@@ -127,7 +129,13 @@ namespace Minsung.Interactive
                 return;
             }
 
+            bool wasHidden = !_isShown; // 숨김 -> 표시로 넘어가는 순간에만 등장음 재생
             _isShown = true;
+
+            if (wasHidden)
+            {
+                _sfxEmitter?.PlayActivate();
+            }
 
             if (_label != null)
             {
@@ -154,17 +162,18 @@ namespace Minsung.Interactive
                 return;
             }
 
+            _sfxEmitter?.PlayDeactivate();
+
             if ((_fadeDuration <= 0f) || (_canvasGroup == null))
             {
                 ApplyHidden();
                 return;
             }
 
-            _isShown = false; // 페이드 아웃 중에는 위치 추적을 멈춘다
+            _isShown = false;
             UtilCoroutine.CheckRunCoroutine(ref _fadeRoutine, StartCoroutine(CoFade(0f)), this);
         }
 
-        /// <summary> 표시 문구 교체 (표시 중이면 즉시 반영). </summary>
         public void SetMessage(string message)
         {
             _message = message;
@@ -219,7 +228,7 @@ namespace Minsung.Interactive
             }
         }
 
-        // 문구가 붙을 기준점 - 자동이면 오브젝트 바운즈 윗변 바로 위, 아니면 수동 오프셋
+        // 문구가 붙을 기준점
         private Vector3 GetAnchorPosition()
         {
             if (_anchorAboveBounds && TryGetBounds(out Bounds bounds))
@@ -244,7 +253,7 @@ namespace Minsung.Interactive
             }
         }
 
-        // 캐시가 비어 있으면(에디터 기즈모 등 Awake 이전) 그 자리에서 한 번 조회한다
+        // 캐시가 비어 있으면 그 자리에서 한 번 조회한다
         private bool TryGetBounds(out Bounds bounds)
         {
             Collider2D col = (_boundsCollider != null) ? _boundsCollider : _boundsSource;
@@ -316,7 +325,7 @@ namespace Minsung.Interactive
             }
         }
 
-        // 문구가 뜰 위치를 씬 뷰에서 확인 (선택 시에만 표시)
+        // 문구가 뜰 위치를 씬 뷰에서 확인
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.cyan;
