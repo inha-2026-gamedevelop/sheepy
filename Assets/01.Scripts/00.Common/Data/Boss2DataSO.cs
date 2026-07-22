@@ -101,6 +101,8 @@ namespace Minsung.Boss2
         [SerializeField] private Color _laserWarningColor = new Color(1f, 0.05f, 0.05f, 0.6f);
         [SerializeField] private Color _laserColor        = new Color(0.95f, 0f, 0.02f);
 
+        [SerializeField] private Material _laserMaterial; // 에너지빔 쉐이더 머테리얼 (Assets/12.Materials/Phase3LaserBeamMat) - 인스펙터에 직접 드래그해서 연결
+
         [SerializeField] private float   _laserFlowParticleSize = 0.12f;
         [SerializeField] private float   _laserFlowSpeed        = 14f;
         [SerializeField] private float   _laserFlowRate         = 80f;
@@ -259,6 +261,7 @@ namespace Minsung.Boss2
         public int   LaserDamageHalves     => _laserDamageHalves;
         public Color LaserWarningColor     => _laserWarningColor;
         public Color LaserColor            => _laserColor;
+        public Material LaserMaterial      => _laserMaterial;
 
         public float   LaserFlowParticleSize => _laserFlowParticleSize;
         public float   LaserFlowSpeed        => _laserFlowSpeed;
