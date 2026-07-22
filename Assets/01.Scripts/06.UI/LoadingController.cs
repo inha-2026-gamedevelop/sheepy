@@ -35,7 +35,8 @@ namespace Minsung.UI
             string targetScene = GameManager.ConsumePendingScene();
             if (string.IsNullOrEmpty(targetScene))
             {
-                targetScene = Constants.Scene.MAIN_MENU;
+                // 최초 부팅(콜드 스타트) - pending 예약이 없으므로 로그인/자동로그인 씬을 항상 먼저 거친다
+                targetScene = Constants.Scene.NICKNAME;
             }
 
             // 잘못 저장된 pending 값으로 00.GameLoading이 반복 진입하지 않도록 차단한다
