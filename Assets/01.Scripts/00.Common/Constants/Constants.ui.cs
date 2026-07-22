@@ -29,6 +29,13 @@ namespace Minsung.Common
             // 설정 패널 배경 (일시정지 화면 전용)
             public const int   SETTINGS_BACKDROP_DOWNSAMPLE = 40;   // 다운샘플 배율 - Pause 배경(16)보다 훨씬 강한 블러
             public const float SETTINGS_BACKDROP_BRIGHTNESS = 0.15f; // 블러 텍스처에 곱하는 명도 - 낮을수록 어둡다
+
+            // FPS 카운터 (우상단 개발용 오버레이)
+            public const float FPS_REFRESH_INTERVAL  = 0.25f;  // 표시 갱신 주기(초, unscaled)
+            public const int   FPS_FONT_SIZE         = 12;     // 글자 크기(pt)
+            public const int   FPS_CANVAS_SORT_ORDER = 32760;  // 모든 UI 위에 그리기 위한 캔버스 정렬 순서
+            public const float FPS_EDGE_PADDING      = 8f;     // 화면 우상단 모서리에서 띄울 여백(px)
+            public const int   FPS_BOX_PADDING       = 4;      // 검정 배경과 글자 사이 여백(px)
         }
     }
 }
