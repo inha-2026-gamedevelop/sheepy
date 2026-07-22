@@ -168,7 +168,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -3448894508470768892, guid: 69da8c2cb6f2ec149aae6f761f568aa6, type: 3}
+  m_Sprite: {fileID: 6711080165185141437, guid: 69da8c2cb6f2ec149aae6f761f568aa6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -279,6 +279,7 @@ GameObject:
   - component: {fileID: 4298312730112226991}
   - component: {fileID: 7111996726030078861}
   - component: {fileID: 7265190680715490144}
+  - component: {fileID: 7076350170267727316}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -384,12 +385,12 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!61 &1139584897444926465
-BoxCollider2D:
+--- !u!70 &1139584897444926465
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -422,18 +423,9 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.002585888, y: 0.13447022}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0}
-    oldSize: {x: 0.24, y: 0.26}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 0.27075672, y: 0.30696106}
-  m_EdgeRadius: 0
+  m_Offset: {x: 0, y: 0.13}
+  m_Size: {x: 0.24, y: 0.26}
+  m_Direction: 0
 --- !u!114 &5053386531594375549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -491,8 +483,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ffd7aba7a1856f44add453af7991349, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerMovement
-  _moveSpeed: 2
-  _jumpForce: 6
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -629,5 +619,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 730aa994a2be5b149a5590b6ff471aa7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerHealth
-  _maxHearts: 6
-  _invincibleDuration: 1
+--- !u!114 &7076350170267727316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7871254499066966236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1e2d4bab79d7fb4d9ceedc573f2a013, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerSaveOnExit

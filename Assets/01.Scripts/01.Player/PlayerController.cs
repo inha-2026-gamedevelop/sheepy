@@ -3,8 +3,12 @@ using System;
 using System.Collections;
 
 // Unity
+using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
+using Minsung.Achievement;
+using Minsung.Backend;
 using Minsung.Common;
 using Minsung.Common.Data;
 using Minsung.TimeSystem;
@@ -85,7 +89,7 @@ namespace Minsung.Player
             }
 
             // 컴포넌트 간 참조 주입 = 코디네이터의 핵심 역할.
-            _input.Init(_movement, _combat, _rewind);
+            _input.Init(_movement, _combat, _rewind, _health);
             _movement.Init(this, _playerAnimator);
             _combat.Init(this, _playerAnimator, GetComponent<PlayerOrbs>(), _health);
             _interaction.Init(_movement);
@@ -105,11 +109,90 @@ namespace Minsung.Player
 
         private void Start()
         {
+            // 이어하기로 진입한 경우, 저장된 위치/방향으로 1회 복원 (체크포인트 등록보다 먼저)
+            TryRestoreContinuePosition();
+
             // 시작 지점을 기본 체크포인트로 등록 - 체크포인트 오브젝트를 지나기 전에 죽어도 복귀 가능
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.SetCheckpoint(transform.position);
             }
+
+            // 씬 전환(=새 씬 진입) 시점에 진행 상태를 저장+서버 미러 (종료 시점 웹요청이 불안정한 데스크톱 대비)
+            PersistProgress();
+        }
+
+        /// <summary>
+        /// 현재 진행 상태를 로컬 저장 + 서버 미러. 보스 진행 중이면 위치 대신 "Map2 기본 스폰"으로 기록해
+        /// 이어하기 때 보스 한가운데가 아니라 Map2 스폰에서 재개되도록 한다.
+        /// 호출: 씬 진입(Start) / 종료·일시정지(PlayerSaveOnExit) / 저장하고 나가기(PauseController).
+        /// </summary>
+        public void PersistProgress()
+        {
+            if (SaveManager.Instance == null)
+            {
+                return;
+            }
+
+            int facingDir = (_movement != null) ? _movement.FacingDir : 1;
+            string currentScene = SceneManager.GetActiveScene().name;
+
+            // 보스 진행 중이거나(IsBossRunActive) - 보스 격파 시점 처리가 어긋나더라도 방어적으로 -
+            // 현재 씬이 Map3(보스 전용 아레나, 단독 진입 불가)이면 반드시 Map2 기본 스폰으로 기록한다.
+            bool bossActive = (GameManager.Instance != null) && GameManager.Instance.IsBossRunActive;
+            bool forceMap2Spawn = bossActive || (currentScene == Constants.Scene.MAP_3);
+
+            if (forceMap2Spawn)
+            {
+                // 보스 중 저장 → Map2 기본 스폰으로 기록 (정확한 좌표 불필요)
+                SaveManager.Instance.SavePlayerState(Constants.Scene.MAP_2, Vector3.zero, facingDir, useDefaultSpawn: true);
+                BackendMirror.Instance?.MirrorPlayerProgress(Constants.Scene.MAP_2, Vector3.zero, facingDir, useDefaultSpawn: true);
+                return;
+            }
+
+            // Rigidbody2D 구동이라 SetPose 직후 transform.position은 다음 물리 스텝까지 반영이 늦다.
+            // 리지드바디 위치(_movement.Position)를 우선 사용해 복원 직후에도 정확한 좌표를 저장한다.
+            Vector3 position = (_movement != null) ? (Vector3)_movement.Position : transform.position;
+
+            SaveManager.Instance.SavePlayerState(currentScene, position, facingDir);
+            BackendMirror.Instance?.MirrorPlayerProgress(currentScene, position, facingDir);
+        }
+
+        // 로비 '이어하기'로 진입했을 때만(1회 소비), 저장된 씬이 현재 씬과 일치하면 위치/방향을 복원한다.
+        private void TryRestoreContinuePosition()
+        {
+            if (!GameManager.ConsumeContinueRestore())
+            {
+                return;
+            }
+
+            if ((SaveManager.Instance == null) || !SaveManager.Instance.TryLoadPlayerState(out SaveData data))
+            {
+                return;
+            }
+
+            // 저장된 씬과 현재 씬이 다르면 위치 복원은 건너뛴다(다른 맵에 잘못 떨어지는 것 방지).
+            if (data.SceneName != SceneManager.GetActiveScene().name)
+            {
+                return;
+            }
+
+            // 보스 중 저장 등으로 "기본 스폰 사용"이면 위치 복원을 건너뛰고 씬 배치 스폰에 그대로 둔다.
+            if (data.UseDefaultSpawn)
+            {
+                return;
+            }
+
+            Vector3 previousPosition = transform.position;
+            _movement.SetPose(data.PlayerPosition, Vector2.zero, false); // Rigidbody 위치까지 반영
+            if (_playerAnimator != null)
+            {
+                _playerAnimator.SetFacing(data.FacingDir); // 바라보던 방향 복원
+            }
+
+            // Cinemachine에게 "순간이동"임을 알려 카메라가 이전 위치에서 스무딩하며 따라오지 않고 즉시 스냅하게 한다.
+            // 이게 없으면 이어하기 직후 카메라가 엉뚱한 곳을 비추거나 뒤늦게 캐치업하는 것처럼 보인다.
+            CinemachineCore.OnTargetObjectWarped(transform, data.PlayerPosition - previousPosition);
         }
 
         private void OnDestroy()
@@ -133,6 +216,7 @@ namespace Minsung.Player
                 return; // 사망 중 입력 잠금
             }
             _input.HandleInput();
+            AchievementTrigger.IdleTick(Input.anyKeyDown, Time.deltaTime); // "잠만보" - 5분 무입력 판정
         }
 
         private void FixedUpdate()
@@ -176,6 +260,8 @@ namespace Minsung.Player
                 return;
             }
             GameManager.Instance?.ResetBossTimer(); // 보스전 중 사망 - 진행 중이던 클리어 타이머 폐기
+            AchievementTrigger.PlayerDied();
+            AchievementTrigger.ResetIdle(); // 사망은 "가만히 있기"가 아니므로 무입력 누적 리셋
             StartCoroutine(CoDeathRespawn());
         }
 
@@ -187,6 +273,29 @@ namespace Minsung.Player
             // 사망 애니메이션 - Animator에 Death 트리거가 추가되면 여기서 재생
 
             yield return _waitDeathDelay;
+
+            // 보스전 사망은 BossController.HandlePlayerDeath가 Map2를 통째로 리로드해 복귀시킨다
+            // 여기서 별도로 체크포인트 복귀 페이드를 걸면 같은 ScreenFade 슬롯을 다퉈 리로드용 페이드의
+            // 콜백(씬 로드)이 취소될 수 있으므로, 보류 중인 보스 리스타트가 있으면 이 경로는 양보
+            if (RespawnManager.IsBossRestartPending)
+            {
+                yield break;
+            }
+
+            // Map3은 보스 전용 아레나(단독 진입 불가) - 전투 시작 전 사망 등으로 보스 리스타트 경로를
+            // 타지 않은 경우에도 Map3에는 별도 체크포인트가 없으므로 항상 Map2 기본 스폰으로 돌려보낸다.
+            if (SceneManager.GetActiveScene().name == Constants.Scene.MAP_3)
+            {
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.LoadScene(Constants.Scene.MAP_2);
+                }
+                else
+                {
+                    SceneManager.LoadScene(Constants.Scene.MAP_2);
+                }
+                yield break;
+            }
 
             bool respawned = false;
             respawned = RespawnManager.TryRespawn(this, OnRespawned);
@@ -218,6 +327,9 @@ namespace Minsung.Player
 
         /// <summary> 피격 넉백 (피해 지점 반대 방향). DamageHazard/MonsterController가 호출. </summary>
         public void ApplyKnockback(Vector2 sourcePosition) => _movement.ApplyKnockback(sourcePosition);
+
+        /// <summary> 지정 속도로 즉시 투척한다. Boss2GrabPattern이 호출. </summary>
+        public void Launch(Vector2 velocity) => _movement.Launch(velocity);
 
         /// <summary> 혼란(키반전) 상태 설정. BossController가 호출. </summary>
         public void SetInputInverted(bool inverted) => _input.SetInverted(inverted);

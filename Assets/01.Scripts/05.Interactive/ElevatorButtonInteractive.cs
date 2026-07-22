@@ -15,10 +15,11 @@ namespace Minsung.Interactive
         *                Fields
         ****************************************/
 
-        private const float HOLD_DURATION = 3f; // 엘리베이터 호출에 필요한 홀드 시간 (초)
-
         [Header("식별자")]
         [SerializeField, Min(1)] private int _elevatorId = 1; // 연결할 ElevatorController와 동일한 ID
+
+        [Header("상호작용")]
+        [SerializeField, Min(0.1f)] private float _holdDuration = 2f; // E 키를 유지해야 하는 시간
 
         [Header("홀드 UI")]
         [SerializeField] private GameObject _holdUi; // elevator_ui_1 오브젝트
@@ -105,9 +106,9 @@ namespace Minsung.Interactive
             }
 
             _holdElapsed += deltaTime;
-            SetProgress(_holdElapsed / HOLD_DURATION);
+            SetProgress(_holdElapsed / _holdDuration);
 
-            if (_holdElapsed < HOLD_DURATION)
+            if (_holdElapsed < _holdDuration)
             {
                 return false;
             }

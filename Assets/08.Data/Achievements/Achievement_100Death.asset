@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21bf5a37748611d45b8f793e429ba4ca, type: 3}
+  m_Name: Achievement_100Death
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Achievement.AchievementData
+  _id: death_100
+  _title: "\uC774\uB7EC\uC2DC\uB294 \uC774\uC720\uAC00 \uC788\uC744\uAC83 \uC544\uB2C8\uC5D0\uC694"
+  _description: "\uD50C\uB808\uC774\uC5B4 100\uBC88 \uC8FD\uAE30"
+  _icon: {fileID: 0}

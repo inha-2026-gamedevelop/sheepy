@@ -5,7 +5,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
-using Minsung.Common;
 using Minsung.Player;
 using Minsung.Sound;
 using Minsung.TimeSystem;
@@ -40,16 +39,16 @@ namespace Minsung.Interactive
 
         [Header("레버 설정")]
         [SerializeField] private bool  _isOneShot               = true; // true: 한 번 당기면 다시 반응하지 않음 (스토리 진행용)
-        [SerializeField] private float _interactionLockDuration = 1f;  // DoLever 애니메이션 재생 시간과 맞춰 조절
+        [SerializeField] private float _interactionLockDuration = 1.4f; // DoLever 애니메이션 재생 시간과 맞춰 조절 - 짧으면 모션이 끝나기 전에 조작이 풀린다
         [SerializeField] private SpriteRenderer _renderer; // 당김 상태 표시용 (비우면 같은 오브젝트에서 자동 취득)
-        [SerializeField] private Sprite _spriteUnpulled; // 당기기 전 레버 - LeverAction 연출이 손잡이를 위로 올리므로 손잡이 아래(lever_down)
-        [SerializeField] private Sprite _spritePulled;   // 당긴 후 레버 - 연출 마지막 프레임과 같은 손잡이 위(lever_up)
+        [SerializeField] private Sprite _spriteUnpulled; // 당기기 전 레버
+        [SerializeField] private Sprite _spritePulled;   // 당긴 후 레버
 
         [Header("엘리베이터 연동")]
         [SerializeField, Min(0)] private int _elevatorId; // 0이면 엘리베이터 연동 없이 기존 레버 이벤트만 실행
 
         [Header("이벤트")]
-        [SerializeField] private UnityEvent _onLeverPulled; // 문 열기 등 실제 효과 (Inspector에서 연결)
+        [SerializeField] private UnityEvent _onLeverPulled; // 문 열기 등 실제 효과
         [SerializeField] private UnityEvent _onLeverReset;   // 되감기로 당기기 전 상태로 되돌아갔을 때 (문 닫기 등)
 
         private bool _isPulled;
@@ -223,28 +222,30 @@ namespace Minsung.Interactive
 
             if ((ElevatorManager.Instance != null) && ElevatorManager.Instance.TryGetController(_elevatorId, out ElevatorController controller))
             {
-                controller.SetLeverPulled(pulled);
+                controller.SetLeverPulled(this, pulled);
             }
         }
 
-        // 당김 상태에 따라 스프라이트를 교체한다. 스프라이트 미지정 시 색 표시로 폴백(프로토타입용)
+        /// <summary>제한 시간 안에 필요한 레버가 모두 켜지지 않았을 때 원래 상태로 복구한다.</summary>
+        public void ResetByElevatorTimeout()
+        {
+            UtilCoroutine.CheckStopCoroutine(ref _coUnlockInteraction, this);
+            SetRendererVisible(true);
+            ApplyPulledState(false);
+        }
+
+        // 당김 상태에 따라 스프라이트를 교체한다. 스프라이트 미지정 시 아무 표시도 하지 않는다
         private void UpdateVisual()
         {
             #if UNITY_EDITOR
             Debug.Log(_isPulled ? "레버 켜짐" : "레버 꺼짐");
             #endif
 
-            if (_renderer == null)
+            if ((_renderer == null) || (_spriteUnpulled == null) || (_spritePulled == null))
             {
                 return;
             }
-
-            if ((_spriteUnpulled != null) && (_spritePulled != null))
-            {
-                _renderer.sprite = _isPulled ? _spritePulled : _spriteUnpulled;
-                return;
-            }
-            _renderer.color = _isPulled ? Constants.Interactive.LEVER_PULLED_COLOR : Constants.Interactive.LEVER_UNPULLED_COLOR;
+            _renderer.sprite = _isPulled ? _spritePulled : _spriteUnpulled;
         }
     }
 }

@@ -65,7 +65,7 @@ namespace Minsung.TimeSystem
 
             if (_active.Count >= _maxClones)
             {
-                AchievementManager.Instance?.Unlock(AchievementIds.CLONE_FULL_SQUAD);
+                AchievementTrigger.CloneSquadFull();
             }
         }
 

@@ -4,7 +4,9 @@ using System.Collections;
 // Unity
 using UnityEngine;
 
+using Minsung.Backend;
 using Minsung.Common;
+using Minsung.Common.Data;
 
 namespace Minsung.UI
 {
@@ -19,6 +21,8 @@ namespace Minsung.UI
         [SerializeField] private GameObject           _continueButton;
         [SerializeField] private GameObject           _settingsPanel;
         [SerializeField] private SettingsBackdropView _settingsBackdrop;
+        [SerializeField] private GameObject           _achievementPanel;
+        [SerializeField] private SettingsBackdropView _achievementBackdrop;
 
         [Header("선택 파티클 버스트")]
         [SerializeField] private UiClickBurst  _clickBurst;
@@ -34,15 +38,21 @@ namespace Minsung.UI
         {
             if (_continueButton != null)
             {
-                _continueButton.SetActive((SaveManager.Instance != null) && SaveManager.Instance.HasSaveData());
+                // 위치 기반 저장 데이터 기준 - 서버 권위 로그인(TryAutoLogin)이 내려받은 진행상황도 여기 반영된다.
+                _continueButton.SetActive((SaveManager.Instance != null) && SaveManager.Instance.HasPlayerState());
             }
         }
 
         private void Update()
         {
-            if ((_settingsPanel != null) && _settingsPanel.activeSelf && Input.GetKeyDown(Constants.System.KEY_PAUSE))
+            if ((_settingsPanel != null) && (_settingsPanel.activeSelf) && Input.GetKeyDown(Constants.System.KEY_PAUSE))
             {
                 CloseSettings();
+            }
+
+            if ((_achievementPanel != null) && (_achievementPanel.activeSelf) && Input.GetKeyDown(Constants.System.KEY_PAUSE))
+            {
+                CloseAchievements();
             }
         }
 
@@ -50,18 +60,25 @@ namespace Minsung.UI
         *                Methods
         ****************************************/
 
-        /// <summary> 게임 시작 (새로 시작) - 임시로 Map2 진입, 맵 완성 후 MAP_1로 교체 예정 </summary>
+        /// <summary> 게임 시작 (새로 시작) - 항상 Map1부터. 기존 진행(로컬+서버)을 초기화해 다음 서버 로그인 때 되살아나지 않게 한다. </summary>
         public void OnClickStart()
         {
-            PlayBurstThenLoad(_startButtonRect, Constants.Scene.MAP_2);
+            SaveManager.Instance?.ClearPlayerState();
+            BackendMirror.Instance?.ResetProgress(Constants.Scene.MAP_1);
+            PlayBurstThenLoad(_startButtonRect, Constants.Scene.MAP_1);
         }
 
-        /// <summary> 이어하기 - 마지막으로 저장된 씬으로 진입 </summary>
+        /// <summary> 이어하기 - 저장된 위치 데이터(SaveData) 기준으로 해당 씬에 진입. 데이터가 있는 유저는 서버에서 내려받은 진행상황을 그대로 이어간다. </summary>
         public void OnClickContinue()
         {
-            string sceneName = (SaveManager.Instance != null)
-                ? SaveManager.Instance.LoadLastScene(Constants.Scene.MAP_1)
-                : Constants.Scene.MAP_1;
+            string sceneName = Constants.Scene.MAP_1;
+            if ((SaveManager.Instance != null) && SaveManager.Instance.TryLoadPlayerState(out SaveData data))
+            {
+                sceneName = data.SceneName;
+            }
+
+            // 이어하기: 진입한 씬에서 플레이어를 저장된 위치로 1회 복원하도록 요청
+            GameManager.Instance?.RequestContinueRestore();
 
             RectTransform origin = (_continueButton != null) ? _continueButton.GetComponent<RectTransform>() : null;
             PlayBurstThenLoad(origin, sceneName);
@@ -100,6 +117,42 @@ namespace Minsung.UI
         private void CloseSettings()
         {
             _settingsPanel.SetActive(false);
+            PauseController.Instance?.ReleaseCapturedSettingsBackdrop();
+        }
+
+        /// <summary> 업적 패널 토글 - 전체 업적 진행 현황(깬 것/안 깬 것)을 보여준다 </summary>
+        public void OnClickAchievements()
+        {
+            if (_achievementPanel == null)
+            {
+                return;
+            }
+
+            if (_achievementPanel.activeSelf)
+            {
+                CloseAchievements();
+                return;
+            }
+
+            StartCoroutine(CoOpenAchievements());
+        }
+
+        // 설정 패널과 동일한 블러 배경 캡처 절차 재사용
+        private IEnumerator CoOpenAchievements()
+        {
+            if (PauseController.Instance != null)
+            {
+                yield return PauseController.Instance.CoCaptureSettingsBackdrop();
+            }
+
+            _achievementBackdrop?.Refresh();
+            _achievementPanel.SetActive(true);
+        }
+
+        // 업적 패널을 닫고 캡처해둔 배경 텍스처를 반납 - 닫기 버튼/ESC 공용
+        private void CloseAchievements()
+        {
+            _achievementPanel.SetActive(false);
             PauseController.Instance?.ReleaseCapturedSettingsBackdrop();
         }
 

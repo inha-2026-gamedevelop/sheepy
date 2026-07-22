@@ -33,6 +33,10 @@ namespace Minsung.Common.Data
         [SerializeField] private float _invincibleDuration = 1f;   // 피격 후 무적 시간(초)
         [SerializeField] private float _deathRespawnDelay  = 0.6f; // 하트 0 이후 페이드 시작까지 대기(초) - 사망 연출 여지
 
+        [Header("전용 무적키 (보스 즉사기 회피)")]
+        [SerializeField] private float _dodgeInvincibleDuration = 1f;  // 무적 지속시간(초)
+        [SerializeField] private float _dodgeInvincibleCooldown = 30f; // 재사용 대기시간(초) - 발동 즉시부터 카운트
+
         [Header("피격 리액션 (넉백/플래시)")]
         [SerializeField] private float _knockbackForceX   = 6f;    // 넉백 수평 속도 (피해 지점 반대 방향)
         [SerializeField] private float _knockbackForceY   = 4f;    // 넉백 수직 속도 (살짝 띄움)
@@ -103,6 +107,9 @@ namespace Minsung.Common.Data
         public int   MaxHearts          => _maxHearts;
         public float InvincibleDuration => _invincibleDuration;
         public float DeathRespawnDelay  => _deathRespawnDelay;
+
+        public float DodgeInvincibleDuration => _dodgeInvincibleDuration;
+        public float DodgeInvincibleCooldown => _dodgeInvincibleCooldown;
 
         public float KnockbackForceX   => _knockbackForceX;
         public float KnockbackForceY   => _knockbackForceY;

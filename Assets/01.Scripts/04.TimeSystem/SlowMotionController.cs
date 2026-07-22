@@ -1,6 +1,7 @@
 // Unity
 using UnityEngine;
 
+using Minsung.Achievement;
 using Minsung.Common;
 using Minsung.Common.Data;
 using Minsung.Utility;
@@ -26,6 +27,7 @@ namespace Minsung.TimeSystem
         public static bool IsSlow { get; private set; } // 다른 시스템이 슬로우 상태를 참조할 때 사용
 
         // 히트스톱이 끝날 때 복원할 배율 - 슬로우 중이면 슬로우 배율, 아니면 1
+        public static bool IsAbilityUnlocked { get; private set; }
         public static float TargetTimeScale => _targetScale;
 
         /****************************************
@@ -37,6 +39,7 @@ namespace Minsung.TimeSystem
         private static void ResetStatics()
         {
             ResetStatic();
+            IsAbilityUnlocked = false;
             IsSlow       = false;
             _targetScale = 1f;
             Time.timeScale = 1f;
@@ -52,10 +55,20 @@ namespace Minsung.TimeSystem
         {
             _slowScale         = GameDB.Time.SlowTimeScale;
             _defaultFixedDelta = Time.fixedDeltaTime;
+            RestoreAbilityUnlock();
+        }
+
+        private void Start()
+        {
+            RestoreAbilityUnlock();
         }
 
         private void Update()
         {
+            if (!IsAbilityUnlocked)
+            {
+                return;
+            }
             if (Input.GetKeyDown(_slowKey))
             {
                 SetSlow(true);
@@ -84,8 +97,24 @@ namespace Minsung.TimeSystem
         ****************************************/
 
         /// <summary> 슬로우모션 켜기/끄기. timeScale에 비례해 fixedDeltaTime도 함께 보정한다. </summary>
+        public static void UnlockAbility()
+        {
+            IsAbilityUnlocked = true;
+            SaveManager.Instance?.SetSlowAbilityUnlocked(true);
+        }
+
+        private static void RestoreAbilityUnlock()
+        {
+            IsAbilityUnlocked = (SaveManager.Instance != null) && SaveManager.Instance.IsSlowAbilityUnlocked();
+        }
+
         public void SetSlow(bool on)
         {
+            if (on)
+            {
+                AchievementTrigger.SlowMotionUsed();
+            }
+
             IsSlow       = on;
             _targetScale = on ? _slowScale : 1f;
             Time.fixedDeltaTime = _defaultFixedDelta * _targetScale;

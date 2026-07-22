@@ -1,6 +1,10 @@
+// System
+using System.Collections;
+
 // Unity
 using UnityEngine;
 
+using Minsung.Achievement;
 using Minsung.CameraSystem;
 using Minsung.Common;
 using Minsung.Sound;
@@ -16,9 +20,10 @@ namespace Minsung.Interactive
         ****************************************/
 
         [Header("라디오 설정")]
-        [SerializeField] private EBgm _bgm       = EBgm.Radio;
+        [SerializeField] private EBgm _bgm       = EBgm.Radio; // 재생할 트랙을 고르는 카테고리. SFX 채널로 재생되며 실제 BGM은 건드리지 않는다
         [SerializeField] private int  _clipIndex = -1;         // 카테고리 내 클립 인덱스 (-1이면 무작위, 커스텀 인스펙터에서 드롭다운으로 선택)
         [SerializeField] private bool _isLoop    = true;       // 라디오 특성상 기본 루프 재생
+        [SerializeField] private string _radioId;              // "주파수 고정" 업적용 고유 식별자 - 씬에 배치한 라디오마다 서로 다른 값 지정 (비우면 집계 제외)
 
         [Header("자막")]
         [SerializeField] private CaptionEntry[] _captions; // 재생 중 화면 하단에 순서대로 표시할 자막들 (루프 없이 한 번만 재생)
@@ -31,6 +36,7 @@ namespace Minsung.Interactive
         private bool  _isPlaying;
         private float _focusSize;
         private LocalSfxEmitter _sfxEmitter;
+        private Coroutine       _autoStopRoutine; // 루프 없는 트랙이 스스로 끝났을 때 상태 정리용
 
         /****************************************
         *              Unity Event
@@ -43,17 +49,10 @@ namespace Minsung.Interactive
             TryGetComponent(out _sfxEmitter);
         }
 
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            SoundManager.OnBgmOverrideEnded += HandleBgmOverrideEnded;
-        }
-
         // 라디오가 꺼진 상태(비활성)로 전환되면 재생 중이던 사운드/카메라 포커스도 함께 정리
         protected override void OnDisable()
         {
             base.OnDisable();
-            SoundManager.OnBgmOverrideEnded -= HandleBgmOverrideEnded;
             StopRadio();
             CameraManager.Instance?.UnFocus();
         }
@@ -95,10 +94,22 @@ namespace Minsung.Interactive
                 return;
             }
 
-            // 지금 재생 중이던 BGM은 스냅샷으로 저장해뒀다가, 라디오가 멈추거나 끝나면 이어서 재생된다
-            SoundManager.Instance.PlayBGMOverride(_bgm, _clipIndex, _isLoop);
+            AudioClip clip = SoundManager.Instance.GetBgmClip(_bgm, _clipIndex);
+            if (clip == null)
+            {
+                return;
+            }
+
+            // BGM 채널을 건드리지 않고 SFX 지속 채널로 재생해 BGM/다른 SFX와 동시에 울릴 수 있게 한다
+            SoundManager.Instance.PlaySFX_Duration(clip, GetInstanceID(), 1f, _isLoop);
             CaptionManager.Instance?.PlaySequence(_captions);
             _isPlaying = true;
+            AchievementTrigger.RadioListened(_radioId); // "주파수 고정" - 라디오 5개 전부 청취 판정
+
+            if (!_isLoop)
+            {
+                _autoStopRoutine = StartCoroutine(AutoStopAfterClipEnds(clip.length));
+            }
         }
 
         private void StopRadio()
@@ -108,21 +119,25 @@ namespace Minsung.Interactive
                 return;
             }
 
+            if (_autoStopRoutine != null)
+            {
+                StopCoroutine(_autoStopRoutine);
+                _autoStopRoutine = null;
+            }
+
             // 씬 종료 순서에 따라 SoundManager/CaptionManager가 먼저 사라질 수 있어 null 확인
-            SoundManager.Instance?.StopBGMOverride();
+            SoundManager.Instance?.StopSFX_Duration(ESfxState.NONE, -1, GetInstanceID());
             CaptionManager.Instance?.StopSequence();
             _sfxEmitter?.PlayDeactivate();
             _isPlaying = false;
         }
 
-        // 루프 없는 라디오 사운드가 스스로 끝나 SoundManager가 원래 BGM으로 자동 복귀했을 때 상태 동기화
-        private void HandleBgmOverrideEnded()
+        // 루프 없는 트랙이 스스로 끝났을 때 상태 동기화 (수동 정지 시에는 StopRadio에서 코루틴을 먼저 취소함)
+        private IEnumerator AutoStopAfterClipEnds(float clipLength)
         {
-            if (!_isPlaying)
-            {
-                return;
-            }
+            yield return new WaitForSeconds(clipLength);
 
+            _autoStopRoutine = null;
             CaptionManager.Instance?.StopSequence();
             _isPlaying = false;
         }

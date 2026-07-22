@@ -1248,7 +1248,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Interactive.LeverInteractive
   _col: {fileID: 0}
   _isOneShot: 1
-  _interactionLockDuration: 1
+  _interactionLockDuration: 1.4
   _renderer: {fileID: 0}
   _spriteUnpulled: {fileID: 0}
   _spritePulled: {fileID: 0}

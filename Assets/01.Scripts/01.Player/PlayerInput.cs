@@ -18,6 +18,7 @@ namespace Minsung.Player
         private PlayerMovement _movement;
         private PlayerCombat   _combat;
         private PlayerRewind   _rewind;
+        private PlayerHealth   _health;
 
         private bool _inputInverted; // 혼란: 좌우 반전
 
@@ -30,11 +31,12 @@ namespace Minsung.Player
         ****************************************/
 
         // 코디네이터(PlayerController)가 참조를 주입한다.
-        public void Init(PlayerMovement movement, PlayerCombat combat, PlayerRewind rewind)
+        public void Init(PlayerMovement movement, PlayerCombat combat, PlayerRewind rewind, PlayerHealth health)
         {
             _movement = movement;
             _combat   = combat;
             _rewind   = rewind;
+            _health   = health;
         }
 
         // 코디네이터의 Update가 매 프레임 호출한다.
@@ -64,11 +66,16 @@ namespace Minsung.Player
             }
             if (Input.GetKeyDown(Constants.Player.KEY_REWIND))
             {
+                Debug.Log("[RewindDebug] R input received by PlayerInput.");
                 _rewind?.RequestRewind();
             }
             if (Input.GetKeyDown(Constants.Player.KEY_CLEAR_CLONES))
             {
                 _rewind?.RequestClearClones();
+            }
+            if (Input.GetKeyDown(Constants.Player.KEY_DODGE_INVINCIBLE))
+            {
+                _health?.RequestDodgeInvincible();
             }
         }
 

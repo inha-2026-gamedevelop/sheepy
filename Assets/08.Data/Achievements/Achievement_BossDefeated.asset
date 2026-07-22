@@ -11,8 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21bf5a37748611d45b8f793e429ba4ca, type: 3}
   m_Name: Achievement_BossDefeated
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   _id: boss_defeated
-  _title: "마지막 되감기"
-  _description: "아자토스를 쓰러뜨렸다."
+  _title: The Last Rewind
+  _description: "\uC544\uC790\uD1A0\uC2A4\uB97C \uC4F0\uB7EC\uB728\uB838\uB2E4."
   _icon: {fileID: 0}

@@ -5,6 +5,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using Minsung.Player;
 using Minsung.Sound;
 using Minsung.Utility;
 
@@ -129,6 +130,11 @@ namespace Minsung.Common
         {
             _isPaused = false;
             Time.timeScale = 1f;
+
+            // 저장하고 나가기: 현재 진행을 저장/미러한다. 보스 중이면 PersistProgress가 Map2 스폰으로 기록하므로
+            // 반드시 ResetBossTimer(보스 상태 폐기) 前에 호출해야 보스 진행 여부가 올바르게 반영된다.
+            FindAnyObjectByType<PlayerController>()?.PersistProgress();
+
             GameManager.Instance?.ResetBossTimer(); // 로비로 나가면 진행 중이던 보스전 기록 폐기
             if (SoundManager.Instance != null)
             {
@@ -141,9 +147,11 @@ namespace Minsung.Common
             ReleaseCapturedSettingsBackdrop();
         }
 
-        /// <summary> 게임 종료 </summary>
+        /// <summary> 게임 종료 - PlayerSaveOnExit(OnApplicationQuit)에 더해 명시적으로 한 번 더 저장해 확실히 남긴다 </summary>
         public void QuitGame()
         {
+            FindAnyObjectByType<PlayerController>()?.PersistProgress();
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

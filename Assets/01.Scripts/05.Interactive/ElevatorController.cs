@@ -1,6 +1,10 @@
+// System
+using System.Collections.Generic;
+
 // Unity
 using UnityEngine;
 
+using Minsung.Achievement;
 using Minsung.Common;
 using Minsung.Sound;
 using Minsung.TimeSystem;
@@ -42,6 +46,8 @@ namespace Minsung.Interactive
 
         [Header("식별자")]
         [SerializeField, Min(1)] private int _elevatorId = 1; // 레버와 버튼이 공유하는 엘리베이터 ID
+        [SerializeField, Min(1)] private int _requiredLeverCount = 1; // 출발에 필요한 서로 다른 레버 수
+        [SerializeField, Min(0.1f)] private float _leverActivationWindow = 2f; // 모든 레버가 켜져야 하는 제한 시간
 
         [Header("이동")]
         [SerializeField] private Transform   _platform; // 실제 이동할 elevator1 오브젝트
@@ -51,12 +57,17 @@ namespace Minsung.Interactive
         [SerializeField, Min(0.01f)] private float _moveSpeed = 2f; // 이동 속도 (unit/s)
 
         [Header("문")]
-        [SerializeField] private GameObject _closedDoor; // 문이 닫혔을 때 켜질 Elevator1_front_1 오브젝트
+        [SerializeField] private GameObject _closedDoor; // 이동 중 켜질 ElevatorBodyClose
+        [SerializeField] private GameObject _openDoor; // 대기 및 도착 시 켜질 ElevatorBodyOpen
 
         private bool _isLeverPulled;
         private bool _isMoving;
         private bool _hasArrived;
         private bool _isDoorClosed;
+        private float _leverWindowRemaining;
+
+        // 같은 레버의 중복 통지는 한 번으로 계산하고, 각 레버의 되감기 상태도 독립적으로 반영한다.
+        private readonly HashSet<LeverInteractive> _pulledLevers = new HashSet<LeverInteractive>();
 
         private RingBuffer<ElevatorTick> _rewindBuffer;
         private LocalSfxEmitter _sfxEmitter;
@@ -106,6 +117,8 @@ namespace Minsung.Interactive
 
         private void Update()
         {
+            UpdateLeverActivationWindow();
+
             if ((_platformRigidbody != null) || !CanMoveForward())
             {
                 return;
@@ -137,10 +150,41 @@ namespace Minsung.Interactive
         *                Methods
         ****************************************/
 
-        /// <summary> 레버의 당김 상태를 전달받는다 </summary>
-        public void SetLeverPulled(bool pulled)
+        /// <summary>어떤 레버가 당겨졌는지 개별 상태를 전달받는다.</summary>
+        public void SetLeverPulled(LeverInteractive lever, bool pulled)
         {
-            _isLeverPulled = pulled;
+            if (lever == null)
+            {
+                return;
+            }
+
+            if (pulled)
+            {
+                _pulledLevers.Add(lever);
+                if (_pulledLevers.Count >= 2)
+                {
+                    AchievementTrigger.LeversSynchronized(); // 서로 다른 레버 2개가 창 안에서 동시에 당겨짐 - "싱크로나이즈드 올림픽"
+                }
+            }
+            else
+            {
+                _pulledLevers.Remove(lever);
+            }
+
+            _isLeverPulled = _pulledLevers.Count >= _requiredLeverCount;
+
+            if (_isLeverPulled || (_pulledLevers.Count == 0))
+            {
+                _leverWindowRemaining = 0f;
+            }
+            else if (pulled)
+            {
+                // 첫 레버가 켜진 순간에만 제한 시간을 시작한다. 이후 레버 입력은 같은 창을 공유한다.
+                if (_leverWindowRemaining <= 0f)
+                {
+                    _leverWindowRemaining = _leverActivationWindow;
+                }
+            }
 
             if (!_isLeverPulled && !_isMoving && !_hasArrived)
             {
@@ -212,6 +256,41 @@ namespace Minsung.Interactive
             return (RewindManager.Instance == null) || !RewindManager.Instance.IsRewinding;
         }
 
+        private void UpdateLeverActivationWindow()
+        {
+            if ((_leverWindowRemaining <= 0f) || _isLeverPulled || (_pulledLevers.Count == 0))
+            {
+                return;
+            }
+
+            if ((RewindManager.Instance != null) && RewindManager.Instance.IsRewinding)
+            {
+                return;
+            }
+
+            _leverWindowRemaining -= Time.deltaTime;
+            if (_leverWindowRemaining > 0f)
+            {
+                return;
+            }
+
+            LeverInteractive[] timedOutLevers = new LeverInteractive[_pulledLevers.Count];
+            _pulledLevers.CopyTo(timedOutLevers);
+            _pulledLevers.Clear();
+            _isLeverPulled = false;
+            _leverWindowRemaining = 0f;
+
+            foreach (LeverInteractive lever in timedOutLevers)
+            {
+                lever?.ResetByElevatorTimeout();
+            }
+
+            if (!_isMoving && !_hasArrived)
+            {
+                SetDoorClosed(false);
+            }
+        }
+
         private bool HasValidRoute()
         {
             return (_startPoint != null) && (_endPoint != null) && (_moveSpeed > 0f);
@@ -263,6 +342,10 @@ namespace Minsung.Interactive
             if (_closedDoor != null)
             {
                 _closedDoor.SetActive(closed);
+            }
+            if (_openDoor != null)
+            {
+                _openDoor.SetActive(!closed);
             }
         }
 

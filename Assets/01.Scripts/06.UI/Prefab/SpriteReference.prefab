@@ -44,4 +44,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 680e49928ec94964a8bfbe5b028ea670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpriteReference
-  spInteractive: {fileID: -3448894508470768892, guid: 69da8c2cb6f2ec149aae6f761f568aa6, type: 3}
+  _interactiveKeySprite: {fileID: 6711080165185141437, guid: 69da8c2cb6f2ec149aae6f761f568aa6, type: 3}

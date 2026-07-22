@@ -52,11 +52,12 @@ namespace Minsung.Boss
             BossCloneController[] clones = Boss.Phase1Clones;
             if (clones != null)
             {
-                foreach (BossCloneController clone in clones)
+                for (int i = 0; i < clones.Length; ++i)
                 {
+                    BossCloneController clone = clones[i];
                     if (clone != null)
                     {
-                        clone.Activate();
+                        clone.Activate(i * GameDB.Boss.CloneActionOffset);
                         clone.OnCloneDied += HandleCloneDied;
                     }
                 }
