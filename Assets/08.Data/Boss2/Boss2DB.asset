@@ -92,6 +92,7 @@ MonoBehaviour:
   _laserDamageHalves: 2
   _laserWarningColor: {r: 1, g: 0.05, b: 0.05, a: 0.6}
   _laserColor: {r: 0.95, g: 0, b: 0.02, a: 1}
+  _laserMaterial: {fileID: 2100000, guid: 6aa4feda180cdee408ad828600eaa63e, type: 2}
   _laserFlowParticleSize: 0.12
   _laserFlowSpeed: 14
   _laserFlowRate: 80
@@ -123,7 +124,29 @@ MonoBehaviour:
   _spaceTearTelegraphThickness: 0.12
   _spaceTearTelegraphBlink: 0.12
   _spaceTearTelegraphColor: {r: 1, g: 0.15, b: 0.15, a: 0.55}
+  _grabCooldown: 20
+  _grabChance: 0.5
+  _grabRange: 8
+  _grabTelegraphTime: 0.7
+  _grabHandSpeed: 22
+  _grabReach: 9
+  _grabHitboxSize: {x: 1.4, y: 1.4}
+  _grabRetractSpeed: 18
+  _grabDamageHalves: 2
+  _grabDamageTickInterval: 1.5
+  _grabDamageTickCount: 3
+  _grabStruggleWindow: 3
+  _grabStruggleRequiredPresses: 20
+  _grabThrowForce: 16
+  _grabTelegraphThickness: 0.14
+  _grabTelegraphBlink: 0.1
+  _grabTelegraphColor: {r: 0.8, g: 0.1, b: 0.9, a: 0.55}
+  _grabHandColor: {r: 0.75, g: 0.2, b: 0.95, a: 0.9}
   _brandInterval: 10
   _brandMaxStack: 7
   _altarSpawnInterval: 5
   _altarHoldDuration: 3
+  _phase4IntroMoveSpeed: 8
+  _phase4IntroScreamDuration: 3
+  _phase4IntroCameraSize: 4
+  _phase4IntroCameraBlend: 0.6

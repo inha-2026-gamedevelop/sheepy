@@ -46,7 +46,7 @@ namespace Minsung.Boss2
             _arenaMaxX    = arenaMaxX;
             _arenaGroundY = arenaGroundY;
 
-            Material laserMat = Resources.Load<Material>("Phase3LaserBeamMat");
+            Material laserMat = _dataSo.LaserMaterial;
             _pool = new BossHazardPool(POOL_SIZE, "Boss2_Laser", customMaterial: laserMat, attachParticle: true,
                 particleSize: _dataSo.LaserFlowParticleSize, particleColors: _dataSo.LaserFlowColors,
                 particleOnHitOnly: true, particleFlowAlongX: true,

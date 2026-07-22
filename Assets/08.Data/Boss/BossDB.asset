@@ -126,6 +126,7 @@ MonoBehaviour:
   _phase3LaserMaxHeight: 6
   _phase3LaserWarningColor: {r: 1, g: 0.05, b: 0.05, a: 0.6}
   _phase3LaserColor: {r: 0.95, g: 0, b: 0.02, a: 1}
+  _phase3LaserMaterial: {fileID: 2100000, guid: 6aa4feda180cdee408ad828600eaa63e, type: 2}
   _phase3LaserFlowParticleSize: 0.12
   _phase3LaserFlowSpeed: 14
   _phase3LaserFlowRate: 80
