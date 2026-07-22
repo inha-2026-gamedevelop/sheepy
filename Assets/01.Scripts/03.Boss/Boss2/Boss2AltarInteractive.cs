@@ -59,8 +59,9 @@ public class Boss2AltarInteractive : BaseInteractive, IHoldInteractable
         SetProgress(1f);
     }
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable(); // 베이스의 InteractableRegistry 등록(E키 감지) - 반드시 호출해야 상호작용이 동작한다
         if (_activeDuration <= 0f) _activeDuration = 15f;
         if (_fadeDuration <= 0f) _fadeDuration = 0.5f;
 
