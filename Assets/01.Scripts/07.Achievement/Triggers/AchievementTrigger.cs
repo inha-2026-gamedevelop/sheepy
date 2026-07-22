@@ -188,5 +188,11 @@ namespace Minsung.Achievement
         {
             AchievementManager.Instance?.IncrementProgress(COUNTER_REFLECT, REFLECT_TARGET, AchievementIds.REFLECT_100);
         }
+
+        /// <summary> 엔딩 크레딧 시청 - "아름다운 이별". </summary>
+        public static void EndingCreditsWatched()
+        {
+            AchievementManager.Instance?.Unlock(AchievementIds.ENDING_CREDITS);
+        }
     }
 }
