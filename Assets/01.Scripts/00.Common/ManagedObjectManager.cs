@@ -18,7 +18,6 @@ namespace Minsung.Common
         PlayerClone,
         Interactive,
         Elevator,
-        LpPickup,
         PotionPickup,
     }
 

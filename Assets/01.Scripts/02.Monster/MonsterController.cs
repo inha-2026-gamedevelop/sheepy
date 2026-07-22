@@ -245,7 +245,7 @@ namespace Minsung.Monster
             _sfxEmitter?.PlayHit();
         }
 
-        // 사망 순간(MonsterHealth.OnDeath) 사망 모션 재생 + 확률적으로 LP 드랍.
+        // 사망 순간(MonsterHealth.OnDeath) 사망 모션 재생.
         private void HandleDeath()
         {
             if (_monsterAnimator != null)
@@ -253,7 +253,6 @@ namespace Minsung.Monster
                 _monsterAnimator.TriggerDeath();
             }
             _sfxEmitter?.PlayDeath();
-            LpManager.Instance?.TryDropLp(transform.position);
         }
 
         private bool IsPlayerWithinRange(float range)

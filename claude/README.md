@@ -43,11 +43,6 @@ Sheepy는 한 아이와 함께 놀던 봉제인형이었다.
 `fixedDeltaTime`도 같은 비율로 보정해 슬로우 중에도 물리가 부드럽다.  
 보스 패턴 회피, 안전구역 확인 등 타이밍이 중요한 순간에 사용.
 
-### 스킬 게이지 `MP` 🔲 예정
-리와인드와 슬로우가 공유하는 단일 게이지.  
-시간이 지나면 자동 충전되고, 적 처치 시 추가 충전된다.  
-게이지가 없으면 스킬 사용 불가. (상수는 `Constants.TimeSystem`에 준비됨)
-
 ### 업적 시스템 ✅ 구현
 `AchievementManager`(자동 생성 싱글톤) + `AchievementDatabase`(SO 카탈로그) + 토스트 UI.  
 첫 되감기 / 분신 최대치 / 보스 1페이즈 돌파 / 보스 처치 4종. PlayerPrefs 저장.
@@ -159,16 +154,15 @@ Sheepy: A Short Adventure의 보스 리소스를 활용.
 
 ---
 
-## 📦 아이템 ✅ 구현 (LP + 포션)
+## 📦 아이템 ✅ 구현 (포션)
 
-> 장비/강화석/골드/MP포션/회중시계(이스터에그)는 2026-07-11 범위 제외 확정. 아이템은 LP(수집 카운터) + 포션(회복 소비 아이템) 2종으로 단순화.
+> 장비/강화석/골드/LP(수집 재화)/MP포션/회중시계(이스터에그)는 범위 제외 확정(2026-07-22 LP·스킬 게이지 폐기). 아이템은 포션(회복 소비 아이템) 1종으로 단순화.
 
 | 아이템 | 획득처 | 효과 | 상태 |
 |---|---|---|---|
-| LP | 몬스터 처치 확률 드랍(자석 픽업) | 단순 수집 카운터 (사용처 미정) | ✅ |
 | 포션 | 몬스터 처치 확률 드랍(자석 픽업) | 소지(최대 3개) 후 `Q`로 사용 - 하트 1칸 회복 | ✅ (2026-07-18) |
 
-두 아이템 모두 `LpManager`/`PotionManager`(`12.Item/`, `IRewindable`, 자동 생성 싱글톤)가 드랍 확률/자석 이동/획득/개수를 관리하며, 되감기 시 개수와 필드에 남은 픽업 오브젝트가 함께 복원된다. 밸런싱은 `GameDB.Lp`/`GameDB.Potion`(`LpDataSO`/`PotionDataSO`).
+`PotionManager`(`12.Item/`, `IRewindable`, 자동 생성 싱글톤)가 드랍 확률/자석 이동/획득/개수를 관리하며, 되감기 시 개수와 필드에 남은 픽업 오브젝트가 함께 복원된다. 밸런싱은 `GameDB.Potion`(`PotionDataSO`).
 
 ---
 
@@ -199,7 +193,7 @@ Assets/
 │   ├── 09.Visual/      VHS 오버레이 / 글로우 / 그림자 / 페이드 / 스피드라인 / 파티클 / URP 세팅 / 보스 아웃트로 영상
 │   ├── 10.Sound/       SoundManager / MapBgmPlayer / SoundData(SO) (+Editor)
 │   ├── 11.CameraSystem/ CameraManager (Cinemachine 포커스 전환)
-│   └── 12.Item/        LP(수집 재화)/포션(회복 소비) 드랍/자석픽업/카운트 - LpManager·PotionManager(IRewindable) / LpPickupPool·PotionPickupPool
+│   └── 12.Item/        포션(회복 소비) 드랍/자석픽업/카운트 - PotionManager(IRewindable) / PotionPickupPool
 ├── 02.Prefabs/         프리팹 (Player/Clone/Boss/Monster/FX/UI)
 ├── 03.Images/          스프라이트 (Sheepy 리소스 기반)
 ├── 04.Models/          머티리얼 / 텍스처

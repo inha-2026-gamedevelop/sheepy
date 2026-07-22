@@ -658,7 +658,6 @@ classDiagram
         +Player$ PlayerDataSO
         +Boss$ BossDataSO
         +Time$ TimeDataSO
-        +Lp$ LpDataSO
         +Potion$ PotionDataSO
     }
     class GameDatabaseSO {
@@ -667,7 +666,6 @@ classDiagram
         -_playerSo PlayerDataSO
         -_bossSo BossDataSO
         -_timeSo TimeDataSO
-        -_lpSo LpDataSO
         -_potionSo PotionDataSO
     }
     class PlayerDataSO {
@@ -680,11 +678,7 @@ classDiagram
     }
     class TimeDataSO {
         <<ScriptableObject>>
-        리와인드/분신/슬로우/MP
-    }
-    class LpDataSO {
-        <<ScriptableObject>>
-        드랍/자석픽업/풀
+        리와인드/분신/슬로우
     }
     class PotionDataSO {
         <<ScriptableObject>>
@@ -695,11 +689,10 @@ classDiagram
     GameDatabaseSO o-- PlayerDataSO
     GameDatabaseSO o-- BossDataSO
     GameDatabaseSO o-- TimeDataSO
-    GameDatabaseSO o-- LpDataSO
     GameDatabaseSO o-- PotionDataSO
 ```
 
-- 에셋: `08.Data/Resources/GameDB.asset`(루트) / `08.Data/Player|Boss|Time|Lp|Potion/*DB.asset`
+- 에셋: `08.Data/Resources/GameDB.asset`(루트) / `08.Data/Player|Boss|Time|Potion/*DB.asset`
 - 코드 계약값(입력 키, epsilon, 구조 상수)은 `Constants`(partial) 유지
 
 ```mermaid
@@ -872,7 +865,7 @@ classDiagram
 ## 참고
 
 - 클래스/인터페이스 수: 총 180개 스크립트 (enum/struct/static 유틸 포함 - 대부분 `Minsung.*`, `03.Boss/Boss2/`는 무네임스페이스).
-- `IRewindable` 구현체: `PlayerRewind`, `MonsterController`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`), `CloneController`, `LeverInteractive`, `ElevatorController`, `LpManager`, `PotionManager`, `Boss2Health`, `BossFloatMovement`(Boss2).
+- `IRewindable` 구현체: `PlayerRewind`, `MonsterController`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`), `CloneController`, `LeverInteractive`, `ElevatorController`, `PotionManager`, `Boss2Health`, `BossFloatMovement`(Boss2).
 - `ICommandActor` 구현체: `PlayerController`(코디네이터), `CloneController`.
 - `IDamageable` 구현체: `MonsterHealth`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`), `Boss2Health`(Boss2).
 - `IHoldInteractable` 구현체: `ElevatorButtonInteractive`.

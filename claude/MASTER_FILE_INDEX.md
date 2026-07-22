@@ -26,7 +26,7 @@
 |---|---|---|---|
 | `Assets/01.Scripts/00.Common/Data/GameDB.cs` | `GameDB` 정적 접근자 | `Minsung.Common.Data` | `GameDB.Player/Boss/Time` 진입점. Resources 자동 로드(Awake 이후에만 사용) |
 | `Assets/01.Scripts/00.Common/Data/GameDatabaseSO.cs` | `GameDatabaseSO`(루트 DB) | `Minsung.Common.Data` | 하위 `*DataSO` 3종을 묶는 루트. 에셋: `08.Data/Resources/GameDB.asset` |
-| `Assets/01.Scripts/00.Common/Data/PlayerDataSO.cs` / `BossDataSO.cs` / `TimeDataSO.cs` / `LpDataSO.cs` / `PotionDataSO.cs` | 도메인별 `*DataSO`(GameDatabaseSO 트리 5종) | `Minsung.Common.Data` | 밸런싱 값. 신규 필드는 여기 + 대응 `.asset`에 값 기입 |
+| `Assets/01.Scripts/00.Common/Data/PlayerDataSO.cs` / `BossDataSO.cs` / `TimeDataSO.cs` / `PotionDataSO.cs` | 도메인별 `*DataSO`(GameDatabaseSO 트리 4종) | `Minsung.Common.Data` | 밸런싱 값. 신규 필드는 여기 + 대응 `.asset`에 값 기입 |
 | `Assets/01.Scripts/00.Common/Data/Boss2DataSO.cs` | `Boss2DataSO`(GameDB 트리 밖 독립 DB) | `Minsung.Common.Data` | Boss2(Map3, 3~4P) 전용 밸런싱. GameDatabaseSO에 연결하지 않고 컴포넌트에 직접 드래그 |
 | `Assets/01.Scripts/00.Common/Constants/Constants*.cs` | `Constants`(partial class) | `Minsung.Common` | 코드 계약값(입력 키, epsilon, 태그/씬 이름 등) — GameDB와 역할 분리 |
 
