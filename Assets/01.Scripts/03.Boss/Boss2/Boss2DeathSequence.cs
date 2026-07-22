@@ -11,7 +11,7 @@ namespace Minsung.Boss2
 {
     // 4페이즈 사망 연출 오케스트레이터 - Boss2Health.OnDefeated 발행 시 1회 발동한다.
     // 순서: 이동/패턴 정지 + 카메라를 보스로 포커스(줌아웃) + 오라 사방 분출 + 카메라 흔들림 동시 시작
-    //   -> 보스 본체(Visual/Body/Eyes) 섬광(흰색) 후 서서히 소멸 -> 카메라 복귀
+    //   -> 보스 본체(Visual/Body/Eyes) 섬광(흰색) 후 서서히 소멸 -> 카메라는 플레이어로 복귀하지 않고 Phase4Aim에 고정
     public class Boss2DeathSequence : MonoBehaviour
     {
         /****************************************
@@ -19,10 +19,11 @@ namespace Minsung.Boss2
         ****************************************/
 
         [Header("참조")]
-        [SerializeField] private Boss2Health         _health;   // OnDefeated 구독 (HitCenter에 부착)
+        [SerializeField] private Boss2Health         _health;    // OnDefeated 구독 (HitCenter에 부착)
         [SerializeField] private Boss2DataSO         _dataSo;
-        [SerializeField] private BossFloatMovement   _movement; // 사망 시 배회/돌진을 멈추고 그 자리에 고정
-        [SerializeField] private Boss2AttackPatterns _patterns; // 사망 시 일반 패턴(낙뢰/강타/레이저 등) 정지
+        [SerializeField] private BossFloatMovement   _movement;  // 사망 시 배회/돌진을 멈추고 그 자리에 고정
+        [SerializeField] private Boss2AttackPatterns _patterns;  // 사망 시 일반 패턴(낙뢰/강타/레이저 등) 정지
+        [SerializeField] private Transform           _phase4Aim; // 연출 종료 후에도 플레이어로 복귀하지 않고 이 지점에 카메라를 고정(Boss2Phase4Intro와 동일 지점)
 
         [Header("오라 분출")]
         [SerializeField] private ParticleSystem _auraParticles; // Phase4Aura의 ParticleSystem - 사방으로 Emit
@@ -121,7 +122,15 @@ namespace Minsung.Boss2
             float fadeDuration  = (_dataSo != null) ? _dataSo.DeathFadeDuration : 1.2f;
             yield return CoFlashAndFade(flashDuration, fadeDuration);
 
-            CameraManager.Instance?.UnFocus();
+            // 연출이 끝나도 플레이어 카메라로 복귀하지 않고 Phase4Aim에 그대로 고정 - 미배치 시 보스 위치 유지(기존처럼 UnFocus)
+            if (_phase4Aim != null)
+            {
+                CameraManager.Instance?.Focus(_phase4Aim, zoomSize, cameraBlend);
+            }
+            else
+            {
+                CameraManager.Instance?.UnFocus();
+            }
         }
 
         // Phase4Aura 파티클을 재사용해 사방(2D 360도)으로 즉시 분출한다.
@@ -242,6 +251,10 @@ namespace Minsung.Boss2
             if (_patterns == null)
             {
                 Debug.LogWarning("[Boss2DeathSequence] _patterns 미배치 - Boss의 Boss2AttackPatterns를 연결해야 사망 시 일반 패턴이 멈춥니다.", this);
+            }
+            if (_phase4Aim == null)
+            {
+                Debug.LogWarning("[Boss2DeathSequence] _phase4Aim 미배치 - 연출 종료 후 UnFocus로 플레이어 카메라에 복귀합니다. Phase4Aim에 고정하려면 연결하세요.", this);
             }
             if (_auraParticles == null)
             {

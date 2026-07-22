@@ -150,3 +150,11 @@ MonoBehaviour:
   _phase4IntroScreamDuration: 3
   _phase4IntroCameraSize: 4
   _phase4IntroCameraBlend: 0.6
+  _deathAuraBurstCount: 40
+  _deathAuraBurstSpeed: 5
+  _deathShakeForce: 1.2
+  _deathShakeDuration: 0.6
+  _deathFlashDuration: 0.15
+  _deathFadeDuration: 1.2
+  _deathCameraZoomSize: 4.5
+  _deathCameraBlend: 0.5
