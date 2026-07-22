@@ -25,7 +25,7 @@ namespace Minsung.Boss2
         private readonly Boss2DataSO   _dataSo;
         private readonly float         _arenaMinX;
         private readonly float         _arenaMaxX;
-        private readonly float         _arenaGroundY;
+        private readonly System.Func<float, float> _getGroundY; // x -> 가장 가까운 지면 마커 Y (Boss2AttackPatterns.GetGroundY)
         private readonly System.Func<float> _getRateMultiplier; // 감정(Pink/Blue)에 따른 발생 간격 배율 - 미연결 시 항상 1배
 
         private readonly BossHazardPool _pool;
@@ -49,14 +49,14 @@ namespace Minsung.Boss2
         ****************************************/
 
         public Boss2LightningPattern(MonoBehaviour owner, Transform target, Boss2DataSO dataSo,
-            float arenaMinX, float arenaMaxX, float arenaGroundY, System.Func<float> getRateMultiplier = null)
+            float arenaMinX, float arenaMaxX, System.Func<float, float> getGroundY, System.Func<float> getRateMultiplier = null)
         {
             _owner             = owner;
             _target            = target;
             _dataSo            = dataSo;
             _arenaMinX         = arenaMinX;
             _arenaMaxX         = arenaMaxX;
-            _arenaGroundY      = arenaGroundY;
+            _getGroundY        = getGroundY;
             _getRateMultiplier = getRateMultiplier;
 
             _strikeSprites       = _dataSo.LightningStrikeSprites;
@@ -155,8 +155,10 @@ namespace Minsung.Boss2
         // 한 발: 예고(노란 장판, 판정 없음) -> 강타(즉시 배치, 판정 있음, 크랙클 프레임 순환) -> 회수
         private IEnumerator CoStrikeBolt(float x)
         {
+            float groundY = _getGroundY(x);
+
             Vector2 telegraphScale = new Vector2(_dataSo.LightningWidth, _dataSo.LightningTelegraphHeight);
-            Vector2 telegraphPos   = new Vector2(x, _arenaGroundY + (_dataSo.LightningTelegraphHeight * 0.5f));
+            Vector2 telegraphPos   = new Vector2(x, groundY + (_dataSo.LightningTelegraphHeight * 0.5f));
 
             int telegraphSlot = _pool.Alloc(telegraphPos, telegraphScale, _dataSo.LightningTelegraphColor, false);
             if (telegraphSlot < 0)
@@ -167,7 +169,7 @@ namespace Minsung.Boss2
             _pool.Free(telegraphSlot);
 
             Vector2 strikeScale = new Vector2(_dataSo.LightningWidth, _dataSo.LightningHeight);
-            Vector2 strikePos   = new Vector2(x, _arenaGroundY + (_dataSo.LightningHeight * 0.5f) - _dataSo.LightningGroundEmbed);
+            Vector2 strikePos   = new Vector2(x, groundY + (_dataSo.LightningHeight * 0.5f) - _dataSo.LightningGroundEmbed);
 
             int strikeSlot = _pool.Alloc(strikePos, strikeScale, _dataSo.LightningColor, true,
                 _dataSo.LightningDamageHalves, _dataSo.LightningStunDuration);

@@ -24,7 +24,7 @@ namespace Minsung.Boss2
         private readonly Boss2DataSO   _dataSo;
         private readonly float         _arenaMinX;
         private readonly float         _arenaMaxX;
-        private readonly float         _arenaGroundY;
+        private readonly System.Func<float, float> _getGroundY; // x -> 가장 가까운 지면 마커 Y (Boss2AttackPatterns.GetGroundY)
 
         private readonly BossHazardPool _pool;
         private Coroutine _loop;
@@ -44,13 +44,13 @@ namespace Minsung.Boss2
         ****************************************/
 
         public Boss2WavePattern(MonoBehaviour owner, Boss2DataSO dataSo,
-            float arenaMinX, float arenaMaxX, float arenaGroundY)
+            float arenaMinX, float arenaMaxX, System.Func<float, float> getGroundY)
         {
             _owner        = owner;
             _dataSo       = dataSo;
             _arenaMinX    = arenaMinX;
             _arenaMaxX    = arenaMaxX;
-            _arenaGroundY = arenaGroundY;
+            _getGroundY   = getGroundY;
 
             _strikeSprites      = _dataSo.WaveStrikeSprites;
             _frameInterval      = _dataSo.WaveFrameInterval;
@@ -114,8 +114,9 @@ namespace Minsung.Boss2
         // 한 세트: 예고(파티클, 판정 없음) -> 강타(즉시 배치, 폭발 프레임 순환, 앞 N프레임만 판정)
         private IEnumerator CoTelegraphAndStrike(float x)
         {
-            Vector2 scale = new Vector2(_dataSo.WaveWidth, _dataSo.WaveHeight);
-            Vector2 pos   = new Vector2(x, _arenaGroundY + (_dataSo.WaveHeight * 0.5f) - _dataSo.WaveGroundEmbed);
+            float   groundY = _getGroundY(x);
+            Vector2 scale   = new Vector2(_dataSo.WaveWidth, _dataSo.WaveHeight);
+            Vector2 pos     = new Vector2(x, groundY + (_dataSo.WaveHeight * 0.5f) - _dataSo.WaveGroundEmbed);
 
             int telegraphSlot = _pool.Alloc(pos, scale, _dataSo.WaveColor, false);
             if (telegraphSlot < 0)

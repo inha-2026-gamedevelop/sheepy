@@ -171,6 +171,12 @@ namespace Minsung.Boss2
         [SerializeField] private float _altarSpawnInterval  = 30f; // 제단 출현 간격(초)
         [SerializeField] private float _altarHoldDuration   = 3f;  // 낙인 초기화에 필요한 E키 홀드 시간(초)
 
+        [Header("4페이즈 진입 연출")]
+        [SerializeField] private float _phase4IntroMoveSpeed      = 8f;   // Phase4Aim 지점으로 이동하는 대시 속도(유닛/초)
+        [SerializeField] private float _phase4IntroScreamDuration = 3f;   // Scream 정/역 순환(입 벌림/다물기) 유지 시간(초)
+        [SerializeField] private float _phase4IntroCameraSize     = 4f;   // 연출 동안 포커스 카메라 Orthographic Size
+        [SerializeField] private float _phase4IntroCameraBlend    = 0.6f; // 카메라 포커스 진입/복귀 블렌드 시간(초)
+
         /****************************************
         *              Properties
         ****************************************/
@@ -295,5 +301,10 @@ namespace Minsung.Boss2
         public int   BrandMaxStack      => _brandMaxStack;
         public float AltarSpawnInterval => _altarSpawnInterval;
         public float AltarHoldDuration  => _altarHoldDuration;
+
+        public float Phase4IntroMoveSpeed      => _phase4IntroMoveSpeed;
+        public float Phase4IntroScreamDuration => _phase4IntroScreamDuration;
+        public float Phase4IntroCameraSize     => _phase4IntroCameraSize;
+        public float Phase4IntroCameraBlend    => _phase4IntroCameraBlend;
     }
 }
