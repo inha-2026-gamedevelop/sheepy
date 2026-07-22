@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Sound.LocalSfxEmitter
   _audioSource: {fileID: 1210649003172301104}
-  _interactClip: {fileID: 8300000, guid: b102dbf2235bad546b4817bc97bad57a, type: 3}
+  _interactClip: {fileID: 8300000, guid: fc2b19f6dc66a0b49bed736c446608e4, type: 3}
   _activateClip: {fileID: 0}
   _deactivateClip: {fileID: 0}
   _attackClip: {fileID: 0}
