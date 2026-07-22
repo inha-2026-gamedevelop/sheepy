@@ -2,73 +2,75 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Boss2 체력바 - Minsung.UI.BossHealthBarUI과 이름은 같지만 별개 클래스(네임스페이스 없음)
-// BossController 대신 Boss2Health를 구독한다. 페이즈 개념이 아직 없어 노치는 다루지 않는다
-public class BossHealthBarUI : MonoBehaviour
+namespace Minsung.Boss2
 {
-    /****************************************
-    *                Fields
-    ****************************************/
-
-    [SerializeField] private Boss2Health _boss;
-    [SerializeField] private Slider      _slider;
-
-    /****************************************
-    *              Unity Event
-    ****************************************/
-
-    private void OnEnable()
+    // BossController 대신 Boss2Health를 구독한다
+    public class BossHealthBarUI : MonoBehaviour
     {
-        if (_boss == null)
-        {
-            Redraw(0f, 1f);
-            return;
-        }
+        /****************************************
+        *                Fields
+        ****************************************/
 
-        _boss.OnHealthChanged += Redraw;
-        Redraw(_boss.CurrentHealth, _boss.MaxHealth);
-    }
+        [SerializeField] private Boss2Health _boss;
+        [SerializeField] private Slider      _slider;
 
-    // 씬 로드 시 UI가 보스보다 먼저 깨어나는 경우를 대비해 Start에서 인스펙터 미지정이면 자동 연결
-    private void Start()
-    {
-        if (_boss == null)
+        /****************************************
+        *              Unity Event
+        ****************************************/
+
+        private void OnEnable()
         {
-            _boss = FindAnyObjectByType<Boss2Health>();
             if (_boss == null)
             {
-                gameObject.SetActive(false); // 보스 없는 맵에서는 바를 숨긴다
+                Redraw(0f, 1f);
                 return;
             }
+
             _boss.OnHealthChanged += Redraw;
+            Redraw(_boss.CurrentHealth, _boss.MaxHealth);
         }
-        Redraw(_boss.CurrentHealth, _boss.MaxHealth);
-    }
 
-    private void OnDisable()
-    {
-        if (_boss != null)
+        // 씬 로드 시 UI가 보스보다 먼저 깨어나는 경우를 대비해 Start에서 인스펙터 미지정이면 자동 연결
+        private void Start()
         {
-            _boss.OnHealthChanged -= Redraw;
+            if (_boss == null)
+            {
+                _boss = FindAnyObjectByType<Boss2Health>();
+                if (_boss == null)
+                {
+                    gameObject.SetActive(false); // 보스 없는 맵에서는 바를 숨긴다
+                    return;
+                }
+                _boss.OnHealthChanged += Redraw;
+            }
+            Redraw(_boss.CurrentHealth, _boss.MaxHealth);
         }
-    }
 
-    /****************************************
-    *                Methods
-    ****************************************/
-
-    private void Redraw(float current, float total)
-    {
-        if (_slider == null)
+        private void OnDisable()
         {
-            return;
+            if (_boss != null)
+            {
+                _boss.OnHealthChanged -= Redraw;
+            }
         }
 
-        float value = 0f;
-        if (total > 0f)
+        /****************************************
+        *                Methods
+        ****************************************/
+
+        private void Redraw(float current, float total)
         {
-            value = Mathf.Clamp01(current / total);
+            if (_slider == null)
+            {
+                return;
+            }
+
+            float value = 0f;
+            if (total > 0f)
+            {
+                value = Mathf.Clamp01(current / total);
+            }
+            _slider.value = value;
         }
-        _slider.value = value;
     }
 }
