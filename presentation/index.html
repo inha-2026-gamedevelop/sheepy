@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Last Re:wind - 프로젝트 발표 자료</title>
+<style>
+  :root{
+    --bg: #0b0d12;
+    --bg-2: #11141c;
+    --panel: #161a24;
+    --border: #262c3a;
+    --text: #e8ecf4;
+    --text-dim: #9aa4b8;
+    --cyan: #4dd8c0;
+    --magenta: #ff5f96;
+    --amber: #ffb84d;
+    --green: #6ee7a0;
+    --gray: #5b6478;
+    --mono: 'Consolas', 'D2Coding', 'Courier New', monospace;
+    --sans: 'Segoe UI', 'Malgun Gothic', -apple-system, sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    overflow: hidden;
+  }
+
+  /* subtle scanline / VHS texture */
+  body::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.015) 0px,
+      rgba(255,255,255,0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+  }
+
+  #deck{
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .slide{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6vh 8vw;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity .45s ease, transform .45s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+
+  .slide.active{
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .slide.prev{
+    transform: translateX(-40px);
+  }
+
+  .kicker{
+    font-family: var(--mono);
+    color: var(--cyan);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    font-size: clamp(11px, 1.1vw, 14px);
+    margin-bottom: 14px;
+  }
+
+  .title{
+    font-size: clamp(28px, 4.4vw, 56px);
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0 0 18px 0;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle{
+    font-size: clamp(15px, 1.6vw, 20px);
+    color: var(--text-dim);
+    line-height: 1.6;
+    max-width: 900px;
+    margin: 0 0 8px 0;
+  }
+
+  .body-text{
+    font-size: clamp(14px, 1.35vw, 18px);
+    color: var(--text);
+    line-height: 1.75;
+    max-width: 900px;
+  }
+
+  code, .code{
+    font-family: var(--mono);
+    background: rgba(77, 216, 192, 0.1);
+    color: var(--cyan);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+
+  ul.bullets{
+    list-style: none;
+    margin: 18px 0 0 0;
+    padding: 0;
+    max-width: 920px;
+  }
+  ul.bullets li{
+    position: relative;
+    padding: 10px 0 10px 26px;
+    font-size: clamp(14px, 1.3vw, 18px);
+    line-height: 1.6;
+    border-bottom: 1px solid var(--border);
+  }
+  ul.bullets li:last-child{ border-bottom: none; }
+  ul.bullets li::before{
+    content: "-";
+    position: absolute;
+    left: 4px;
+    color: var(--magenta);
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  ul.bullets li b{ color: var(--cyan); font-weight: 700; }
+
+  .grid-cards{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+    max-width: 1100px;
+  }
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card h3{
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: var(--cyan);
+    font-family: var(--mono);
+  }
+  .card p{
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .card .tag{ margin-top: 10px; }
+
+  .tag{
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 100px;
+    letter-spacing: .03em;
+  }
+  .tag.done{ background: rgba(110,231,160,0.14); color: var(--green); border: 1px solid rgba(110,231,160,0.3); }
+  .tag.wip{  background: rgba(255,184,77,0.14); color: var(--amber); border: 1px solid rgba(255,184,77,0.3); }
+  .tag.todo{ background: rgba(91,100,120,0.18); color: var(--gray); border: 1px solid rgba(91,100,120,0.35); }
+
+  table.doc-table{
+    border-collapse: collapse;
+    margin-top: 24px;
+    max-width: 1100px;
+    width: 100%;
+  }
+  table.doc-table th, table.doc-table td{
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: clamp(12.5px, 1.15vw, 15px);
+  }
+  table.doc-table th{
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 12.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cyan);
+  }
+  table.doc-table td{ color: var(--text-dim); }
+  table.doc-table td b{ color: var(--text); font-weight: 600; }
+  table.doc-table tr:hover td{ color: var(--text); }
+
+  .pipeline{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 30px;
+    max-width: 1150px;
+  }
+  .pipeline .stage{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    border-radius: 8px;
+    padding: 14px 16px;
+    min-width: 170px;
+    flex: 1 1 170px;
+  }
+  .pipeline .stage .label{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--magenta);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .pipeline .stage .name{ font-size: 14px; font-weight: 700; color: var(--text); }
+  .pipeline .stage .desc{ font-size: 12px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+  .pipeline .arrow{
+    align-self: center;
+    color: var(--gray);
+    font-family: var(--mono);
+    font-size: 20px;
+    padding: 0 2px;
+  }
+
+  .two-col{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    max-width: 1150px;
+    margin-top: 22px;
+  }
+  @media (max-width: 900px){ .two-col{ grid-template-columns: 1fr; } }
+
+  .snippet{
+    background: #0d1017;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.75;
+    color: #c8d0e0;
+    overflow-x: auto;
+    margin-top: 18px;
+    max-width: 820px;
+    white-space: pre;
+  }
+  .snippet .c{ color: var(--gray); }
+  .snippet .k{ color: var(--magenta); }
+  .snippet .t{ color: var(--cyan); }
+
+  .compare{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    max-width: 900px;
+    margin-top: 22px;
+  }
+  @media (max-width: 900px){ .compare{ grid-template-columns: 1fr; } }
+  .compare .box{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .compare .box.exec{ border-left: 3px solid var(--green); }
+  .compare .box.undo{ border-left: 3px solid var(--magenta); }
+  .compare .box h4{
+    margin: 0 0 8px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .compare .box p{
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .status-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .status-row .bar{
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .status-row .bar > span{ display:block; height:100%; background: linear-gradient(90deg, var(--cyan), var(--green)); }
+
+  .title-slide{
+    align-items: flex-start;
+  }
+  .title-slide .logo{
+    font-family: var(--mono);
+    font-size: clamp(34px, 6vw, 78px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    position: relative;
+    color: var(--text);
+    text-shadow: 2px 0 var(--cyan), -2px 0 var(--magenta);
+  }
+  .title-slide .team-line{
+    margin-top: 40px;
+    font-family: var(--mono);
+    color: var(--text-dim);
+    font-size: 13px;
+    letter-spacing: .04em;
+  }
+
+  .quote{
+    border-left: 3px solid var(--magenta);
+    padding: 6px 0 6px 20px;
+    margin-top: 22px;
+    font-size: clamp(15px, 1.5vw, 19px);
+    color: var(--text);
+    max-width: 820px;
+    font-style: normal;
+    line-height: 1.7;
+  }
+
+  .footer-brand{
+    position: absolute;
+    left: 8vw;
+    bottom: 4vh;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray);
+    letter-spacing: .06em;
+  }
+
+  /* --- controls --- */
+  #controls{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 22px;
+    background: linear-gradient(to top, rgba(11,13,18,0.95), rgba(11,13,18,0));
+    z-index: 50;
+    font-family: var(--mono);
+  }
+  #progress-track{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 2px;
+    background: var(--border);
+    z-index: 51;
+  }
+  #progress-fill{
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    transition: width .35s ease;
+  }
+  .nav-btn{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color .2s ease, color .2s ease;
+  }
+  .nav-btn:hover{ border-color: var(--cyan); color: var(--cyan); }
+  #counter{ color: var(--text-dim); font-size: 12px; min-width: 56px; }
+  #slide-label{ color: var(--text-dim); font-size: 12px; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+  #dots{ display: flex; gap: 6px; }
+  #dots .dot{
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease;
+  }
+  #dots .dot.active{ background: var(--cyan); transform: scale(1.3); }
+
+  #hint{
+    position: fixed;
+    top: 22px; right: 28px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray);
+    z-index: 50;
+    text-align: right;
+    line-height: 1.6;
+    opacity: 1;
+    transition: opacity 1s ease;
+  }
+  #hint.faded{ opacity: 0; }
+
+  @media print{
+    body{ overflow: visible; height: auto; }
+    body::before{ display: none; }
+    #controls, #progress-track, #hint{ display: none; }
+    .slide{
+      position: relative;
+      opacity: 1 !important;
+      transform: none !important;
+      page-break-after: always;
+      height: 100vh;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+  <!-- 1. Title -->
+  <section class="slide title-slide" data-title="타이틀">
+    <div class="kicker">2D Platformer Game - First Team Project</div>
+    <div class="logo">The Last Re:wind</div>
+    <p class="subtitle" style="margin-top:10px;">버려진 봉제인형 Sheepy가 시간을 되감아 잃어버린 기억을 찾아 떠나는 2D 플랫폼 액션 RPG</p>
+    <div class="team-line">2026 인하대학교 미래인재개발원 게임분야 : 김진욱(팀장) · 고명진 · 김민성 <br><br>Unity 6000.4.7f1 (2D URP) &nbsp;·&nbsp; C# &nbsp;·&nbsp; Supabase &nbsp;·&nbsp; 원작: Sheepy: A Short Adventure, Inops(Only Boss)</div>
+  </section>
+
+  <!-- 2. Story -->
+  <section class="slide" data-title="스토리">
+    <div class="kicker">01. Story</div>
+    <h1 class="title">되감을수록, 기억은 흐려진다</h1>
+    <p class="body-text">
+      어느 날 눈을 뜬 봉제인형 Sheepy. 손에 쥔 것은 깨진 회중시계 하나뿐,<br>
+      자신이 왜 여기 있는지도, 무엇을 잃었는지도 모른다.
+    </p>
+    <p class="body-text">
+      Sheepy는 한 아이와 함께 놀던 봉제인형이었다. 어느 날 버려졌고, 오랜 시간이 지나 살아났다.<br>
+      시간을 되감아 그 시절로 돌아가려 하지만, <b style="color:var(--magenta)">되감을수록 기억은 오히려 희미해진다</b>.
+    </p>
+    <div class="quote">보스를 처치하고 같이 아이와 놀았던 변했던 곰돌이를, 그리고 <b style="color:var(--green)">추억</b>을 구해보자.<br>사진 속엔 아이와 Sheepy 그리고 곰돌이가 함께한 모습이 담겨있다.</div>
+  </section>
+
+  <!-- 3. Core concept -->
+  <section class="slide" data-title="핵심 컨셉">
+    <div class="kicker">02. Core Concept</div>
+    <h1 class="title">스토리와 시스템이 같은 질문을 한다</h1>
+    <p class="body-text">게임의 핵심 메커닉인 <b>타임 리와인드</b>는 연출이 아니라, "되감을수록 기억이 희미해진다"는 스토리를 플레이 경험으로 번역한 장치다.</p>
+    <ul class="bullets">
+      <li><b>분신 없이는 깰 수 없는 보스 패턴</b>, <b>혼자서는 할 수 없는 조작</b>이 존재한다 - 스킬은 연출이 아니라 필수 생존 수단</li>
+      <li>플레이어가 리와인드하면 <b>보스 체력도 함께 되돌아간다</b> - 시간 조작이 세계 전체에 동일하게 적용되는 규칙</li>
+      <li>전투 타이머는 리와인드와 무관하게 계속 흐른다 - <b style="color:var(--cyan)">"되돌릴 수 없는 것"</b>이 존재</li>
+    </ul>
+  </section>
+
+  <!-- 4. Core systems overview -->
+  <section class="slide" data-title="핵심 시스템 개요">
+    <div class="kicker">03. Core Systems</div>
+    <h1 class="title">3가지 핵심 시스템</h1>
+    <div class="grid-cards">
+      <div class="card">
+        <h3>타임 리와인드 (R)</h3>
+        <p>최근 N초(기본 10초)간의 행동을 역재생 연출로 되감은 뒤 시작점으로 복귀</p>
+      </div>
+      <div class="card">
+        <h3>분신 소환</h3>
+        <p>되감기 종료 시 기록된 커맨드 클립을 정방향 재생하는 분신 등장</p>
+      </div>
+      <div class="card">
+        <h3>슬로우모션 (Shift)</h3>
+        <p>시간 배율 0.4배. fixedDeltaTime도 동일 비율 보정해 슬로우 중에도 물리가 부드럽다</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Rewind architecture -->
+  <section class="slide" data-title="리와인드 아키텍처">
+    <div class="kicker">04. Time System - Architecture</div>
+    <h1 class="title">입력 -&gt; 몸통 -&gt; 시간 -&gt; 분신</h1>
+    <div class="pipeline">
+      <div class="stage">
+        <div class="label">Input</div>
+        <div class="name">PlayerInput / FSM</div>
+        <div class="desc">플레이어는 PlayerInput, 몬스터/보스는 각자의 상태 기계(FSM)가 판단</div>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="stage">
+        <div class="label">Body</div>
+        <div class="name">Movement / Combat</div>
+        <div class="desc">물리 이동, 전투, 애니메이션 처리</div>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="stage">
+        <div class="label">Time</div>
+        <div class="name">RewindManager</div>
+        <div class="desc">씬당 1개, 자동 생성되는 타임라인 오너. RecordTick / ApplyRewindTick</div>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="stage">
+        <div class="label">Replay</div>
+        <div class="name">ClonePool -&gt; CloneController</div>
+        <div class="desc">되감기 종료 시 RingBuffer를 전달받아 커맨드 클립을 정방향 재생</div>
+      </div>
+    </div>
+    <ul class="bullets" style="margin-top:34px;">
+      <li>되감기에 참여하는 모든 오브젝트는 <code>IRewindable</code> 인터페이스로 등록 - 플레이어/몬스터/보스/분신/레버가 <b>같은 틱 기준</b>으로 기록·재생된다</li>
+      <li>버퍼 용량은 <code>RewindManager.TickCapacity</code> 하나만 사용 - 값이 서로 다르면 참여자 간 되감기 인덱스가 어긋난다</li>
+    </ul>
+  </section>
+
+  <!-- 5b. Time System - Recording -->
+  <section class="slide" data-title="타임시스템 - 기록">
+    <div class="kicker">05. Time System - 기록</div>
+    <h1 class="title">테이프에 매 순간을 녹화한다</h1>
+    <p class="body-text">리와인드의 핵심은 사실 "되감는 순간"이 아니라 <b>평소에 무엇을 기록해두는가</b>다. 매 물리 프레임(<code>FixedUpdate</code>)마다 지금 상태를 캡처해, 카세트테이프처럼 생긴 <code>RingBuffer</code>(순환 버퍼)에 한 칸씩 쌓아 나간다.</p>
+    <div class="grid-cards" style="margin-top:24px;">
+      <div class="card"><h3>Move</h3><p>위치 / 속도 / 접지 여부</p></div>
+      <div class="card"><h3>Attack?</h3><p>이 틱에 공격했는지 + 차지공격 여부</p></div>
+      <div class="card"><h3>Interact?</h3><p>이 틱에 상호작용(레버 등)했는지</p></div>
+      <div class="card"><h3>Hearts</h3><p>이 틱 종료 시점의 체력(하트 반칸 단위)</p></div>
+      <div class="card"><h3>Anim</h3><p>재생 중이던 애니메이션 상태 스냅샷</p></div>
+    </div>
+    <p class="body-text" style="margin-top:20px; font-size:14px;">이 5가지를 묶은 것이 한 틱의 <code>TickCommand</code>다. <code>RingBuffer</code>는 용량을 넘으면 <b>가장 오래된 칸에 덮어쓰기</b>(테이프 맨 뒤로 되감아 다시 녹화하는 것과 같음)만 하므로, 언제나 "최근 N초"만 정확히 기억한다.</p>
+    <div class="snippet"><span class="c">// 버퍼 용량 = 몇 초를 기억할지 ÷ 물리 프레임 간격</span>
+<span class="t">TickCapacity</span> = RecordSeconds(기본 10초) / Time.fixedDeltaTime
+
+<span class="c">// 매 FixedUpdate마다 참여자 전원이 한 칸씩 기록</span>
+buffer.Push(<span class="t">new</span> TickCommand(move, hasAttack, attack, hasInteract, interact, hearts, anim));</div>
+  </section>
+
+  <!-- 5c. Time System - Command Pattern -->
+  <section class="slide" data-title="타임시스템 - 커맨드 패턴">
+    <div class="kicker">06. Time System - Command Pattern</div>
+    <h1 class="title">왜 좌표가 아니라 '명령'을 저장할까</h1>
+    <p class="body-text">단순하게 만든다면 "그 순간의 좌표"만 저장해도 위치는 되감을 수 있다. 하지만 그러면 <b>공격의 피해 판정, 상호작용, 애니메이션</b>은 재현할 수 없다. 그래서 Sheepy는 한 틱에 있었던 행동을 <b>스스로 재생 방법을 아는 명령 객체</b>로 캡슐화해서 저장한다 - 커맨드 패턴이다.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:15px; margin-top:0;">커맨드 = 캡슐화된 행동</h3>
+        <ul class="bullets">
+          <li><code>MoveCommand.Apply(actor)</code> - 위치/속도/접지를 그대로 적용</li>
+          <li><code>AttackCommand.Execute/Undo(actor)</code> - 공격을 정방향/역방향으로 재생</li>
+          <li><code>InteractCommand.Execute(target)</code> - 레버 등 상호작용 재연</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:15px; margin-top:0;">ICommandActor - 받는 쪽은 몰라도 된다</h3>
+        <p class="body-text" style="font-size:14px;">커맨드를 받는 쪽은 <code>SetPose()</code> / <code>PlayAttack()</code> 딱 2개만 구현하면 된다. <b>PlayerController</b>와 <b>CloneController</b>(분신)가 똑같이 이 인터페이스를 구현하기 때문에, <b>같은 명령 리스트를 두 곳에서 재사용</b>할 수 있다 - 본체는 거꾸로 재생하고, 분신은 처음부터 재생한다.</p>
+      </div>
+    </div>
+    <div class="compare">
+      <div class="box exec">
+        <h4>Execute (정방향 재생)</h4>
+        <p>실제 게임 진행 중 공격 - <b>피해 + 모션</b>이 함께 발생한다</p>
+      </div>
+      <div class="box undo">
+        <h4>Undo (역방향 재생)</h4>
+        <p>되감기 스크럽 중 - <b>모션만</b> 거꾸로 보여주고, 피해는 다시 발생시키지 않는다</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5d. Time System - Rewind playback -->
+  <section class="slide" data-title="타임시스템 - 재생">
+    <div class="kicker">07. Time System - 재생</div>
+    <h1 class="title">되감기가 끝나면, 그 테이프가 분신이 된다</h1>
+    <div class="pipeline">
+      <div class="stage">
+        <div class="label">1</div>
+        <div class="name">R 입력</div>
+        <div class="desc">잠겨 있지 않고 기록이 있으면 <code>StartRewind()</code></div>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="stage">
+        <div class="label">2</div>
+        <div class="name">역순 스크럽</div>
+        <div class="desc">매 FixedUpdate마다 여러 틱씩 건너뛰며 최신 -&gt; 과거로 <code>ApplyRewindTick()</code> 방송</div>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="stage">
+        <div class="label">3</div>
+        <div class="name">공격 Undo</div>
+        <div class="desc">건너뛴 구간에 공격 기록이 있으면 <code>AttackCommand.Undo()</code> - 모션만 역재생</div>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="stage">
+        <div class="label">4</div>
+        <div class="name">테이프 처음(0) 도달</div>
+        <div class="desc"><code>FinishRewind()</code> - 참여자 전원에게 <code>OnRewindEnd()</code> 통지</div>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="stage">
+        <div class="label">5</div>
+        <div class="name">분신 소환</div>
+        <div class="desc">방금 되감은 버퍼를 그대로 <code>ClonePool.Spawn(buffer)</code>에 전달</div>
+      </div>
+    </div>
+    <p class="body-text" style="margin-top:30px; font-size:14.5px;">분신(<code>CloneController</code>)은 넘겨받은 커맨드 리스트를 <b>처음 틱부터 순서대로 Execute</b>하며 재생한다. 본체가 "역재생"할 때 쓴 것과 <b>완전히 같은 데이터·같은 커맨드 타입</b>이고, 방향과 Execute/Undo 선택만 다르다 - 이게 커맨드 패턴이 주는 재사용성이다.</p>
+  </section>
+
+  <!-- 6. Combat -->
+  <section class="slide" data-title="전투 시스템">
+    <div class="kicker">08. Combat</div>
+    <h1 class="title">전투 &amp; 조작</h1>
+    <div class="two-col">
+      <div>
+        <table class="doc-table">
+          <tr><th>입력</th><th>행동</th></tr>
+          <tr><td><b>← →</b></td><td>이동</td></tr>
+          <tr><td><b>Space</b></td><td>점프</td></tr>
+          <tr><td><b>X</b></td><td>공격 (오브 발사 / 근접 히트박스)</td></tr>
+          <tr><td><b>X 홀드</b></td><td>차지공격 (데미지 2.5배)</td></tr>
+          <tr><td><b>R</b></td><td>타임리와인드 + 분신 소환</td></tr>
+          <tr><td><b>Shift</b></td><td>슬로우모션</td></tr>
+          <tr><td><b>T</b></td><td>분신 전체 삭제</td></tr>
+          <tr><td><b>Q</b></td><td>포션 사용 (하트 1칸 회복)</td></tr>
+          <tr><td><b>E</b></td><td>상호작용 (레버/라디오/엘리베이터)</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:16px; margin-top:0;">하트 체력 (실크송류)</h3>
+        <p class="body-text" style="font-size:14.5px;">플레이어/분신 공통 <code>PlayerHealth</code> - 하트 6개, 피격 시 1개 차감 + 1초 무적으로 연속 피해를 막는다.</p>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:16px;">상태이상</h3>
+        <p class="body-text" style="font-size:14.5px;"><code>Bind</code>(속박) / <code>InputInvert</code>(키반전) / <code>RewindSeal</code>(되감기 봉인) - 리와인드 스냅샷에 넣지 않고 실시간으로 흐른다 (되감아도 유지)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Boss overview -->
+  <section class="slide" data-title="보스 - 구조">
+    <div class="kicker">09. Boss - Azathoth</div>
+    <h1 class="title">씬 분할 구조 + 페이즈 하한 동결</h1>
+    <p class="body-text">보스는 총 4페이즈이며, <b>두 개의 씬/시스템(Boss1 / Boss2)으로 분리</b>되어 하나의 흐름으로 이어진다. Sheepy: A Short Adventure의 보스 리소스(보스1 1,284프레임 / 보스2 4,881프레임)를 활용.</p>
+    <div class="grid-cards" style="margin-top:26px;">
+      <div class="card" style="border-left:3px solid var(--cyan);">
+        <h3>Boss1 - 1~2페이즈</h3>
+        <p>Map2, 담당: 민성 / <code>BossController</code> 계열, 단일 피통(<code>GameDB.Boss.TotalHealth</code>)을 페이즈 수로 균등 분할, <code>Phase1~4State</code> 상태 패턴</p>
+        <span class="tag done">구현 완료</span>
+      </div>
+      <div class="card" style="border-left:3px solid var(--magenta);">
+        <h3>Boss2 - 3~4페이즈</h3>
+        <p>Map3, 담당: 진욱 / 별도 오브젝트·DB(<code>Boss2DataSO</code>), 독립 피통(<code>Boss2Health</code>), 부유 이동 + 원거리 패턴</p>
+        <span class="tag wip">4P 구현 진행 중</span>
+      </div>
+    </div>
+    <p class="body-text" style="margin-top:22px; font-size:14px; color:var(--text-dim);">공통 규칙: 보스 본체 공격 = 하트 1칸 / 분신 공격 = 하트 반칸 · 플레이어 리와인드 시 보스 HP도 함께 복원 · 전투 타이머(10분)는 리와인드와 무관하게 진행 · 랜덤 패턴은 결정 로그로 저장되어 되감기 후에도 재현</p>
+  </section>
+
+  <!-- 8. Boss phases table + emotion -->
+  <section class="slide" data-title="보스 - 페이즈 &amp; 감정">
+    <div class="kicker">10. Boss - Phases &amp; Emotion</div>
+    <h1 class="title">페이즈별 진행 &amp; 감정 상태</h1>
+    <table class="doc-table">
+      <tr><th>페이즈</th><th>씬</th><th>내용</th><th>상태</th></tr>
+      <tr><td><b>1페이즈</b></td><td>Map2</td><td>보스 분신 2체 근접전 + 즉사 레이저 색 암기 기믹</td><td><span class="tag done">완료</span></td></tr>
+      <tr><td><b>2페이즈</b></td><td>Map2</td><td>본체 등장, 근접 패턴 + 장풍 해저드 + 아웃트로 후 Map3 전환</td><td><span class="tag done">완료</span></td></tr>
+      <tr><td><b>3페이즈</b></td><td>Map3</td><td>원거리 패턴(낙뢰/강타/레이저) + 낙인 스택 + 정화 제단</td><td><span class="tag done">완료</span></td></tr>
+      <tr><td><b>4페이즈</b></td><td>Map3</td><td>3P 패턴 + 전용 패턴(손아귀, 공간찢기 = 체력 10% 즉사기)</td><td><span class="tag wip">진행 중</span></td></tr>
+    </table>
+    <p class="body-text" style="margin-top:22px; font-size:14px;">페이즈와 별개로 <b>감정 상태(<code>BossEmotion</code>)</b>가 공통 패턴을 변조한다 - 검정(전체 반사) · 하양(본체 반사) · 남색(분신 반사) · 핑크(낙뢰 x2) · 파랑(낙뢰 /2 + 회복픽업) · 화남(3P 고정, 주기적 키반전)</p>
+  </section>
+
+  <!-- 9. Item / Data -->
+  <section class="slide" data-title="아이템 &amp; 데이터 관리">
+    <div class="kicker">11. Item &amp; Data</div>
+    <h1 class="title">아이템 &amp; GameDB</h1>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:16px; margin-top:0;">아이템</h3>
+        <table class="doc-table">
+          <tr><th>아이템</th><th>효과</th></tr>
+          <tr><td><b>포션</b></td><td>몬스터 처치 확률 드랍, 최대 3개 소지, <code>Q</code>로 하트 1칸 회복</td></tr>
+        </table>
+        <p class="body-text" style="font-size:13px; color:var(--text-dim); margin-top:10px;">되감기 시 개수 + 필드에 남은 픽업 오브젝트가 함께 복원된다 (<code>IRewindable</code>)</p>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:16px; margin-top:0;">GameDB (ScriptableObject DB)</h3>
+        <p class="body-text" style="font-size:14.5px;">밸런싱 수치는 전부 SO 기반 DB로 중앙 관리한다. 매직넘버 없이 <code>GameDB.Player.MoveSpeed</code> 형태로 정적 접근.</p>
+        <p class="body-text" style="font-size:14.5px;">루트 <code>GameDatabaseSO</code>가 Player/Boss/Time/Potion 각 DataSO를 묶는 구조 - 기획자가 코드 수정 없이 인스펙터에서 수치 튜닝 가능.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Folder / Architecture -->
+  <section class="slide" data-title="폴더 구조 &amp; 아키텍처">
+    <div class="kicker">12. Architecture</div>
+    <h1 class="title">01.Scripts 폴더 구조</h1>
+    <table class="doc-table" style="font-size:12.5px;">
+      <tr><th>폴더</th><th>내용</th></tr>
+      <tr><td><b>00.Common</b></td><td>GameManager, SaveManager, RespawnManager, Constants, GameDB, Utility(Singleton)</td></tr>
+      <tr><td><b>01.Player</b></td><td>코디네이터 PlayerController + Input/Movement/Combat/Interaction/Rewind</td></tr>
+      <tr><td><b>02.Monster</b></td><td>몸통/체력/애니메이터, FSM(순찰·추격·공격)</td></tr>
+      <tr><td><b>03.Boss</b></td><td>Boss1(단일 피통 + Phase FSM) / Boss2(부유 이동, 독립 시스템)</td></tr>
+      <tr><td><b>04.TimeSystem</b></td><td>RewindManager, RingBuffer, 커맨드, 분신, 슬로우</td></tr>
+      <tr><td><b>05.Interactive</b></td><td>IInteractable, Lever/Radio/Elevator</td></tr>
+      <tr><td><b>06.UI ~ 12.Item</b></td><td>UI, 업적, 백엔드, 비주얼, 사운드, 카메라, 아이템 (총 12개 서브시스템)</td></tr>
+    </table>
+    <p class="footer-brand" style="position:static; margin-top:18px;">총 180개 스크립트, 전부 Minsung.* 네임스페이스 (프로덕션 코드)</p>
+  </section>
+
+  <!-- 11. Tech stack -->
+  <section class="slide" data-title="기술 스택">
+    <div class="kicker">13. Tech Stack</div>
+    <h1 class="title">기술 스택</h1>
+    <table class="doc-table">
+      <tr><th>분류</th><th>내용</th></tr>
+      <tr><td><b>엔진</b></td><td>Unity 6000.4.7f1 (2D URP 17.4)</td></tr>
+      <tr><td><b>언어</b></td><td>C# (C# 10)</td></tr>
+      <tr><td><b>주요 패키지</b></td><td>Unity Behavior 1.0.16 · Cinemachine 3.1 · Input System 1.19 · Newtonsoft Json</td></tr>
+      <tr><td><b>백엔드</b></td><td>Supabase (PostgreSQL + REST API)</td></tr>
+      <tr><td><b>버전 관리</b></td><td>Git (main / develop / feature 브랜치 전략)</td></tr>
+      <tr><td><b>리소스</b></td><td>Sheepy: A Short Adventure 리소스 추출 활용</td></tr>
+    </table>
+  </section>
+
+  <!-- 12. Online ranking -->
+  <section class="slide" data-title="온라인 랭킹">
+    <div class="kicker">14. Backend</div>
+    <h1 class="title">온라인 랭킹 (Supabase)</h1>
+    <p class="body-text">Supabase 기반 REST 래퍼(<code>SupabaseClient</code>)로 온라인 랭킹 시스템을 구현했다.</p>
+    <ul class="bullets">
+      <li>닉네임 등록 / 점수 제출 / <b>Top 10 리더보드</b></li>
+      <li>1등 <b>고스트 리플레이</b> 조회 지원</li>
+      <li>보스 클리어 타임 기준으로 랭킹 산정 (<code>GameManager.StartRunTimer / StopRunTimerMs</code>)</li>
+    </ul>
+    <span class="tag done" style="margin-top:20px;">클라이언트 구현 완료</span>
+  </section>
+
+  <!-- 13. Team -->
+  <section class="slide" data-title="팀 구성">
+    <div class="kicker">15. Team</div>
+    <h1 class="title">팀 구성</h1>
+    <p class="body-text" style="font-size:14px; color:var(--text-dim);">Development Period : 2026.06.29 ~ 2026.07.25 (27 Days) &nbsp;&nbsp;·&nbsp;&nbsp; Team Members (3)</p>
+    <table class="doc-table">
+      <tr><th>이름</th><th>역할</th><th>담당</th></tr>
+      <tr><td><b>Minsung Kim</b></td><td>Team Leader</td><td>Time System, Combat, Item, Boss, Backend, Web, Visual, Camera, Achievement, UI, Post Processing, System Integration</td></tr>
+      <tr><td><b>Myungjin Go</b></td><td>Team Member</td><td>Interactive System, Map</td></tr>
+      <tr><td><b>Jinwook Kim</b></td><td>Team Member</td><td>Player, Boss, Shader, QA</td></tr>
+    </table>
+  </section>
+
+  <!-- 15b. AI Usage -->
+  <section class="slide" data-title="AI 활용">
+    <div class="kicker">16. Development Process - AI 활용</div>
+    <h1 class="title">AI를 어떻게 활용했는가</h1>
+    <p class="body-text" style="font-size:14.5px;">Claude Code를 프로그래머의 상시 협업 도구로 썼다. 핵심 원칙은 "AI가 매번 처음부터 다시 설명을 들어야 하는 상태"를 피하는 것 - 그래서 <b>문서 관리 자체를 개발 프로세스의 일부</b>로 다뤘다.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:15px; margin-top:0;">문서 관리</h3>
+        <ul class="bullets">
+          <li><code>claude/CLAUDE.md</code>를 팀 공용 진입점으로 - 코딩 컨벤션·아키텍처·Critical Rules가 세션 시작마다 자동 로드되고, 근거 문서(<code>coding-convention.md</code>/<code>UML.md</code>/<code>gamedb.md</code>/<code>boss.md</code>)로 연결</li>
+          <li><code>gamedb.md</code>·<code>boss.md</code> 같은 시스템별 문서는 "AI가 이 문서만 읽고 바로 작업할 수 있을 정도"로 자기완결적으로 작성 - 구조/사용법/함정/확장 절차까지 포함</li>
+          <li>세션이 끝나도 남아야 할 결정(교정된 관례, 진행 상황)은 코드 옆 주석이 아니라 <b>영속 메모리</b>에 별도 기록 - 다음 세션이 재설명 없이 그대로 이어받는다</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:15px; margin-top:0;">실제 사용 용도</h3>
+        <ul class="bullets">
+          <li><b>전역 일관성 리팩터</b> - 기능 하나를 폐기하면(예: LP·스킬게이지 제거) 코드·씬·ScriptableObject·문서를 한 번에 추적해 정리</li>
+          <li><b>문서-코드 동기화 유지</b> - 코드가 바뀌면 README·CLAUDE.md·gamedb.md·UML.md도 같이 갱신해 "문서가 코드보다 낡는 상태"를 방지</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15b-2. AI Usage - Architecture proposal & Clarify skill -->
+  <section class="slide" data-title="AI 활용 사례 - 구조 제안 &amp; 요청 명확화">
+    <div class="kicker">17. Development Process - AI 활용 사례</div>
+    <h1 class="title">구조를 제안받고, 모호한 요청은 되묻게 한다</h1>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:15px; margin-top:0;">아키텍처 구조 제안</h3>
+        <p class="body-text" style="font-size:13.5px;">기능을 그대로 구현해달라고만 하지 않고, <b>구조 자체를 AI에게 제안받아 채택</b>한 사례들이다.</p>
+        <ul class="bullets">
+          <li><b>코디네이터 패턴</b> - 비대해지던 단일 <code>PlayerController</code>를 Input/Movement/Combat/Interaction/Rewind 컴포넌트로 쪼개고, <code>PlayerController</code>는 조율만 하도록 재설계 제안 -&gt; 채택</li>
+          <li><b>싱글톤 공통 베이스</b> - 매니저마다 제각각이던 <code>Awake</code> 싱글톤 구현을 <code>PersistentSingleton&lt;T&gt;</code> / <code>SceneSingleton&lt;T&gt;</code>로 통일하자는 제안 -&gt; <code>OnSingletonAwake()</code> 오버라이드 규칙으로 정착</li>
+          <li><b>RewindLockHandle 패턴</b> - 전역 <code>bool</code> 토글 대신 <code>AcquireRewindLock(owner)</code>가 반환한 핸들을 소유자가 <code>Dispose()</code>하는 방식을 제안 -&gt; 여러 주체가 동시에 잠가도 안전한 구조로 채택</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:15px; margin-top:0;">모호한 요청 명확화 스킬</h3>
+        <p class="body-text" style="font-size:13.5px;"><code>.claude/skills/clarify-ambiguous-request</code> - 요청이 모호할 때 AI가 <b>추측으로 채우지 않고</b> 먼저 코드/문서를 조사한 뒤, 정말 사용자만 결정할 수 있는 지점만 골라 되묻도록 만든 커스텀 스킬.</p>
+        <div class="snippet" style="font-size:11.5px;"><span class="c">// 발동 조건</span>
+지시어만 있고 대상 없음 ("고쳐줘", "정리해줘")
+대상은 있으나 범위 불명확
+구현 방식이 여러 갈래 (저장 위치/네이밍/UI 방식)
+
+<span class="c">// 방법</span>
+1. 추측으로 채우지 않는다
+2. 코드/문서를 먼저 읽어 불명확한 부분을 좁힌다
+3. AskUserQuestion으로 2~4개 실제 대안 + 근거 제시
+4. 질문은 실행에 필요한 만큼만</div>
+        <p class="body-text" style="font-size:12.5px; margin-top:10px; color:var(--text-dim);">예: "커밋 메시지 형식 정리해줘" -&gt; 바로 임의 형식 적용 대신 기존 커밋 로그부터 확인, 관례가 없음을 확인한 뒤 "타입 태그 스타일" 등 실제로 결과가 갈리는 지점만 질문</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15c. Doc Example 1 - CLAUDE.md / commit-convention.md -->
+  <section class="slide" data-title="문서 예시 - CLAUDE.md / commit-convention.md">
+    <div class="kicker">18. Development Process - 문서 예시 ①</div>
+    <h1 class="title">실제 우리 문서: CLAUDE.md · commit-convention.md</h1>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-top:0;">claude/CLAUDE.md - Critical Rules</h3>
+        <div class="snippet" style="font-size:11.5px;">1. 코딩 컨벤션 준수: coding-convention.md가 최우선
+   - 매직넘버 금지 -&gt; 밸런싱 수치는 GameDB, 코드 계약값은 Constants.*.cs
+   - 모든 제어문 중괄호 필수(Allman), 전위 증감(++i)
+
+3. 리와인드 버퍼 용량은 RewindManager.TickCapacity만 사용
+   - 직접 RecordSeconds / fixedDeltaTime 계산 금지
+
+6. 리와인드 잠금은 핸들로 관리
+   - AcquireRewindLock(owner)의 반환값을 보유, Dispose()로 해제
+
+7. 싱글톤 공통 베이스 사용
+   - PersistentSingleton&lt;T&gt; / SceneSingleton&lt;T&gt; 상속
+   - Awake 직접 구현 금지, OnSingletonAwake() 오버라이드</div>
+   <p class="body-text" style="font-size:12.5px; margin-top:10px; color:var(--text-dim);"><b>만약 지키지 않은 팀원이 있다면</b> 커밋 하기 전 코딩컨벤션이 틀렸다고 하고 고쳐준다고 물어본다.</p>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-top:0;">claude/commit-convention.md - 형식 + 예시</h3>
+        <div class="snippet" style="font-size:11.5px;"><span class="c">// 기본 형식</span>
+type: Scope 한국어 제목
+
+<span class="c">// 실제 예시</span>
+feat: Player 대시 쿨다운 추가
+fix: Boss Phase2 전환 시 낙뢰 풀 누수 수정
+refactor: TimeSystem RingBuffer 인덱스 계산 정리
+docs: gamedb.md 확장 절차 보강</div>
+        <p class="body-text" style="font-size:12.5px; margin-top:10px; color:var(--text-dim);"><b>깔끔한 깃허브 관리</b> - 통일된 커밋 메세지 스타일과 상세한 description 으로 유지보수에 용이</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15d. Doc Example 2 - gamedb.md / boss.md -->
+  <section class="slide" data-title="문서 예시 - gamedb.md / boss.md">
+    <div class="kicker">19. Development Process - 문서 예시 ②</div>
+    <h1 class="title">AI 에이전트를 염두에 두고 쓴 문서: gamedb.md · boss.md</h1>
+    <p class="body-text" style="font-size:13.5px;">이 둘을 고른 이유 - <code>gamedb.md</code>는 문서 서두에 <b>"대상 독자: 이 시스템을 이어받는 개발자, 그리고 그 개발자의 AI 코딩 에이전트"</b>라고 못박을 정도로 AI가 읽는 걸 전제로 썼고, <code>boss.md</code>는 보스 패턴을 개발한 두 프로그래머(민성/진욱) 간 실제 협업 경계를 규정한 가장 복잡한 시스템 문서다.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-top:0;">gamedb.md - 판단 기준 한 줄</h3>
+        <div class="quote" style="font-size:14px;">"새 수치를 어디에 둘지는 이 질문 하나로 결정한다: <b>기획자가 인스펙터에서 바꿔도 코드가 깨지지 않는가?</b>"</div>
+        <p class="body-text" style="font-size:12.5px; margin-top:12px; color:var(--text-dim);">그렇다 -&gt; <code>*DataSO</code>(GameDB) / 아니다(입력 키·epsilon·구조 상수) -&gt; <code>Constants.*.cs</code></p>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-top:0;">boss.md - 0. 개요/팀 분담</h3>
+        <table class="doc-table" style="font-size:11.5px; margin-top:0;">
+          <tr><th>담당</th><th>시스템</th><th>페이즈</th><th>씬</th></tr>
+          <tr><td><b>민성</b></td><td>Boss1 (BossController)</td><td>1~2페이즈</td><td>Map2</td></tr>
+          <tr><td><b>진욱</b></td><td>Boss2 (별도 시스템)</td><td>3~4페이즈</td><td>Map3</td></tr>
+        </table>
+        <p class="body-text" style="font-size:12.5px; margin-top:10px; color:var(--text-dim);">예외 규정까지 문서화: "4페이즈 공간찢기 패턴은 Boss2 소속이지만 민성이 직접 구현한다"</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. Status / Roadmap -->
+  <section class="slide" data-title="진행 현황">
+    <div class="kicker">20. Status</div>
+    <h1 class="title">진행 현황</h1>
+    <div class="status-row"><div style="width:170px;">타임리와인드 / 분신 / 슬로우</div><div class="bar"><span style="width:100%;"></span></div><span class="tag done">완료</span></div>
+    <div class="status-row"><div style="width:170px;">전투 / 상태이상 / 상호작용</div><div class="bar"><span style="width:100%;"></span></div><span class="tag done">완료</span></div>
+    <div class="status-row"><div style="width:170px;">보스 1~3페이즈</div><div class="bar"><span style="width:100%;"></span></div><span class="tag done">완료</span></div>
+    <div class="status-row"><div style="width:170px;">보스 4페이즈</div><div class="bar"><span style="width:70%;"></span></div><span class="tag wip">진행 중</span></div>
+    <div class="status-row"><div style="width:170px;">아이템 (포션)</div><div class="bar"><span style="width:100%;"></span></div><span class="tag done">완료</span></div>
+    <div class="status-row"><div style="width:170px;">온라인 랭킹 (클라이언트)</div><div class="bar"><span style="width:100%;"></span></div><span class="tag done">완료</span></div>
+    <div class="status-row"><div style="width:170px;">랭킹 게임 플로우 연동</div><div class="bar"><span style="width:0%;"></span></div><span class="tag todo">예정</span></div>
+  </section>
+
+  <!-- 15. Closing -->
+  <section class="slide title-slide" data-title="마무리">
+    <div class="kicker">Thank You</div>
+    <div class="logo" style="font-size:clamp(30px,5vw,60px);">The Last Re:wind</div>
+    <p class="subtitle" style="margin-top:20px;">되감을수록 흐려지는 기억, 그리고 그 기억을 되찾기 위한 여정.</p>
+    <p class="body-text" style="margin-top:30px; color:var(--text-dim);">질문과 피드백을 환영합니다.</p>
+  </section>
+
+</div>
+
+<div id="hint">↑↓ ← → / Space : 이동&nbsp;&nbsp;·&nbsp;&nbsp;F : 전체화면&nbsp;&nbsp;·&nbsp;&nbsp;Ctrl+P : PDF로 내보내기</div>
+
+<div id="progress-track"><div id="progress-fill"></div></div>
+<div id="controls">
+  <button class="nav-btn" id="btn-prev" title="이전 (←)">‹</button>
+  <button class="nav-btn" id="btn-next" title="다음 (→)">›</button>
+  <span id="counter">1 / 15</span>
+  <div id="dots"></div>
+  <span id="slide-label"></span>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+
+  var counterEl = document.getElementById('counter');
+  var labelEl = document.getElementById('slide-label');
+  var fillEl = document.getElementById('progress-fill');
+  var dotsEl = document.getElementById('dots');
+  var hintEl = document.getElementById('hint');
+
+  slides.forEach(function(s, i){
+    var dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.title = s.getAttribute('data-title') || ('Slide ' + (i + 1));
+    dot.addEventListener('click', function(){ goTo(i); });
+    dotsEl.appendChild(dot);
+  });
+  var dots = Array.prototype.slice.call(dotsEl.querySelectorAll('.dot'));
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    dots.forEach(function(d, i){ d.classList.toggle('active', i === idx); });
+    counterEl.textContent = (idx + 1) + ' / ' + total;
+    labelEl.textContent = slides[idx].getAttribute('data-title') || '';
+    fillEl.style.width = (((idx + 1) / total) * 100) + '%';
+    if (history.replaceState) history.replaceState(null, '', '#' + (idx + 1));
+  }
+
+  function goTo(i){
+    idx = Math.max(0, Math.min(total - 1, i));
+    render();
+  }
+  function next(){ goTo(idx + 1); }
+  function prev(){ goTo(idx - 1); }
+
+  document.getElementById('btn-next').addEventListener('click', next);
+  document.getElementById('btn-prev').addEventListener('click', prev);
+
+  document.addEventListener('keydown', function(e){
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].indexOf(e.key) !== -1){
+      e.preventDefault(); next();
+    } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].indexOf(e.key) !== -1){
+      e.preventDefault(); prev();
+    } else if (e.key === 'Home'){
+      e.preventDefault(); goTo(0);
+    } else if (e.key === 'End'){
+      e.preventDefault(); goTo(total - 1);
+    } else if (e.key === 'f' || e.key === 'F'){
+      toggleFullscreen();
+    }
+  });
+
+  // touch swipe
+  var touchX = null;
+  document.addEventListener('touchstart', function(e){ touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', function(e){
+    if (touchX === null) return;
+    var dx = e.changedTouches[0].clientX - touchX;
+    if (dx > 50) prev();
+    else if (dx < -50) next();
+    touchX = null;
+  });
+
+  function toggleFullscreen(){
+    if (!document.fullscreenElement){
+      document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen && document.exitFullscreen();
+    }
+  }
+
+  // deep link support (#3)
+  var hash = parseInt(location.hash.replace('#', ''), 10);
+  if (!isNaN(hash) && hash >= 1 && hash <= total) idx = hash - 1;
+
+  render();
+
+  setTimeout(function(){ hintEl.classList.add('faded'); }, 4500);
+})();
+</script>
+
+</body>
+</html>

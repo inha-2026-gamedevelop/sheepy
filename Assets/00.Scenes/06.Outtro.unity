@@ -1150,8 +1150,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "Development Period\n\n2026.06.29 ~ 2026.07.25 (27 Days)\n\nTeam Members
     (3)\n\nMinsung Kim (Team Leader)\n\nTime System, Combat, Item, Boss, Backend,
-    Web, Visual(Post Processing, Shader), Camera, Achievement, UI, System Integration\n\n\nMyungjin
-    Go\n\nInteractive System, Map, \n\nMinsung Kim\n\nPlayer, Boss, Shader, QA"
+    Web, Visual(Post Processing, Shader), Camera, Achievement, UI\n\n\nMyungjin Go\n\nInteractive
+    System, Map, \n\nMinsung Kim\n\nPlayer, Boss, Shader, QA"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 0}
