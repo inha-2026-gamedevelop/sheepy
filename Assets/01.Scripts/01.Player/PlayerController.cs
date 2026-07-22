@@ -11,7 +11,9 @@ using Minsung.Achievement;
 using Minsung.Backend;
 using Minsung.Common;
 using Minsung.Common.Data;
+using Minsung.Sound;
 using Minsung.TimeSystem;
+using Minsung.Visual;
 
 namespace Minsung.Player
 {
@@ -193,6 +195,41 @@ namespace Minsung.Player
             // Cinemachine에게 "순간이동"임을 알려 카메라가 이전 위치에서 스무딩하며 따라오지 않고 즉시 스냅하게 한다.
             // 이게 없으면 이어하기 직후 카메라가 엉뚱한 곳을 비추거나 뒤늦게 캐치업하는 것처럼 보인다.
             CinemachineCore.OnTargetObjectWarped(transform, data.PlayerPosition - previousPosition);
+
+            // 트리거를 실제로 통과하지 않고 복원되므로, BGM/포스트프로세싱 존은 가장 가까운 것을 찾아 즉시 적용한다.
+            ApplyNearestEnvironmentZones(data.PlayerPosition);
+        }
+
+        // 저장 위치 복원 시 가장 가까운 BgmZoneTrigger/PostProcessZoneTrigger를 찾아 충돌 없이 즉시 적용한다.
+        private static void ApplyNearestEnvironmentZones(Vector3 position)
+        {
+            BgmZoneTrigger[] bgmZones = FindObjectsByType<BgmZoneTrigger>(FindObjectsSortMode.None);
+            BgmZoneTrigger   nearestBgm         = null;
+            float            nearestBgmDistance = float.MaxValue;
+            for (int i = 0; i < bgmZones.Length; ++i)
+            {
+                float distance = bgmZones[i].DistanceTo(position);
+                if (distance < nearestBgmDistance)
+                {
+                    nearestBgmDistance = distance;
+                    nearestBgm         = bgmZones[i];
+                }
+            }
+            nearestBgm?.ApplyImmediately();
+
+            PostProcessZoneTrigger[] postProcessZones = FindObjectsByType<PostProcessZoneTrigger>(FindObjectsSortMode.None);
+            PostProcessZoneTrigger   nearestPostProcess         = null;
+            float                    nearestPostProcessDistance = float.MaxValue;
+            for (int i = 0; i < postProcessZones.Length; ++i)
+            {
+                float distance = postProcessZones[i].DistanceTo(position);
+                if (distance < nearestPostProcessDistance)
+                {
+                    nearestPostProcessDistance = distance;
+                    nearestPostProcess         = postProcessZones[i];
+                }
+            }
+            nearestPostProcess?.ApplyImmediately();
         }
 
         private void OnDestroy()

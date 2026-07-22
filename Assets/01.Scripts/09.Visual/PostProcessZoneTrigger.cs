@@ -46,6 +46,7 @@ namespace Minsung.Visual
         private Bloom            _bloom;
         private Coroutine        _co;
         private bool             _fired;
+        private Collider2D       _collider;
 
         /****************************************
         *              Unity Event
@@ -53,6 +54,8 @@ namespace Minsung.Visual
 
         private void Awake()
         {
+            _collider = GetComponent<Collider2D>();
+
             if (_targetVolume == null)
             {
                 _targetVolume = FindAnyObjectByType<Volume>();
@@ -113,6 +116,44 @@ namespace Minsung.Visual
         *                Methods
         ****************************************/
 
+        /// <summary> 이 존의 콜라이더 표면까지 거리 - 저장 위치 복원 시 가장 가까운 존을 찾는 용도 </summary>
+        public float DistanceTo(Vector3 position)
+        {
+            return (_collider != null) ? Vector2.Distance(_collider.ClosestPoint(position), position) : Vector2.Distance(transform.position, position);
+        }
+
+        /// <summary> 저장 위치 복원 등, 충돌 없이 이 존 값을 전환 애니메이션 없이 즉시 적용한다. </summary>
+        public void ApplyImmediately()
+        {
+            if ((_targetVolume == null) || (_color == null) || (_vignette == null))
+            {
+                return;
+            }
+
+            if (_bloom != null)
+            {
+                if (PostProcessManager.Instance != null)
+                {
+                    PostProcessManager.Instance.SetBloomIntensity(this, _bloomIntensity);
+                }
+                else
+                {
+                    _bloom.intensity.overrideState = true;
+                    _bloom.intensity.value         = _bloomIntensity;
+                }
+            }
+
+            if (_co != null)
+            {
+                StopCoroutine(_co);
+                _co = null;
+            }
+
+            EnableOverrides();
+            ApplyTarget();
+            _fired = true;
+        }
+
         private IEnumerator CoTransition()
         {
             EnableOverrides();
@@ -155,6 +196,17 @@ namespace Minsung.Visual
             _color.contrast.value     = Mathf.Lerp(sCon, _contrast, k);
             _vignette.intensity.value  = Mathf.Lerp(sVig, _vignetteIntensity, k);
             _vignette.smoothness.value = Mathf.Lerp(sVs, _vignetteSmoothness, k);
+        }
+
+        // 전환 없이 목표값을 그대로 대입 (ApplyImmediately 전용)
+        private void ApplyTarget()
+        {
+            _color.postExposure.value  = _postExposure;
+            _color.colorFilter.value   = _colorFilter;
+            _color.saturation.value    = _saturation;
+            _color.contrast.value      = _contrast;
+            _vignette.intensity.value  = _vignetteIntensity;
+            _vignette.smoothness.value = _vignetteSmoothness;
         }
     }
 }
