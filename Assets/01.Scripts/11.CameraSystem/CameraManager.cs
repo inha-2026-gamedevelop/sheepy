@@ -68,13 +68,36 @@ namespace Minsung.CameraSystem
             }
 
             Bounds bounds = zoneCollider.bounds;
-            float  aspect = GetOutputAspect();
+            float aspect = GetOutputAspect();
 
             // 세로/가로 중 더 크게 요구하는 쪽 기준으로 사이즈를 잡아야 바운즈 전체가 잘리지 않고 화면에 들어온다
             float orthographicSize = Mathf.Max(bounds.extents.y, bounds.extents.x / aspect);
 
             Vector3 focusPosition = bounds.center;
             focusPosition.z = _focusCamera.transform.position.z;
+            _focusCamera.transform.position = focusPosition;
+
+            SetOrthographicSize(_focusCamera, orthographicSize);
+            SetBlendTime(blendTime);
+            SetPriority(_focusCamera, Constants.Camera.PRIORITY_FOCUS);
+        }
+
+        // 트리거 콜라이더의 바운즈에 맞춰 포커스 카메라 위치(바닥)/사이즈를 자동 계산해 프레이밍한다 (zone 진입 연출용)
+        public void FocusBottomZone(Collider2D zoneCollider, float blendTime = Constants.Camera.DEFAULT_BLEND_TIME)
+        {
+            if ((_focusCamera == null) || (zoneCollider == null))
+            {
+                return;
+            }
+
+            Bounds bounds = zoneCollider.bounds;
+            float aspect = GetOutputAspect();
+
+            // 세로/가로 중 더 크게 요구하는 쪽 기준으로 사이즈를 잡아야 바운즈 전체가 잘리지 않고 화면에 들어온다
+            float orthographicSize = Mathf.Max(bounds.extents.y, bounds.extents.x / aspect);
+
+            // X축은 중심, Y축은 가장 바닥(min.y)에서 카메라 절반 크기(orthographicSize)만큼 위로 올림
+            Vector3 focusPosition = new Vector3(bounds.center.x, bounds.min.y - (orthographicSize * 0.5f), _focusCamera.transform.position.z);
             _focusCamera.transform.position = focusPosition;
 
             SetOrthographicSize(_focusCamera, orthographicSize);

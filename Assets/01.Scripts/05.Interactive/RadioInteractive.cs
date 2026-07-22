@@ -4,6 +4,7 @@ using System.Collections;
 // Unity
 using UnityEngine;
 
+using Minsung.Achievement;
 using Minsung.CameraSystem;
 using Minsung.Common;
 using Minsung.Sound;
@@ -22,6 +23,7 @@ namespace Minsung.Interactive
         [SerializeField] private EBgm _bgm       = EBgm.Radio; // 재생할 트랙을 고르는 카테고리. SFX 채널로 재생되며 실제 BGM은 건드리지 않는다
         [SerializeField] private int  _clipIndex = -1;         // 카테고리 내 클립 인덱스 (-1이면 무작위, 커스텀 인스펙터에서 드롭다운으로 선택)
         [SerializeField] private bool _isLoop    = true;       // 라디오 특성상 기본 루프 재생
+        [SerializeField] private string _radioId;              // "주파수 고정" 업적용 고유 식별자 - 씬에 배치한 라디오마다 서로 다른 값 지정 (비우면 집계 제외)
 
         [Header("자막")]
         [SerializeField] private CaptionEntry[] _captions; // 재생 중 화면 하단에 순서대로 표시할 자막들 (루프 없이 한 번만 재생)
@@ -102,6 +104,7 @@ namespace Minsung.Interactive
             SoundManager.Instance.PlaySFX_Duration(clip, GetInstanceID(), 1f, _isLoop);
             CaptionManager.Instance?.PlaySequence(_captions);
             _isPlaying = true;
+            AchievementTrigger.RadioListened(_radioId); // "주파수 고정" - 라디오 5개 전부 청취 판정
 
             if (!_isLoop)
             {

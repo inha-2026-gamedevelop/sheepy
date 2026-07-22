@@ -1,11 +1,11 @@
 # 핵심 파일 인덱스
 
-> 목적: 시스템별 진입점 파일의 정확한 경로·역할·네임스페이스를 실존 검증(Glob 기반, 2026-07-11)으로 제공해, 새 세션이 탐색 없이 코드에 착지하게 한다. | 이 문서는 코드 변경(특히 폴더/클래스 재구성)이 있으면 재생성 대상이다.
+> 목적: 시스템별 진입점 파일의 정확한 경로·역할·네임스페이스를 실존 검증(Glob 기반, 2026-07-22)으로 제공해, 새 세션이 탐색 없이 코드에 착지하게 한다. | 이 문서는 코드 변경(특히 폴더/클래스 재구성)이 있으면 재생성 대상이다.
 
 ## 이 문서 사용법
 
 - **"어느 파일부터 여는가"** 질문에 답하는 문서다. "어느 문서를 읽는가"는 [PROJECT_KNOWLEDGE_INDEX.md](PROJECT_KNOWLEDGE_INDEX.md), "질문 유형→탐색 경로" 매핑은 [RAG_KNOWLEDGE_MAP.md](RAG_KNOWLEDGE_MAP.md) 담당.
-- 모든 경로는 저장소 루트 기준. 전부 Glob으로 실존 확인함(2026-07-11, `Assets/01.Scripts/` 총 104개 스크립트 중 대표 진입점만 발췌).
+- 모든 경로는 저장소 루트 기준. 전부 Glob으로 실존 확인함(2026-07-22, `Assets/01.Scripts/` 총 180개 스크립트 중 대표 진입점만 발췌).
 
 ## 1. 리와인드/시간 시스템 (`04.TimeSystem/`)
 
@@ -26,7 +26,8 @@
 |---|---|---|---|
 | `Assets/01.Scripts/00.Common/Data/GameDB.cs` | `GameDB` 정적 접근자 | `Minsung.Common.Data` | `GameDB.Player/Boss/Time` 진입점. Resources 자동 로드(Awake 이후에만 사용) |
 | `Assets/01.Scripts/00.Common/Data/GameDatabaseSO.cs` | `GameDatabaseSO`(루트 DB) | `Minsung.Common.Data` | 하위 `*DataSO` 3종을 묶는 루트. 에셋: `08.Data/Resources/GameDB.asset` |
-| `Assets/01.Scripts/00.Common/Data/PlayerDataSO.cs` / `BossDataSO.cs` / `TimeDataSO.cs` | 도메인별 `*DataSO` | `Minsung.Common.Data` | 밸런싱 값. 신규 필드는 여기 + 대응 `.asset`에 값 기입 |
+| `Assets/01.Scripts/00.Common/Data/PlayerDataSO.cs` / `BossDataSO.cs` / `TimeDataSO.cs` / `LpDataSO.cs` / `PotionDataSO.cs` | 도메인별 `*DataSO`(GameDatabaseSO 트리 5종) | `Minsung.Common.Data` | 밸런싱 값. 신규 필드는 여기 + 대응 `.asset`에 값 기입 |
+| `Assets/01.Scripts/00.Common/Data/Boss2DataSO.cs` | `Boss2DataSO`(GameDB 트리 밖 독립 DB) | `Minsung.Common.Data` | Boss2(Map3, 3~4P) 전용 밸런싱. GameDatabaseSO에 연결하지 않고 컴포넌트에 직접 드래그 |
 | `Assets/01.Scripts/00.Common/Constants/Constants*.cs` | `Constants`(partial class) | `Minsung.Common` | 코드 계약값(입력 키, epsilon, 태그/씬 이름 등) — GameDB와 역할 분리 |
 
 ## 3. 씬 관리 / 진입 플로우
@@ -47,16 +48,30 @@
 | `PlayerInput.cs` / `PlayerMovement.cs` / `PlayerCombat.cs` / `PlayerInteraction.cs` / `PlayerRewind.cs`(`IRewindable` 구현) / `PlayerStatusEffectController.cs` | 각 책임 컴포넌트 | 입력/이동/전투/상호작용/리와인드/상태이상 |
 | `PlayerHealth.cs` | 하트 6개 체력 | 플레이어/분신 공통 |
 
-### Boss (`03.Boss/`) — 단일 피통 + 페이즈 상태 패턴
+### Boss1 (`03.Boss/`, 민성, Map2 1~2P) — 씬 담당 구간 피통 + 페이즈 상태 패턴
 
 | 파일 | 핵심 타입 | 역할 |
 |---|---|---|
-| `BossController.cs` | `BossController`(`IRewindable`, `IDamageable`) | 단일 피통 64,000, 페이즈 전환, 감정 자동 전환 구동부(`CoEmotionLoop`) |
+| `BossController.cs` | `BossController`(`IRewindable`, `IDamageable`) | 이 씬 담당 구간 피통(`GameDB.Boss.TotalHealth`, `_finalPhaseIndex+1`로 분할), 페이즈 전환, 감정 자동 전환 구동부 |
 | `Phase1State.cs`~`Phase4State.cs` | `BossState` 파생 | 페이즈별 패턴·기믹. `Phase2State`가 본체+장풍, `Phase3/4State`는 `Phase2State` 상속 |
-| `BossEmotion.cs` | enum + `BossEmotionExtensions` | 감정 6종의 반사/낙뢰배율 판정 |
+| `BossEmotion.cs` / `BossEmotionController.cs` | enum + 감정 컨트롤러 | 감정 6종의 반사/낙뢰배율 판정, 결정 로그 |
 | `BossLightningPattern.cs` | `IBossPattern` 구현 | 전 페이즈 공통 낙뢰 |
 | `BossHazardPool.cs` | 해저드 풀 | 레이저/안전구역/장풍 등 공유 판정·연출 오브젝트 |
 | `BossCloneController.cs` / `BossBodyController.cs` / `BossMeleeUnitBase.cs` | 근접 유닛 | 1페이즈 분신 / 2페이즈~ 본체 |
+| `BossHandoff.cs` | 정적 캐리어 | Map2->Map3 씬 전환 간 보스 상태 이관 |
+
+### Boss2 (`03.Boss/Boss2/`, 진욱, Map3 3~4P) — 독립 피통 부유체 (네임스페이스 없음, `Minsung.Boss` 공용 인프라만 소비)
+
+| 파일 | 핵심 타입 | 역할 |
+|---|---|---|
+| `Boss2Health.cs` | `Boss2Health`(`IDamageable`, `IRewindable`) | 독립 피통 + 페이즈(3->4) 전환 + 감정 반사 위임 + 공간찢기 동결 |
+| `BossFloatMovement.cs` | 부유 이동 | 배회/추적/돌진(스크립트 돌진 포함), Kinematic Rigidbody2D 직접 제어 |
+| `Boss2AttackPatterns.cs` | 원거리 패턴 코디네이터 | `Boss2LightningPattern`/`Boss2WavePattern`/`Boss2LaserPattern` 생성·구동 |
+| `Boss2GrabPattern.cs` / `Boss2SpaceTearPattern.cs` | 4P 전용 패턴 | 손아귀(진욱) / 공간찢기(민성, `Boss2DodgeableKillHazard` 회피 즉사) |
+| `Boss2BrandController.cs` / `Boss2AltarSpawner.cs` / `Boss2AltarInteractive.cs` | 3P 낙인·제단 | 낙인 스택(7=즉사) + 정화 제단(E키 홀드) |
+| `Boss2Emotion.cs` / `Boss2EmotionController.cs` | 감정 이식 | 명명 충돌 회피로 `Boss2` 접두사(boss.md 5-1절) |
+
+> Boss2 상세 구조·씬 배선·코드 흐름·알려진 이슈는 `claude/boss.md` 5~14장 참고.
 
 ### Monster (`02.Monster/`)
 
@@ -88,7 +103,7 @@
 | 항목 | 문서상 표기 | 실측 결과 | 조치 |
 |---|---|---|---|
 | `claude/coding-convention.md` | 과거 `claude/codingconvention.md`(하이픈 없음)로 여러 문서에서 참조됨 | 실제 파일명은 `coding-convention.md`(하이픈 있음) | 2026-07-11에 전 참조 수정 완료(커밋 `ab9a479`/`5c1b7ce` 등) — 재발 방지로 이 표에 남김 |
-| 3페이즈 전용 맵 씬 | `BossController._phase3SceneName` 필드 존재 | 씬 자체는 아직 미제작(현재 `"Boss"` 자기 재로드로 임시 설정) | 명진 담당, `claude/PLAN.md` "해야 할 것" 참고 |
+| 3~4페이즈 전용 맵 씬 | 과거 미제작(임시 자기 재로드) | `Assets/00.Scenes/Map3.unity` 제작됨 - Boss1(Map2) 2P 종료 시 아웃트로 후 Map3로 전환, Boss2 시스템이 3~4P 담당 | 해결됨. 잔여 미완 작업은 영속 메모리(`MEMORY.md`) 참고 |
 
 ## 관련 문서
 
@@ -98,7 +113,7 @@
 
 ```
 MASTER_FILE_INDEX.md를 이 저장소 기준으로 다시 생성해줘.
-- Assets/01.Scripts/ 하위 폴더(00~11, Ex)별로 진입점 파일을 Glob으로 실존 확인해
+- Assets/01.Scripts/ 하위 폴더(00.Common~12.Item, 03.Boss/Boss2 포함)별로 진입점 파일을 Glob으로 실존 확인해
   표(파일|핵심 타입|네임스페이스|역할)로 정리.
 - 실존 확인 못 한 항목은 "경로 미확인·불일치 항목" 절로 분리.
 - claude/CLAUDE.md의 폴더 설명과 대조해 불일치가 있으면 그것도 이 절에 기재.

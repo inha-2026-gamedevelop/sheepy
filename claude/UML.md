@@ -1,6 +1,6 @@
 # UML — The Last Re:wind
 
-> `Assets/01.Scripts` 전체(135개 스크립트, 전부 `Minsung.*` 네임스페이스 - 샘플 코드였던 `Ex/`는 2026-07-18 완전 제거됨)를 기준으로 생성. Mermaid `classDiagram` 문법 사용 (GitHub/대부분의 Markdown 뷰어에서 렌더링됨).
+> `Assets/01.Scripts` 전체(180개 스크립트 - 대부분 `Minsung.*` 네임스페이스, `03.Boss/Boss2/`는 팀 컨벤션상 무네임스페이스. 샘플 코드였던 `Ex/`는 2026-07-18 완전 제거됨)를 기준으로 생성. Mermaid `classDiagram` 문법 사용 (GitHub/대부분의 Markdown 뷰어에서 렌더링됨).
 > 클래스당 전체 멤버가 아니라 역할을 보여주는 핵심 멤버만 표기. 코드가 실제 소스이며, 이 문서는 구조 파악용 스냅샷이다.
 
 ## 목차
@@ -476,6 +476,83 @@ classDiagram
 
 ---
 
+## 5.5 Boss2 (Map3, 진욱 - 3~4페이즈 별도 시스템)
+
+`Minsung.Boss`를 수정하지 않는 독립 시스템. 팀 컨벤션상 **네임스페이스 없음**(무네임스페이스). 재사용 가능한 공용 인프라(`BossHazardPool`/`DamageHazard`/`HeartPickup`/`RewindManager`/`IDamageable`/`IRewindable`)만 소비한다. 씬 배선·코드 흐름·좌표 변수 정리는 `claude/boss.md` 5장 참고.
+
+```mermaid
+classDiagram
+    class Boss2Health {
+        <<MonoBehaviour>>
+        +MaxHealth float
+        +CurrentHealth float
+        +PhaseIndex int
+        +OnHealthChanged Action~float,float~
+        +OnPhaseChanged Action~int~
+        +OnSpaceTearTriggered Action
+        +TakeDamage(float, DamageSource, PlayerHealth) bool
+        +EndSpaceTearFreeze()
+    }
+    class BossFloatMovement {
+        <<MonoBehaviour>>
+        +TryBeginScriptedMovement(...)
+        +EndScriptedMovement()
+        +OnRewindStart()/OnRewindEnd()
+    }
+    class Boss2AttackPatterns {
+        <<MonoBehaviour>>
+        +StartPatterns()
+        +StopPatterns()
+    }
+    class Boss2EmotionController {
+        <<MonoBehaviour>>
+        +Current Boss2Emotion
+        +ReflectIfNeeded(DamageSource, PlayerHealth) bool
+    }
+    class Boss2Emotion {
+        <<enum>>
+        Black / White / Navy / Pink / Blue / Angry
+    }
+    class Boss2LightningPattern
+    class Boss2WavePattern
+    class Boss2LaserPattern
+    class Boss2GrabPattern
+    class Boss2SpaceTearPattern
+    class Boss2BrandController
+    class Boss2AltarSpawner
+    class Boss2AltarInteractive
+    class Boss2DodgeableKillHazard {
+        <<MonoBehaviour>>
+        회피 가능 즉사 (IsDodgeInvincible이면 무시)
+    }
+
+    Boss2Health ..|> IDamageable
+    Boss2Health ..|> IRewindable
+    BossFloatMovement ..|> IRewindable
+    Boss2Health --> Boss2EmotionController : ReflectIfNeeded 위임
+    Boss2EmotionController ..> Boss2Emotion
+    Boss2AttackPatterns *-- Boss2LightningPattern : new
+    Boss2AttackPatterns *-- Boss2WavePattern : new
+    Boss2AttackPatterns *-- Boss2LaserPattern : new
+    Boss2LightningPattern --> BossHazardPool : 재사용
+    Boss2WavePattern --> BossHazardPool : 재사용
+    Boss2LaserPattern --> BossHazardPool : 재사용
+    Boss2SpaceTearPattern --> Boss2DodgeableKillHazard : 돌진 판정
+    Boss2SpaceTearPattern --> Boss2Health : 동결/해제
+    BossFloatMovement --> DamageHazard : 돌진 히트박스(재사용)
+    Boss2BrandController --> Boss2AltarSpawner
+    Boss2AltarSpawner ..> Boss2AltarInteractive
+    RewindManager --> Boss2Health : Register/RecordTick/Apply
+    RewindManager --> BossFloatMovement
+    RewindManager --> Boss2AttackPatterns
+```
+
+- `Boss2DataSO`(`00.Common/Data/`)는 Boss2 전용 밸런싱 DB로 **GameDatabaseSO 트리에 연결하지 않고** 컴포넌트에 직접 드래그한다(GameDB 정적 접근자 대상 아님).
+- 감정 클래스는 `Minsung.Boss` 동명 타입과의 컴파일 충돌 회피를 위해 `Boss2` 접두사를 쓴다(`claude/boss.md` 5-1절).
+- 공간찢기(민성 구현)는 절대 즉사 `DamageHazard`/`PlayerHealth.Kill()`을 건드리지 않고 전용 `Boss2DodgeableKillHazard`로만 처리한다.
+
+---
+
 ## 6. Interactive
 
 ```mermaid
@@ -794,10 +871,10 @@ classDiagram
 
 ## 참고
 
-- 클래스/인터페이스 수: 총 135개 스크립트 (enum/struct/static 유틸 포함, 전부 `Minsung.*` 프로덕션 코드).
-- `IRewindable` 구현체: `PlayerRewind`, `MonsterController`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`), `CloneController`, `LeverInteractive`, `ElevatorController`, `LpManager`, `PotionManager`.
+- 클래스/인터페이스 수: 총 180개 스크립트 (enum/struct/static 유틸 포함 - 대부분 `Minsung.*`, `03.Boss/Boss2/`는 무네임스페이스).
+- `IRewindable` 구현체: `PlayerRewind`, `MonsterController`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`), `CloneController`, `LeverInteractive`, `ElevatorController`, `LpManager`, `PotionManager`, `Boss2Health`, `BossFloatMovement`(Boss2).
 - `ICommandActor` 구현체: `PlayerController`(코디네이터), `CloneController`.
-- `IDamageable` 구현체: `MonsterHealth`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`).
+- `IDamageable` 구현체: `MonsterHealth`, `BossController`, `BossMeleeUnitBase`(->`BossBodyController`, `BossCloneController`), `Boss2Health`(Boss2).
 - `IHoldInteractable` 구현체: `ElevatorButtonInteractive`.
 - `PersistentSingleton<T>` 상속: `GameManager`, `KeyGuideManager`, `SpriteReference`, `AchievementManager`, `ScreenFade`, `ParticlePresets`, `CameraManager`, `SoundManager`, `CaptionManager`, `ElevatorManager`.
 - 다이어그램은 스냅샷이므로, 클래스 추가/삭제나 인터페이스 변경 시 수동으로 갱신해야 한다.

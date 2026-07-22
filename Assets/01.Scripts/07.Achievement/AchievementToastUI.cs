@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+using Minsung.Sound;
+
 namespace Minsung.Achievement
 {
     // 업적 해제 시 화면 한쪽에 잠깐 떴다 사라지는 토스트(스팀 스타일).
@@ -81,6 +83,8 @@ namespace Minsung.Achievement
                 _iconImage.sprite = data.Icon;
                 _titleText.text = data.Title;
                 _descriptionText.text = data.Description;
+
+                SoundManager.Instance?.PlaySFX(ESfxState.UI, (int)EUISfx.AchievementToast);
 
                 yield return Fade(0f, 1f);
                 yield return _waitShow;

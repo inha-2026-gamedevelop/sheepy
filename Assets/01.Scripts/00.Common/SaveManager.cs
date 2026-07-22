@@ -14,6 +14,24 @@ namespace Minsung.Common
     public class SaveManager : PersistentSingleton<SaveManager>
     {
         /****************************************
+        *              Unity Event
+        ****************************************/
+
+        // 도메인 리로드를 꺼도 static이 깨끗하게 초기화되도록
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            ResetStatic();
+        }
+
+        // 씬에 배치하지 않아도 동작하도록 씬 로드 후 자동 생성 - 어느 씬에서든 저장이 무동작하지 않게 보장
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void EnsureInstance()
+        {
+            EnsureCreated(nameof(SaveManager));
+        }
+
+        /****************************************
         *                Methods
         ****************************************/
 
@@ -51,6 +69,7 @@ namespace Minsung.Common
         {
             var data = new SaveData(sceneName, position, facingDir, useDefaultSpawn);
             PlayerPrefs.SetString(Constants.Save.KEY_PLAYER_STATE, JsonUtility.ToJson(data));
+            TouchLocalUpdatedAt();
             PlayerPrefs.Save();
         }
 
@@ -86,9 +105,32 @@ namespace Minsung.Common
         /// <summary> 저장된 플레이어 상태 삭제 (새 게임 시작 등). 닉네임(계정)은 유지한다. </summary>
         public void ClearPlayerState()
         {
+            PlayerPrefs.DeleteKey(Constants.Save.KEY_SLOW_ABILITY_UNLOCKED);
             PlayerPrefs.DeleteKey(Constants.Save.KEY_PLAYER_STATE);
             PlayerPrefs.DeleteKey(Constants.Save.KEY_BOSS_CLEARED);
+            TouchLocalUpdatedAt(); // 리셋도 하나의 "변경"이므로 최신 시각으로 기록 - 서버 리셋과 동기화 비교 시 일관성 유지
             PlayerPrefs.Save();
+        }
+
+        /****************************************
+        *      동기화(서버 vs 로컬 최신 비교)
+        ****************************************/
+
+        /// <summary> 로컬 진행 데이터가 마지막으로 변경된 시각(UTC). 기록이 없으면 DateTime.MinValue. </summary>
+        public DateTime GetLocalUpdatedAtUtc()
+        {
+            string raw = PlayerPrefs.GetString(Constants.Save.KEY_LOCAL_UPDATED_AT, string.Empty);
+            if (string.IsNullOrEmpty(raw) || !long.TryParse(raw, out long ticks))
+            {
+                return DateTime.MinValue;
+            }
+            return new DateTime(ticks, DateTimeKind.Utc);
+        }
+
+        // 로컬 진행 데이터(위치/보스클리어 등)를 바꿀 때마다 호출 - 서버와의 최신성 비교 기준점
+        private void TouchLocalUpdatedAt()
+        {
+            PlayerPrefs.SetString(Constants.Save.KEY_LOCAL_UPDATED_AT, DateTime.UtcNow.Ticks.ToString());
         }
 
         /****************************************
@@ -114,6 +156,18 @@ namespace Minsung.Common
             PlayerPrefs.Save();
         }
 
+        public bool IsSlowAbilityUnlocked()
+        {
+            return PlayerPrefs.GetInt(Constants.Save.KEY_SLOW_ABILITY_UNLOCKED, 0) == 1;
+        }
+
+        public void SetSlowAbilityUnlocked(bool unlocked)
+        {
+            PlayerPrefs.SetInt(Constants.Save.KEY_SLOW_ABILITY_UNLOCKED, unlocked ? 1 : 0);
+            TouchLocalUpdatedAt();
+            PlayerPrefs.Save();
+        }
+
         /****************************************
         *              보스 클리어 여부
         ****************************************/
@@ -128,6 +182,7 @@ namespace Minsung.Common
         public void SetBossCleared(bool cleared)
         {
             PlayerPrefs.SetInt(Constants.Save.KEY_BOSS_CLEARED, cleared ? 1 : 0);
+            TouchLocalUpdatedAt();
             PlayerPrefs.Save();
         }
     }

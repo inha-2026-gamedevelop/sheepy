@@ -118,6 +118,18 @@ namespace Minsung.Player
             _rb.linearVelocity = v;
         }
 
+        /// <summary> 지정한 속도로 즉시 튕겨낸다 (보스 손아귀 투척 등). Kinematic 잠금 상태였어도 Dynamic으로 되돌리고 속도를 준다. </summary>
+        public void Launch(Vector2 velocity)
+        {
+            if (_coRestorePhysics != null)
+            {
+                StopCoroutine(_coRestorePhysics); // 상호작용 물리 복구 대기와 경합하지 않도록 여기서 Dynamic 확정
+                _coRestorePhysics = null;
+            }
+            _rb.bodyType       = RigidbodyType2D.Dynamic;
+            _rb.linearVelocity = velocity;
+        }
+
         /// <summary> 피격 넉백 - 피해 지점 반대 방향으로 밀려나며 짧은 경직. 경직 중엔 Move가 속도를 덮지 않는다. </summary>
         public void ApplyKnockback(Vector2 sourcePosition)
         {

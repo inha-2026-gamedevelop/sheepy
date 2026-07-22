@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21bf5a37748611d45b8f793e429ba4ca, type: 3}
   m_Name: Achievement_100Rewind
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Achievement.AchievementData
-  _id: "100Rewind\uAE30"
-  _title: 
-  _description: 
+  _id: rewind_100
+  _title: "\uD0C0\uC784 \uB8E8\uD37C"
+  _description: "\uB418\uAC10\uAE30 100\uBC88 \uC0AC\uC6A9"
   _icon: {fileID: 0}

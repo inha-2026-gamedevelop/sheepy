@@ -21,6 +21,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 163b3f2a4907fa648a6741d0f61669aa, type: 3}
   - _clips:
     - {fileID: 8300000, guid: 5ceaef15bbced6e4f9bd623cb8e3f6a3, type: 3}
+    - {fileID: 8300000, guid: b7807fbed8b3be3429f02355330da3d1, type: 3}
   - _clips:
     - {fileID: 0}
     - {fileID: 0}
@@ -84,4 +85,4 @@ MonoBehaviour:
   - _sfxName: UI
     _clips:
     - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 10ad2ede579a8954f8591f5d1e03495f, type: 3}

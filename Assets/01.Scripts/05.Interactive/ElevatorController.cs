@@ -4,6 +4,7 @@ using System.Collections.Generic;
 // Unity
 using UnityEngine;
 
+using Minsung.Achievement;
 using Minsung.Common;
 using Minsung.Sound;
 using Minsung.TimeSystem;
@@ -160,6 +161,10 @@ namespace Minsung.Interactive
             if (pulled)
             {
                 _pulledLevers.Add(lever);
+                if (_pulledLevers.Count >= 2)
+                {
+                    AchievementTrigger.LeversSynchronized(); // 서로 다른 레버 2개가 창 안에서 동시에 당겨짐 - "싱크로나이즈드 올림픽"
+                }
             }
             else
             {

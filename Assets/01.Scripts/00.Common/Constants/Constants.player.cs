@@ -15,6 +15,7 @@ namespace Minsung.Common
             public const KeyCode KEY_REWIND        = KeyCode.R;
             public const KeyCode KEY_CLEAR_CLONES  = KeyCode.T;
             public const KeyCode KEY_DODGE_INVINCIBLE = KeyCode.LeftControl; // 전용 무적키(보스 즉사기 회피용) - E 상호작용/Shift 슬로우와 분리(임시값, Input 충돌 검사 후 확정)
+            public const KeyCode KEY_INTERACT         = KeyCode.E;           // 상호작용/연타 탈출(보스 손아귀 포박) 키 - PlayerInteractionSensor 기본값과 동일
 
             public const string  AXIS_HORIZONTAL   = "Horizontal";
 
