@@ -16,9 +16,11 @@ namespace Minsung.UI
 
         [SerializeField] private CanvasGroup[] _cards;
 
-        [SerializeField, Min(0f)]    private float _startDelaySeconds = 3f;
+        [SerializeField, Min(0f)]    private float _startDelaySeconds = 0f;
         [SerializeField, Min(0.1f)]  private float _displaySeconds    = 2.5f;
-        [SerializeField, Min(0.05f)] private float _fadeSeconds       = 1f;
+        [SerializeField, Min(0.05f)] private float _fadeSeconds       = 0.3f;
+
+        public bool IsComplete { get; private set; }
 
         public void SetCards(CanvasGroup[] cards) => _cards = cards;
 
@@ -30,9 +32,11 @@ namespace Minsung.UI
         {
             if ((_cards == null) || (_cards.Length == 0))
             {
+                IsComplete = true;
                 return;
             }
 
+            IsComplete = false;
             StartCoroutine(CoCycle());
         }
 
@@ -49,12 +53,14 @@ namespace Minsung.UI
 
             yield return new WaitForSecondsRealtime(_startDelaySeconds);
 
-            for (int i = 0; ; i = (i + 1) % _cards.Length)
+            for (int i = 0; i < _cards.Length; ++i)
             {
                 yield return CoFade(_cards[i], 0f, 1f);
                 yield return new WaitForSecondsRealtime(_displaySeconds);
                 yield return CoFade(_cards[i], 1f, 0f);
             }
+
+            IsComplete = true;
         }
 
         private IEnumerator CoFade(CanvasGroup card, float from, float to)

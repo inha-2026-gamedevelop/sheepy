@@ -4,9 +4,6 @@ namespace Minsung.Common
     {
         public static class UI
         {
-            // 페이드
-            public const float FADE_DURATION        = 0.5f;
-
             // 팝업
             public const float POPUP_ANIM_DURATION  = 0.2f;
 
@@ -23,6 +20,8 @@ namespace Minsung.Common
 
             // 로딩씬
             public const float LOADING_MIN_DISPLAY_SECONDS = 0.5f; // 최소 노출 시간 (즉시 완료 시 화면이 깜빡여 보이는 것 방지)
+            public const float SCENE_FADE_DURATION         = 1f;   // 모든 씬 전환 Fade Out / Fade In 시간
+            public const float SCENE_ACTIVATION_PROGRESS   = 0.9f; // AsyncOperation.progress가 여기서 멈춰 있다가 activation 시 1로 점프하는 Unity 계약값
 
             // 메뉴 선택 파티클 버스트
             public const float MENU_BURST_DELAY_SECONDS = 0.35f; // 버스트 재생 후 씬 전환까지 대기 시간
