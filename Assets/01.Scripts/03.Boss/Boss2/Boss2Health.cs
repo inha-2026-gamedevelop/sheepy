@@ -31,6 +31,7 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
     // 공간찢기(4페이즈 즉사기): 체력 임계 첫 통과 시 1회 발동하고, 시퀀스가 끝날 때까지 피해를 동결한다
     private bool _spaceTearTriggered; // 한 전투 1회 - 리와인드 대상 아님(무한 재발동 방지)
     private bool _spaceTearActive;    // 시퀀스 동안 피해 동결
+    private bool _phase4IntroActive;  // 4페이즈 진입 연출 동안 피해 동결 (연출이 BeginPhase4IntroFreeze/End로 제어)
 
     // Boss 루트(부모)에 Boss2AttackPatterns가 붙이는 컴포넌트 - HitCenter는 자식이라 GetComponentInParent로 찾는다
     private Boss2EmotionController _emotionController;
@@ -107,8 +108,8 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
 
     public bool TakeDamage(float dmg, DamageSource source = DamageSource.Player, PlayerHealth attacker = null)
     {
-        // 공간찢기 시퀀스 동안은 피해 동결 - 5회 돌진이 끝나 EndSpaceTearFreeze()가 풀어줄 때까지
-        if ((_isRewinding) || (_spaceTearActive) || (_currentHealth <= PhaseFloorHealth))
+        // 공간찢기/4페이즈 진입 연출 동안은 피해 동결 - 각 시퀀스가 End...()로 풀어줄 때까지
+        if ((_isRewinding) || (_spaceTearActive) || (_phase4IntroActive) || (_currentHealth <= PhaseFloorHealth))
         {
             return false;
         }
@@ -160,6 +161,18 @@ public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
     public void EndSpaceTearFreeze()
     {
         _spaceTearActive = false;
+    }
+
+    /// <summary> 4페이즈 진입 연출 시작 - 연출 동안 보스 피격을 동결한다 (Boss2Phase4Intro가 제어) </summary>
+    public void BeginPhase4IntroFreeze()
+    {
+        _phase4IntroActive = true;
+    }
+
+    /// <summary> 4페이즈 진입 연출 종료 - 피격 동결 해제. 여러 번 호출해도 안전 </summary>
+    public void EndPhase4IntroFreeze()
+    {
+        _phase4IntroActive = false;
     }
 
     // 페이즈 하한 도달 - 다음 페이즈로 넘어가 하한을 다시 계산한다(boss.md에 3~4페이즈 경계 전용 기믹이 없어 즉시 전환)
