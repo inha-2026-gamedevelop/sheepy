@@ -26228,6 +26228,7 @@ GameObject:
   m_Component:
   - component: {fileID: 706131017}
   - component: {fileID: 706131018}
+  - component: {fileID: 706131019}
   m_Layer: 0
   m_Name: FocusCamera
   m_TagString: Untagged
@@ -26293,6 +26294,30 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &706131019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706131016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &709596951
 GameObject:
   m_ObjectHideFlags: 0
@@ -44049,6 +44074,7 @@ GameObject:
   - component: {fileID: 1151963188}
   - component: {fileID: 1151963190}
   - component: {fileID: 1151963189}
+  - component: {fileID: 1151963191}
   m_Layer: 0
   m_Name: PlayerCamera
   m_TagString: Untagged
@@ -44145,6 +44171,30 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &1151963191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1151963187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &1155760930
 GameObject:
   m_ObjectHideFlags: 0
@@ -69599,6 +69649,7 @@ GameObject:
   - component: {fileID: 1684505837}
   - component: {fileID: 1684505838}
   - component: {fileID: 1684505839}
+  - component: {fileID: 1684505840}
   m_Layer: 0
   m_Name: Boss
   m_TagString: Untagged
@@ -69792,7 +69843,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1684505828}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b42f5c6eccac5454fb29cf05871b43f0, type: 3}
   m_Name: 
@@ -69840,6 +69891,28 @@ MonoBehaviour:
   - {fileID: 1962040761}
   _aura: {fileID: 1511763655}
   _screamOpenCloseTime: 0.4
+--- !u!114 &1684505840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684505828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e40b970da67c045afa03f1a29b31a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Boss2.Boss2DeathSequence
+  _health: {fileID: 1342816283}
+  _dataSo: {fileID: 11400000, guid: 7744d4dd47f44a34b823a2cea6d4e593, type: 2}
+  _movement: {fileID: 1684505830}
+  _patterns: {fileID: 1684505834}
+  _auraParticles: {fileID: 1511763658}
+  _bodyRenderers:
+  - {fileID: 1565207778}
+  - {fileID: 1962040762}
+  - {fileID: 472069065}
+  _impulseSource: {fileID: 0}
 --- !u!1 &1686737292
 GameObject:
   m_ObjectHideFlags: 0

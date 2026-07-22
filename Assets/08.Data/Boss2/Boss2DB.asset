@@ -26,7 +26,7 @@ MonoBehaviour:
   _chargeSpeed: 9
   _chargeDuration: 1.2
   _chargeArriveThreshold: 0.2
-  _maxHealth: 300
+  _maxHealth: 2
   _phaseCount: 2
   _lightningInterval: 4
   _lightningTelegraphTime: 0.8

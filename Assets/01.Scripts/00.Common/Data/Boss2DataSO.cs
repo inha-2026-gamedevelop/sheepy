@@ -179,6 +179,16 @@ namespace Minsung.Boss2
         [SerializeField] private float _phase4IntroCameraSize     = 4f;   // 연출 동안 포커스 카메라 Orthographic Size
         [SerializeField] private float _phase4IntroCameraBlend    = 0.6f; // 카메라 포커스 진입/복귀 블렌드 시간(초)
 
+        [Header("4페이즈 사망 연출")]
+        [SerializeField] private int   _deathAuraBurstCount = 40;   // 오라 사방 분출 파티클 개수
+        [SerializeField] private float _deathAuraBurstSpeed = 5f;   // 오라 분출 속도(유닛/초)
+        [SerializeField] private float _deathShakeForce     = 1.2f; // 카메라 흔들림 세기(Cinemachine Impulse Force)
+        [SerializeField] private float _deathShakeDuration  = 0.6f; // 카메라 흔들림 지속시간(초)
+        [SerializeField] private float _deathFlashDuration  = 0.15f;// 본체 섬광(흰색) 지속시간(초)
+        [SerializeField] private float _deathFadeDuration   = 1.2f; // 섬광 이후 본체가 서서히 사라지는 시간(초)
+        [SerializeField] private float _deathCameraZoomSize = 6f;   // 연출 동안 보스를 비추는 포커스 카메라 Orthographic Size(줌아웃)
+        [SerializeField] private float _deathCameraBlend    = 0.5f; // 카메라 포커스 진입/복귀 블렌드 시간(초)
+
         /****************************************
         *              Properties
         ****************************************/
@@ -309,5 +319,14 @@ namespace Minsung.Boss2
         public float Phase4IntroScreamDuration => _phase4IntroScreamDuration;
         public float Phase4IntroCameraSize     => _phase4IntroCameraSize;
         public float Phase4IntroCameraBlend    => _phase4IntroCameraBlend;
+
+        public int   DeathAuraBurstCount => _deathAuraBurstCount;
+        public float DeathAuraBurstSpeed => _deathAuraBurstSpeed;
+        public float DeathShakeForce     => _deathShakeForce;
+        public float DeathShakeDuration  => _deathShakeDuration;
+        public float DeathFlashDuration  => _deathFlashDuration;
+        public float DeathFadeDuration   => _deathFadeDuration;
+        public float DeathCameraZoomSize => _deathCameraZoomSize;
+        public float DeathCameraBlend    => _deathCameraBlend;
     }
 }

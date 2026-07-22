@@ -125,7 +125,9 @@ namespace Minsung.Boss2
             float projected = Mathf.Max(PhaseFloorHealth, _currentHealth - dmg);
 
             // 4페이즈에서 체력 임계(기본 10%)를 처음 통과하는 순간 - 정확히 임계로 클램프하고 동결 + 공간찢기 발동(1회)
-            if ((!_spaceTearTriggered) && IsFinalPhase && (_dataSo != null))
+            // OnSpaceTearTriggered에 리스너가 없으면(Boss2SpaceTearPattern 비활성화 등) 동결만 걸고 아무도 안 풀어줘 보스가 영구 무적이 되므로,
+            // 리스너가 없을 땐 애초에 발동을 건너뛰고 평소처럼 데미지를 통과시킨다
+            if ((!_spaceTearTriggered) && IsFinalPhase && (_dataSo != null) && (OnSpaceTearTriggered != null))
             {
                 float threshold = MaxHealth * _dataSo.SpaceTearHealthPercent;
                 if ((_currentHealth > threshold) && (projected <= threshold))
