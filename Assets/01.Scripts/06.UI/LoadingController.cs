@@ -20,6 +20,8 @@ namespace Minsung.UI
 
         [SerializeField] private Slider _progressSlider;
 
+        public void SetProgressSlider(Slider slider) => _progressSlider = slider;
+
         /****************************************
         *              Unity Event
         ****************************************/

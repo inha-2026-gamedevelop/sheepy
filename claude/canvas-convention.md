@@ -32,3 +32,7 @@
 - 기준 해상도는 FHD(1920x1080) 고정. UI 배치는 이 해상도 기준으로 작업한다
 - Match 0.5는 가로/세로 어느 쪽으로 화면비가 변해도 UI가 균형 있게 스케일되도록 하기 위함
 - 특수 목적 캔버스(월드 스페이스 UI 등)는 예외지만, 씬의 기본 UI를 담는 메인 캔버스는 반드시 이 규칙을 따른다
+
+## 예외
+
+- **`00.GameLoading` 씬의 `GameLoadingCanvas`**: Render Mode를 Screen Space - Camera로 사용 (Main Camera 연결, Plane Distance 15). Screen Space - Overlay는 카메라 포스트프로세싱(Bloom 등)을 거치지 않고 화면에 바로 합성되어, 로딩 화면의 Bloom 기반 글로우 연출이 적용되지 않기 때문. CanvasScaler 설정(Reference Resolution 등)은 기존 규칙과 동일하게 유지
