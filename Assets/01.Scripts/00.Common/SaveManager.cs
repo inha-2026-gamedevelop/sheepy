@@ -105,6 +105,7 @@ namespace Minsung.Common
         /// <summary> 저장된 플레이어 상태 삭제 (새 게임 시작 등). 닉네임(계정)은 유지한다. </summary>
         public void ClearPlayerState()
         {
+            PlayerPrefs.DeleteKey(Constants.Save.KEY_SLOW_ABILITY_UNLOCKED);
             PlayerPrefs.DeleteKey(Constants.Save.KEY_PLAYER_STATE);
             PlayerPrefs.DeleteKey(Constants.Save.KEY_BOSS_CLEARED);
             TouchLocalUpdatedAt(); // 리셋도 하나의 "변경"이므로 최신 시각으로 기록 - 서버 리셋과 동기화 비교 시 일관성 유지
@@ -152,6 +153,18 @@ namespace Minsung.Common
         public void SaveUsername(string username)
         {
             PlayerPrefs.SetString(Constants.Save.KEY_USERNAME, username);
+            PlayerPrefs.Save();
+        }
+
+        public bool IsSlowAbilityUnlocked()
+        {
+            return PlayerPrefs.GetInt(Constants.Save.KEY_SLOW_ABILITY_UNLOCKED, 0) == 1;
+        }
+
+        public void SetSlowAbilityUnlocked(bool unlocked)
+        {
+            PlayerPrefs.SetInt(Constants.Save.KEY_SLOW_ABILITY_UNLOCKED, unlocked ? 1 : 0);
+            TouchLocalUpdatedAt();
             PlayerPrefs.Save();
         }
 

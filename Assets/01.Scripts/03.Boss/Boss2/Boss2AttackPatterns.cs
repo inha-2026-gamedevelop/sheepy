@@ -71,6 +71,10 @@ namespace Minsung.Boss2
             RewindManager.Instance?.Register(this);
 
             // 보스 스폰 == 전투 시작으로 간주 - Boss2엔 별도 입장 트리거가 없어 여기서 클리어 타이머를 켠다
+            // Map2 보스 격파 후 Map3로 이어지는 경우, 이전 씬의 아웃트로가 타이머를
+            // 전환 정지 상태로 남긴다. 이미 진행 중인 타이머는 StartBossTimer가 초기화하지
+            // 않으므로 Map3 보스가 준비된 시점에 반드시 정지를 해제해야 한다.
+            GameManager.Instance?.SetBossTimerTransitionPaused(false);
             GameManager.Instance?.StartBossTimer();
             // Boss1(BossController.BeginBattle)과 동일한 줌아웃 값 - 아레나가 한 화면에 들어오도록(Map2/Map3 공통)
             CameraManager.Instance?.SetPlayerZoom(Constants.Camera.BOSS_ORTHOGRAPHIC_SIZE);

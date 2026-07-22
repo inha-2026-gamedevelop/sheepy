@@ -88,10 +88,12 @@ namespace Minsung.TimeSystem
         {
             _capacity       = TickCapacity;
             _rewindDuration = GameDB.Time.RewindDuration;
+            Debug.Log($"[RewindDebug] RewindManager loaded. scene={gameObject.scene.name}, capacity={_capacity}, duration={_rewindDuration:F2}, timeScale={Time.timeScale:F2}");
         }
 
         private void Start()
         {
+            Debug.Log($"[RewindDebug] Rewind recording loop started. scene={gameObject.scene.name}");
             StartCoroutine(CoTickLoop());
         }
 
@@ -125,8 +127,19 @@ namespace Minsung.TimeSystem
         /// <summary> 되감기 시작. 잠겨 있거나 이미 되감는 중이거나 기록이 없으면 무시. </summary>
         public void StartRewind()
         {
-            if (!IsRewindEnabled || _isRewinding || (_recordedTicks == 0))
+            if (!IsRewindEnabled)
             {
+                Debug.LogWarning($"[RewindDebug] Rewind rejected: locked. records={_recordedTicks}, locks={_rewindLocks.Count}");
+                return;
+            }
+            if (_isRewinding)
+            {
+                Debug.LogWarning("[RewindDebug] Rewind rejected: already rewinding.");
+                return;
+            }
+            if (_recordedTicks == 0)
+            {
+                Debug.LogWarning($"[RewindDebug] Rewind rejected: no recorded ticks. timeScale={Time.timeScale:F2}");
                 return;
             }
 
@@ -135,6 +148,7 @@ namespace Minsung.TimeSystem
             int fixedUpdates = Mathf.Max(1, Mathf.RoundToInt(_rewindDuration / Time.fixedDeltaTime));
             _rewindStep  = Mathf.Max(1, Mathf.CeilToInt((float)_recordedTicks / fixedUpdates));
             _isRewinding = true;
+            Debug.Log($"[RewindDebug] Rewind started. records={_recordedTicks}, step={_rewindStep}, participants={_rewindables.Count}");
 
             // 브로드캐스트 루프는 전부 역방향 순회 - 참여자가 콜백 안에서 자신을 Unregister(분신 풀 반환)
             // 하거나 새 참여자를 Register(분신 소환)해도 안전하다.

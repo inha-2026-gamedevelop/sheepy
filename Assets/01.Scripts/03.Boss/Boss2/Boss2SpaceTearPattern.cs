@@ -9,6 +9,7 @@ using Minsung.TimeSystem;
 using Minsung.Visual;
 using Minsung.UI;
 using Minsung.Boss;
+using Minsung.Player;
 
 namespace Minsung.Boss2
 {
@@ -68,6 +69,7 @@ namespace Minsung.Boss2
         private GameObject _hitbox;   // 돌진 즉사 판정(보스 몸통에 붙여 스윕)
         private BossHazardPool _telegraphPool; // 고정 라인 예고선(판정 없음) - Minsung.Boss 공용 인프라 재사용
         private RewindManager.RewindLockHandle? _rewindLock; // 시퀀스 동안 임시 리와인드 잠금
+        private PlayerHealth _playerHealth;
         private bool _running;
 
         /****************************************
@@ -117,6 +119,11 @@ namespace Minsung.Boss2
                 _running = false;
                 yield break;
             }
+
+            _playerHealth ??= _player != null
+                ? _player.GetComponentInParent<PlayerHealth>()
+                : null;
+            _playerHealth?.SetDodgeInvincibleCooldownOverride(0f);
 
             // 시퀀스 동안 리와인드 잠금 + 일반 패턴 정지(낙뢰/강타/레이저) + 보스 이동 독점(스크립트 이동 모드로 그 자리에 정지)
             // - 화면이 갈라지는 연출 내내 보스는 가만히 있어야 하므로 트리거 즉시(배너보다도 먼저) 멈춘다
@@ -326,6 +333,7 @@ namespace Minsung.Boss2
             _overlay?.Deactivate();
             _patterns?.ResumeNormalPatterns();
             _health?.EndSpaceTearFreeze();
+            _playerHealth?.ClearDodgeInvincibleCooldownOverride();
 
             if (_rewindLock.HasValue)
             {

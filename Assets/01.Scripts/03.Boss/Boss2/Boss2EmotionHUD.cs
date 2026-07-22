@@ -45,6 +45,7 @@ namespace Minsung.Boss2
                 return;
             }
 
+            EnsureTooltip(_subscribedEmotionController);
             _subscribedEmotionController.OnEmotionChanged += Redraw;
             Redraw(_subscribedEmotionController.CurrentEmotion);
         }
@@ -66,6 +67,21 @@ namespace Minsung.Boss2
             }
 
             return GetComponentInParent<Boss2EmotionController>();
+        }
+
+        private void EnsureTooltip(Boss2EmotionController emotionController)
+        {
+            if (_emotionIcon == null)
+            {
+                return;
+            }
+
+            if (!_emotionIcon.TryGetComponent(out Minsung.UI.Boss2EmotionIconTooltip tooltip))
+            {
+                tooltip = _emotionIcon.gameObject.AddComponent<Minsung.UI.Boss2EmotionIconTooltip>();
+            }
+
+            tooltip.Configure(emotionController);
         }
 
         private void Redraw(Boss2Emotion emotion)

@@ -313,6 +313,16 @@ namespace Minsung.TimeSystem
 
         private void PlayStep()
         {
+            // 보스 클리어/풀 반환/리와인드 종료가 같은 물리 틱에 겹치면
+            // 클립 끝 인덱스가 남은 채 한 번 더 호출될 수 있다.
+            if ((_index < 0) || (_index >= _clip.Count))
+            {
+                _index = _clip.Count;
+                _finished = true;
+                SnapToGroundIfAirborne();
+                return;
+            }
+
             TickCommand tick = _clip[_index];
             tick.Move.Apply(this);
             if (tick.HasAttack)

@@ -1,6 +1,6 @@
 # GameDB - ScriptableObject 밸런싱 데이터 시스템 (인수인계 문서)
 
-- 작성일: 2026-07-11 (Constants -> SO DB 이관 완료 시점 기준)
+- 작성일: 2026-07-11 (Constants -> SO DB 이관 완료 시점 기준) / 갱신: 2026-07-22 (Lp·Potion·Boss2DataSO 반영, BossDataSO 필드 최신화, 소비자 목록 재확인)
 - 대상 독자: 이 시스템을 이어받는 개발자, 그리고 그 개발자의 AI 코딩 에이전트(Claude Code 등)
 - 이 문서는 자기완결적으로 작성됐다. 이 문서만 읽어도 구조/사용법/확장 절차를 파악할 수 있다
 - AI 에이전트: 섹션 10 "AI 에이전트 작업 규칙"이 기계용 요약이고, 나머지 섹션이 그 근거다
@@ -27,8 +27,10 @@
 | `TimeDataSO.cs` | 타임시스템 밸런싱 (리와인드/분신/슬로우/MP) |
 | `LpDataSO.cs` | LP(수집 재화) 밸런싱 (드랍/자석 픽업/풀) |
 | `PotionDataSO.cs` | 포션(회복 소비 아이템) 밸런싱 (드랍/자석 픽업/풀/소지·사용) |
+| `Boss2DataSO.cs` | **(GameDB 트리 밖 독립 DB)** Boss2(Map3, 3~4P, 진욱) 전용 밸런싱. `GameDatabaseSO`에 슬롯이 없고 `GameDB.Boss2` 접근자도 없다 - 컴포넌트 인스펙터에 직접 드래그해서 쓴다. 필드 개요는 섹션 5.6 |
 
 모두 네임스페이스 `Minsung.Common.Data` (민성 소유 - 구조 변경 전 소유자 확인, 필드 추가는 섹션 6 절차대로 누구나 가능).
+`GameDatabaseSO`의 도메인 슬롯은 **5종**(`_playerSo`/`_bossSo`/`_timeSo`/`_lpSo`/`_potionSo`)이다. `Boss2DataSO`는 여기 포함되지 않는 독립 SO다.
 
 ### 2.2 에셋 - `Assets/08.Data/`
 
@@ -153,28 +155,33 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 | 이동 | MoveSpeed, JumpForce, MaxJumps, GravityScale |
 | 공격 | AttackDamage, ChargeDamageMult, ChargeTime, AttackCooldown, ProjectileSpeed, AttackFlashTime, AttackHitRadius, AttackHitLifetime |
 | 체력/사망 | MaxHearts, InvincibleDuration, DeathRespawnDelay |
-| 피격 리액션 | KnockbackForceX/Y, KnockbackStunTime, HitFlashDuration, HitFlashColor |
-| 오브 | OrbAttackRange, OrbFollowSmooth, OrbBobAmplitude, OrbBobSpeed, OrbDashSpeed, OrbHitDistance, OrbDashTimeout, OrbSize, OrbOffsets(Vector2[]), OrbColor |
+| 회피 무적 (공간찢기 파훼) | DodgeInvincibleDuration, DodgeInvincibleCooldown |
+| 피격 리액션 | KnockbackForceX/Y, KnockbackStunTime, HitFlashDuration, HitFlashColor, HitShakeForce, HitShakeDuration, HitVignetteAlpha, HitVignetteDuration, HitStopOnDamagedDuration |
+| 오브 | OrbAttackRange, OrbFollowSmooth, OrbAnchorOffset, OrbWanderRadius, OrbWanderSpeed, OrbSpacing, OrbCount, OrbDashSpeed, OrbHitDistance, OrbDashTimeout, OrbSize, OrbColor, OrbGlowColor/Intensity, OrbPulseSpeed/Amount, OrbTrailColor/Duration/Width/MinVertexDistance |
 | 시각 효과 | RewindTintColor, ChargingColor, ChargeReadyColor |
 | **계산 프로퍼티** | `MaxHeartHalves` = MaxHearts x HALVES_PER_HEART (반칸 단위 최대 체력, 체력 로직은 이 값 사용) |
 
 ### 5.2 BossDataSO (`GameDB.Boss`)
 
+> `BossDataSO`는 **Boss1(민성, Map2 1~2페이즈)** 용이다. Boss2(Map3, 3~4P)는 별도 `Boss2DataSO`(섹션 5.6)를 쓴다.
+
 | 그룹 | 프로퍼티 |
 |---|---|
-| 공통 | TotalHealth, PhaseCount(4), TimeLimit(600초 - 실시간, 초과 시 플레이어 즉사), AttackHalves, CloneAttackHalves, ReflectHalves |
-| 본체 근거리 (2페이즈~) | MoveSpeed, AttackRange, AttackCooldown, AttackActiveTime |
-| 분신 (1페이즈 2체) | CloneHealth, CloneCount, CloneAttackRange, CloneAttackCooldown, CloneAttackActiveTime, CloneMoveSpeed |
-| 낙뢰 (전 페이즈) | LightningInterval, LightningStunDuration, LightningDamageHalves, LightningFallSpeed, LightningSpawnHeight, LightningWidth/Height, LightningRatePinkMult, LightningRateBlueMult, LightningColor |
-| 감정 | ConfusionInterval, ConfusionDuration, HeartPickupHeight |
-| 1페이즈 즉사 기믹 | GimmickLaserCount, GimmickSafeZoneWidth/Alpha, GimmickTelegraphTime, GimmickLaserActiveTime, GimmickLaserHeight, GimmickRefireDelay |
-| 2페이즈 장풍 | Phase2WaveInterval, Phase2WaveRiseSpeed, Phase2WaveWidth/Height, Phase2WaveMaxHeight, Phase2WaveSpawnDepth, Phase2WaveColor |
-| 3페이즈 레이저 | Phase3LaserInterval, Phase3LaserWarningTime, Phase3LaserBlinkInterval, Phase3LaserActiveTime, Phase3LaserThickness, Phase3LaserMaxHeight, Phase3LaserWarningColor, Phase3LaserColor |
-| **계산 프로퍼티** | `PhaseHealth` = TotalHealth / PhaseCount (페이즈 하한 동결 계산에 사용) |
+| 공통 | TotalHealth(**이 씬이 담당하는 페이즈 구간 총 피통** - `BossController._finalPhaseIndex+1`로 균등 분할), TimeLimit(600초 - 실시간, 초과 시 플레이어 즉사), AttackHalves, CloneAttackHalves, ReflectHalves |
+| 본체 근거리 (2페이즈~) | MoveSpeed, AttackRange, AttackCooldown, CastCooldown, AttackActiveTime, CombatHitboxSize, CombatHitboxCenter |
+| 본체 점프/회피 | JumpCooldown, JumpArcHeight, JumpLandActiveTime, StuckEscapeDelay, DodgeCooldown, DodgeTriggerRange, DodgeBackDistance, DodgeDuration |
+| 분신 (1페이즈 2체) | CloneHealth, CloneCount, CloneAttackRange, CloneAttackCooldown, CloneActionOffset, CloneAttackActiveTime, CloneMoveSpeed, CloneEntranceLeapHeight, CloneCrowdAvoidHorizontalRange, CloneCrowdAvoidVerticalRange |
+| 낙뢰 (전 페이즈) | LightningInterval, LightningTelegraphTime/Height, LightningActiveTime, LightningStunDuration, LightningDamageHalves, LightningWidth/Height, LightningGroundEmbed, LightningPlayerRadius, LightningRatePinkMult, LightningRateBlueMult, LightningColor, LightningTelegraphColor, LightningStrikeSprites, LightningFrameInterval, LightningParticleSize/Colors |
+| 감정 | ConfusionInterval, ConfusionDuration, HeartPickupHeight, EmotionInterval |
+| 죽음 연출 | DeathLightDelay, DeathCircleDelay, DeathCircleLaunchDirection/Speed/Duration, DeathCircleFloatDuration/Amplitude/Frequency, DeathCircleReturnSpeed |
+| 1페이즈 즉사 기믹 | GimmickLaserCount, GimmickSafeZoneAlpha, GimmickTelegraphTime, GimmickLaserActiveTime, GimmickLaserHeight, GimmickRefireDelay, GimmickJudgeInterval |
+| 2페이즈 장풍 | Phase2WaveInterval, Phase2WaveWidth/Height, Phase2WaveGroundEmbed, Phase2WaveTelegraphTime, Phase2WaveActiveTime, Phase2WaveFrameInterval, Phase2WaveActiveFrameCount, Phase2WaveColor, Phase2WaveStrikeSprites, Phase2WaveParticleSize/Colors |
+| 3페이즈 레이저 | Phase3LaserInterval, Phase3LaserWarningTime, Phase3LaserBlinkInterval, Phase3LaserActiveTime, Phase3LaserRetractTime, Phase3LaserThickness, Phase3LaserWarningThickness, Phase3LaserMaxHeight, Phase3LaserWarningColor, Phase3LaserColor, Phase3LaserFlowParticleSize/Speed/Rate/Colors |
 
 - 하트 차감은 반칸(Halves) 단위: AttackHalves 2 = 한 칸, CloneAttackHalves 1 = 반 칸
+- **페이즈 1개 분량 피통은 `BossController.PhaseHealthSpan`**(= `GameDB.Boss.TotalHealth / (_finalPhaseIndex + 1)`)에서 계산한다. `BossDataSO`에는 `PhaseCount` 필드가 없다(과거 있던 필드 제거됨) - 이 씬이 담당하는 페이즈 수는 `BossController._finalPhaseIndex`가 정한다.
 - `TODO: 밸런싱` 주석이 붙은 필드는 기획 미확정 임시값
-- **주의: 현재 BossDB.asset의 TotalHealth는 400이다 (관람/테스트용 - 페이즈당 100).** 코드 기본값이자 프로덕션 값은 64000. 실 밸런스 테스트 전 인스펙터에서 되돌릴 것 (`claude/PLAN.md` 주의사항 (1)과 동일 건)
+- **주의: 현재 BossDB.asset의 TotalHealth는 1500이다 (테스트용 축소값).** 코드 기본값은 16000(이 씬=Map2가 담당하는 페이즈 구간 총 피통). 실 밸런스 테스트 전 인스펙터에서 확정할 것
 
 ### 5.3 TimeDataSO (`GameDB.Time`)
 
@@ -206,6 +213,24 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 
 - LP와 동일하게 몬스터 처치 드랍 + 자석 픽업 패턴(`LpManager`/`LpPickupPool` 참고 구현)을 그대로 재사용한다. 소지 개수는 `MaxCarryCount`로 상한을 두고(가득 차면 드랍을 줍지 못함), 사용은 `PlayerInput`의 `Constants.Player.KEY_USE_POTION`(Q) 입력 -> `PotionManager.TryUsePotion()` -> `PlayerHealth.Heal(HealHalves)`
 
+### 5.6 Boss2DataSO (`GameDB` 트리 밖 - 독립 DB)
+
+Boss2(Map3, 3~4페이즈, 진욱)의 전용 밸런싱 DB. **`GameDatabaseSO`에 연결하지 않고 `GameDB.Boss2` 접근자도 없다** - Boss2 컴포넌트(`BossFloatMovement`/`Boss2Health`/`Boss2AttackPatterns` 등) 인스펙터에 `[SerializeField]`로 직접 드래그해서 쓴다. 상세 사용은 `claude/boss.md` 5장.
+
+| 그룹 | 프로퍼티 |
+|---|---|
+| 이동/배회 | MoveSpeed, MoveSmoothTime, RoamRadius, RoamArriveThreshold, RoamWaitMin/Max, MaxHeightMargin, FollowSpeed |
+| 체력/페이즈 | MaxHealth, PhaseCount(3~4P) |
+| 돌진(몸통박치기) | ChargeCooldown, ChargeRange, ChargeTelegraphTime, ChargeSpeed, ChargeDuration, ChargeArriveThreshold |
+| 부유 흔들림 | VerticalAmplitude/Period, HorizontalAmplitude/Period |
+| 감정 | ReflectHalves, EmotionInterval, LightningRatePink/BlueMult, ConfusionInterval, ConfusionDuration, HeartPickupHeight |
+| 낙뢰 | LightningInterval, LightningTelegraphTime/Height, LightningActiveTime, LightningStunDuration, LightningDamageHalves, LightningWidth/Height, LightningGroundEmbed, LightningPlayerRadius, LightningColor, LightningTelegraphColor, LightningStrikeSprites, LightningFrameInterval, LightningParticleSize/Colors |
+| 강타(Wave) | WaveInterval, WaveWidth/Height, WaveGroundEmbed, WaveTelegraphTime, WaveActiveTime, WaveFrameInterval, WaveActiveFrameCount, WaveDamageHalves, WaveColor, WaveStrikeSprites, WaveParticleSize/Colors |
+| 레이저 | LaserInterval, LaserWarningTime, LaserBlinkInterval, LaserActiveTime, LaserRetractTime, LaserThickness, LaserWarningThickness, LaserMaxHeight, LaserDamageHalves, LaserWarningColor, LaserColor, LaserFlowParticleSize/Speed/Rate/Colors |
+| 공간찢기 (4P 즉사기) | SpaceTearHealthPercent, SpaceTearBannerTime, SpaceTearTelegraphTime, SpaceTearDashCount, SpaceTearDashSpeed, SpaceTearDashInterval, SpaceTearPlayerDashSpeed, SpaceTearPlayerWarningTime, SpaceTearHitboxSize, SpaceTearTelegraphThickness/Blink/Color |
+| 손아귀 (4P) | GrabCooldown, GrabChance, GrabRange, GrabTelegraphTime, GrabHandSpeed, GrabReach, GrabHitboxSize, GrabRetractSpeed, GrabDamageHalves, GrabDamageTickInterval/Count, GrabStruggleWindow, GrabStruggleRequiredPresses, GrabThrowForce, GrabTelegraphThickness/Blink/Color, GrabHandColor |
+| 낙인/제단 (3P) | BrandInterval, BrandMaxStack, AltarSpawnInterval, AltarHoldDuration |
+
 ## 6. 확장 절차
 
 ### 6.1 기존 SO에 새 밸런싱 값 추가
@@ -235,15 +260,18 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 
 전문은 `claude/coding-convention.md` 섹션 2(네이밍)와 섹션 16(데이터 관리) 참고.
 
-## 8. 적용 범위 (GameDB를 읽는 소비자 21파일)
+## 8. 적용 범위 (GameDB를 읽는 소비자 - 약 35파일, 2026-07-22 Grep 기준)
 
-- **01.Player**: PlayerController, PlayerMovement, PlayerCombat, PlayerHealth, PlayerRewind, PlayerOrbs, OrbController, AttackHitbox
-- **03.Boss**: BossController, BossBodyController, BossCloneController, BossEmotion, BossLightningPattern, Phase1State, Phase2State, Phase3State
+DB 정의 파일(`Data/` 하위 6개)과 Constants 2개를 제외한 게임플레이 소비자:
+
+- **01.Player**: PlayerController, PlayerMovement, PlayerCombat, PlayerHealth, PlayerRewind, PlayerOrbs, OrbController, AttackHitbox, PlayerHitFeedback
+- **03.Boss**: BossController, BossBodyController, BossCloneController, BossEmotion, BossLightningPattern, BossMeleeUnitBase, BossDeathCircleFx, Phase1State, Phase2State, Phase3State, `Boss2/Boss2Emotion`(공용 감정 수치만 GameDB.Boss에서 읽음)
 - **04.TimeSystem**: RewindManager, ClonePool, CloneController, SlowMotionController
-- **06.UI**: BossHealthBarUI
+- **06.UI**: BossCloneHealthBarUI
 - **12.Item**: LpManager, PotionManager
 
-패턴 참고에 좋은 파일: `OrbController.cs`(So 어미 필드 캐싱), `Phase1State.cs`(생성자에서 WaitForSeconds 캐싱), `RewindManager.cs`(TickCapacity).
+- **Boss2(Map3)는 원칙적으로 `Boss2DataSO`를 쓴다**(GameDB 아님). 위 `Boss2Emotion`만 감정 공용 수치를 `GameDB.Boss`에서 참조한다.
+- 패턴 참고에 좋은 파일: `OrbController.cs`(So 어미 필드 캐싱), `Phase1State.cs`(생성자에서 WaitForSeconds 캐싱), `RewindManager.cs`(TickCapacity).
 
 ## 9. 트러블슈팅
 
@@ -275,7 +303,7 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 
 [주의]
 9. 에셋의 직렬화 값이 코드 기본값보다 우선한다. 값 변경은 에셋 인스펙터에서
-10. Ex/ 폴더의 ExBossDataSO는 샘플이며 GameDB와 무관 - 프로덕션에서 참조 금지
+10. Boss2(Map3)는 GameDB 트리 밖 독립 DB(Boss2DataSO)를 쓴다 - GameDatabaseSO에 슬롯 추가하지 말 것 (과거 Ex/ 샘플 폴더는 제거됨)
 11. GameDB 코어(Minsung.Common.Data)의 구조 변경은 소유자(민성) 확인 후 진행
 12. 몬스터 ENEMY_* 값은 FSM 기본값과 배치별 튜닝을 위해 Constants.Combat에 의도적으로 남아 있다 - 임의로 SO 이관하지 말 것
 ```
@@ -286,6 +314,6 @@ int capacity = Mathf.CeilToInt(GameDB.Time.RecordSeconds / Time.fixedDeltaTime);
 |---|---|
 | `claude/CLAUDE.md` | Critical Rules 1(GameDB/Constants 구분), 3(TickCapacity), "데이터 관리 (GameDB)" 섹션 |
 | `claude/coding-convention.md` | 섹션 2 SO 네이밍, 섹션 16 데이터 관리 규칙 전문 |
-| `claude/UML.md` | 섹션 7 GameDB 클래스 다이어그램 (Mermaid) |
-| `claude/PLAN.md` | 리팩토링 이력 2026-07-11 (Constants -> GameDB 이관 기록) |
-| `claude/PLAN.md` | 세션 종합 인수인계 (씬 구성/신규 기능/미커밋 상태/검증 결과) - GameDB 에셋 생성 경위 포함 |
+| `claude/UML.md` | 섹션 7 GameDB 클래스 다이어그램 (Mermaid) + 섹션 5.5 Boss2 |
+| `claude/boss.md` | Boss2DataSO 사용처(부유 이동/체력/패턴 밸런싱), Boss2 씬 배선 |
+| 영속 메모리(`MEMORY.md`) | 세션 간 인수인계·미완 작업 재개 지점 (과거 `claude/PLAN.md` 역할, 2026-07-22 제거) |

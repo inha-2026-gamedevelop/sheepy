@@ -106,15 +106,18 @@ Sheepy는 한 아이와 함께 놀던 봉제인형이었다.
 Sheepy: A Short Adventure의 보스 리소스를 활용.  
 보스1 1,284프레임 / 보스2 4,881프레임의 풍부한 애니메이션 세트.
 
-### 페이즈 구조 — 단일 피통 + 페이즈 하한 동결 (2026-07-05 기획 개편) ✅ 1~3P 구현
+### 페이즈 구조 — 씬 분할(Boss1/Boss2) + 페이즈 하한 동결 ✅ 1~3P 구현 / 🔧 4P 진행 중
 
-`BossController`가 **단일 총 피통**(`BOSS_TOTAL_HP`)과 페이즈별 `BossState`(상태 패턴)를 관리한다.  
-현재 페이즈의 피통 하한에 닿으면 체력을 동결하고 종료 기믹(`CoPhaseEndGimmick`)을 거쳐 다음 페이즈로 넘어간다.  
-전투 타이머 10분 초과 시 즉사. 페이즈와 별개로 **감정(`BossEmotion`)**이 반사/낙뢰/혼란을 변조한다.
+보스는 총 4페이즈이며 **두 개의 씬/시스템으로 분리**되어 하나의 흐름으로 이어진다.
+
+- **Boss1 (`BossController` 계열, Map2, 1~2페이즈, 민성)**: 그 씬이 담당하는 페이즈 구간의 **단일 피통**(`GameDB.Boss.TotalHealth`, `_finalPhaseIndex+1`로 균등 분할)과 페이즈별 `BossState`(상태 패턴)를 관리한다. 페이즈 하한에 닿으면 체력을 동결하고 종료 기믹(`CoPhaseEndGimmick`)을 거쳐 다음 페이즈로 넘어간다.
+- **Boss2 (`03.Boss/Boss2/`, Map3, 3~4페이즈, 진욱)**: 별도 오브젝트/DB(`Boss2DataSO`)와 독립 피통(`Boss2Health`)을 갖는 부유체 보스. 원거리 패턴 3종 + 낙인·제단 + 손아귀/공간찢기 등 전용 패턴.
+
+전투 타이머 10분 초과 시 즉사. 페이즈와 별개로 **감정(`BossEmotion`/`Boss2Emotion`)**이 반사/낙뢰/혼란을 변조한다. 상세 기획·구현은 [claude/boss.md](boss.md) 참고.
 
 **기본 수치 / 공통 규칙 (기획)**
 
-- 보스 총 HP **64,000** — 페이즈당 **16,000**씩 소모, 페이즈 하한에서 피통 동결 후 종료 기믹 진행
+- 씬(보스 오브젝트)별로 담당 페이즈 구간의 총 피통을 갖고 그 안에서 페이즈 하한 동결 후 종료 기믹 진행 (아래 표의 HP 구간은 4페이즈 균등 분할 기준 예시)
 - 피격 규칙: **보스 본체 공격 = 하트 1칸**, **보스 분신 공격 = 하트 반칸**
 - 플레이어가 타임 리와인드하면 **보스 HP도 함께 되돌아간다**
 - **전투 타이머는 리와인드와 무관하게 계속 흐른다** — 10분 초과 시 플레이어 즉사
@@ -142,17 +145,17 @@ Sheepy: A Short Adventure의 보스 리소스를 활용.
 
 **페이즈별 상세**
 
-| 페이즈 | HP 구간 | 내용 | 상태 |
+| 페이즈 | 씬 (담당) | 내용 | 상태 |
 |---|---|---|---|
-| 1페이즈 | 64,000 ~ 48,000 | 보스 분신 2체(각 피통 8,000) 근접전(애니메이터 활용) + 종료 시 즉사 레이저 색 암기 기믹 | ✅ 구현 |
-| 2페이즈 | 48,000 ~ 32,000 | 본체(BossBodyController) 등장, 1P 분신 근접 패턴 + 장풍(맵 아래->위 상승 해저드, 애니메이션 포함) | ✅ 구현 |
-| 3페이즈 | 32,000 ~ 16,000 | 화남 감정 고정 + 2페이즈 패턴 + 맵 가로지르는 레이저 | ✅ 구현 |
-| 4페이즈 | 16,000 ~ 0 | 타임 리와인드 시스템 삭제(`RewindSeal`) + 2페이즈 패턴 임시 유지 | 🔧 전용 패턴 기획 대기 |
+| 1페이즈 | Map2 (Boss1) | 보스 분신 2체(각 독립 피통) 근접전(애니메이터 활용) + 종료 시 즉사 레이저 색 암기 기믹 | ✅ 구현 |
+| 2페이즈 | Map2 (Boss1) | 본체(BossBodyController) 등장, 1P 분신 근접 패턴 + 장풍(맵 아래->위 상승 해저드, 애니메이션 포함) + 종료 시 아웃트로 영상 후 Map3 전환 | ✅ 구현 |
+| 3페이즈 | Map3 (Boss2) | 화남 감정 고정 + 원거리 패턴(낙뢰/강타/레이저) + 낙인 스택·정화 제단(7스택 즉사, 제단 E키 홀드로 초기화) | ✅ 구현 |
+| 4페이즈 | Map3 (Boss2) | 화남 감정 고정 + 3P 패턴 + 전용 패턴(손아귀, 공간찢기=체력10% 즉사기, 원혼방출). 리와인드 봉인 규정은 폐기(4P도 되감기 정상 사용) | 🔧 구현 진행 중 |
 
 - **1페이즈 즉사 레이저 기믹**: 분신 2체를 모두 잡으면 맵 전체에 레이저(빨강/파랑/초록)를 랜덤 순서로 3회 발사한다. 안전 구역은 **슬로우모션 중에만** 보이며 레이저 발사 시점까지만 표시된다. 5초 후 같은 순서로 전방에 다시 발사 — 레이저 색상에 맞지 않는 구역에 있으면 즉사. 파훼 성공 시 보스 본체가 필드에 등장(2페이즈 시작)
 - **2페이즈 종료**: 컷신 등장 후 씬 변경으로 맵 전환
 - **3페이즈 레이저**: 발사 전 1.5초간 빨간색 깜빡임 위험 표시 후 1초간 발사. 시작 방향과 도착 지점은 랜덤
-- **4페이즈**: 상세 기획은 추후 확정
+- **4페이즈 공간찢기**: 체력 10% 도달 시 1회, 맵 흑백 전환 + 슬로우 후 5회 연속 돌진(로스트아크 영전류) — 전용 무적키로 파훼. 상세는 [claude/boss.md](boss.md) 4-4절
 
 ---
 
@@ -182,12 +185,12 @@ Supabase 기반 온라인 랭킹 시스템 (`SupabaseClient` — REST 래퍼 완
 
 ```
 Assets/
-├── 00.Scenes/          씬 파일 (MainMenu / Map1~4 / Loading / Pause + Minsung/Jinwook 테스트 씬)
-├── 01.Scripts/         (총 135개 스크립트, 번호 접두사, 전부 Minsung.* 프로덕션 코드 - Ex/ 샘플 폴더는 2026-07-18 제거)
-│   ├── 00.Common/      GameManager / SaveManager / ColorType / DamageSource / IDamageable / Constants(분할) / Data(GameDB) / Utility
+├── 00.Scenes/          씬 파일 (MainMenu / Nickname / Map1~4 / Loading / Pause + Minsung/Jinwook 테스트 씬)
+├── 01.Scripts/         (총 180개 스크립트, 번호 접두사, 전부 Minsung.* 프로덕션 코드 - 샘플 폴더 Ex/는 2026-07-18 제거)
+│   ├── 00.Common/      GameManager / SaveManager·SaveData / RespawnManager / PauseController / OneWayPlatform / DamageSource / IDamageable / Constants(분할) / Data(GameDB + Boss2DataSO) / Utility
 │   ├── 01.Player/      코디네이터(PlayerController) + Input/Movement/Combat/Interaction/Rewind/StatusEffect / Health(하트) / Orbs / Animator / HeartUI / 상호작용 센서
 │   ├── 02.Monster/     MonsterController / MonsterHealth / Animator(사망 모션 포함) / FSM(순찰·추격·공격 상태)
-│   ├── 03.Boss/        BossController(단일 피통) + Phase1~4State(FSM) / 감정(BossEmotion) / 근접유닛(본체·분신) / 낙뢰·해저드 풀 / DamageHazard
+│   ├── 03.Boss/        Boss1(BossController 단일 피통 + Phase1~4State FSM / 감정 / 근접유닛 / 낙뢰·해저드 풀 / DamageHazard) + Boss2/(진욱, Map3 3~4페이즈 별도 시스템 - 부유 이동/체력/원거리 패턴/감정/낙인·제단/공간찢기·손아귀)
 │   ├── 04.TimeSystem/  RewindManager / RingBuffer / 커맨드(Tick·Move·Attack·Interact·Anim) / 분신 / 슬로우
 │   ├── 05.Interactive/ IInteractable / IHoldInteractable / 레지스트리 / BaseInteractive / Lever(+LightSwitch) / Radio / Elevator(Controller·Button·Manager) (+Editor)
 │   ├── 06.UI/          BossHealthBarUI(Slider) / KeyGuide / Caption(자막) / 상태이상 UI / SpriteReference / Loading·Pause·MainMenu 컨트롤러

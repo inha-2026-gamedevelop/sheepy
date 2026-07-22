@@ -216,6 +216,8 @@ namespace Minsung.Boss2
             float elapsed   = 0f;
             bool  escaped   = false;
 
+            Debug.Log("보스 잡기 패턴 시전 ");
+
             // 포박 유지: GrabDamageTickInterval마다 하트 한 칸씩 GrabDamageTickCount번 피해.
             // 그 사이 집계 창(GrabStruggleWindow) 안에 상호작용 키를 필요 횟수 이상 연타하면 탈출.
             while (ticksDone < _dataSo.GrabDamageTickCount)

@@ -328,6 +328,9 @@ namespace Minsung.Player
         /// <summary> 피격 넉백 (피해 지점 반대 방향). DamageHazard/MonsterController가 호출. </summary>
         public void ApplyKnockback(Vector2 sourcePosition) => _movement.ApplyKnockback(sourcePosition);
 
+        /// <summary> 지정 속도로 즉시 투척한다. Boss2GrabPattern이 호출. </summary>
+        public void Launch(Vector2 velocity) => _movement.Launch(velocity);
+
         /// <summary> 혼란(키반전) 상태 설정. BossController가 호출. </summary>
         public void SetInputInverted(bool inverted) => _input.SetInverted(inverted);
 
