@@ -3312,7 +3312,7 @@ MonoBehaviour:
   _finalPhaseIndex: 3
   _transitionToNextScene: 0
   _outroVideo: {fileID: 0}
-  _nextSceneName: Map3
+  _nextSceneName: 05.Map3
 --- !u!114 &1658625133
 MonoBehaviour:
   m_ObjectHideFlags: 0

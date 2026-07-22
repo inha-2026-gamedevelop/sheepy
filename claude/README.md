@@ -268,7 +268,7 @@ URL=https://xxxx.supabase.co
 ANON_KEY=xxxx
 ```
 
-3. Unity에서 프로젝트 열기 → `00.Scenes/MainMenu` 씬 실행
+3. Unity에서 프로젝트 열기 → `00.Scenes/02.Main` 씬 실행
 
 ---
 

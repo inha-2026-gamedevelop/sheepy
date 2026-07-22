@@ -103,7 +103,7 @@
 | 항목 | 문서상 표기 | 실측 결과 | 조치 |
 |---|---|---|---|
 | `claude/coding-convention.md` | 과거 `claude/codingconvention.md`(하이픈 없음)로 여러 문서에서 참조됨 | 실제 파일명은 `coding-convention.md`(하이픈 있음) | 2026-07-11에 전 참조 수정 완료(커밋 `ab9a479`/`5c1b7ce` 등) — 재발 방지로 이 표에 남김 |
-| 3~4페이즈 전용 맵 씬 | 과거 미제작(임시 자기 재로드) | `Assets/00.Scenes/Map3.unity` 제작됨 - Boss1(Map2) 2P 종료 시 아웃트로 후 Map3로 전환, Boss2 시스템이 3~4P 담당 | 해결됨. 잔여 미완 작업은 영속 메모리(`MEMORY.md`) 참고 |
+| 3~4페이즈 전용 맵 씬 | 과거 미제작(임시 자기 재로드) | `Assets/00.Scenes/05.Map3.unity` 제작됨 - Boss1(Map2) 2P 종료 시 아웃트로 후 Map3로 전환, Boss2 시스템이 3~4P 담당 | 해결됨. 잔여 미완 작업은 영속 메모리(`MEMORY.md`) 참고 |
 
 ## 관련 문서
 

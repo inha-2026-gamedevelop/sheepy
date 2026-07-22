@@ -32,13 +32,13 @@ namespace Minsung.Common
         public static class Scene
         {
             public const string GAME_LOADING = "00.GameLoading"; // 최초 부팅 인트로 로딩씬
-            public const string MAIN_MENU    = "MainMenu";
-            public const string NICKNAME     = "Nickname";        // 닉네임 등록 씬
+            public const string MAIN_MENU    = "02.Main";
+            public const string NICKNAME     = "01.Login";        // 닉네임 등록 씬
             public const string LOADING      = "99.SceneLoading"; // 게임플레이 전환용 로딩씬 (GAME_LOADING과 별개)
-            public const string PAUSE        = "Pause";
-            public const string MAP_1        = "Map1";
-            public const string MAP_2        = "Map2";
-            public const string MAP_3        = "Map3";
+            public const string PAUSE        = "98.Pause";
+            public const string MAP_1        = "03.Map1";
+            public const string MAP_2        = "04.Map2";
+            public const string MAP_3        = "05.Map3";
             public const string BOSS         = "Boss";
         }
 
