@@ -6,6 +6,7 @@ using UnityEngine;
 
 using Minsung.TimeSystem;
 using Minsung.CameraSystem;
+using Minsung.Boss2;
 
 // 4페이즈 진입 연출 오케스트레이터 - Boss2Health가 최종 페이즈(4페이즈)로 전환(OnPhaseChanged)될 때 1회 발동한다.
 // 순서: 리와인드 잠금 + 일반 패턴 정지 + 피격 동결 -> Phase4Aim 지점으로 보스 이동(+카메라 포커스) ->
