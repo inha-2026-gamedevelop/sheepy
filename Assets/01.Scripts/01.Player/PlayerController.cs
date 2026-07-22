@@ -282,6 +282,21 @@ namespace Minsung.Player
                 yield break;
             }
 
+            // Map3은 보스 전용 아레나(단독 진입 불가) - 전투 시작 전 사망 등으로 보스 리스타트 경로를
+            // 타지 않은 경우에도 Map3에는 별도 체크포인트가 없으므로 항상 Map2 기본 스폰으로 돌려보낸다.
+            if (SceneManager.GetActiveScene().name == Constants.Scene.MAP_3)
+            {
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.LoadScene(Constants.Scene.MAP_2);
+                }
+                else
+                {
+                    SceneManager.LoadScene(Constants.Scene.MAP_2);
+                }
+                yield break;
+            }
+
             bool respawned = false;
             respawned = RespawnManager.TryRespawn(this, OnRespawned);
             if (GameManager.Instance != null)
