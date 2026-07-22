@@ -4,7 +4,7 @@ using System.Collections;
 // Unity
 using UnityEngine;
 
-public class StomperTrap : MonoBehaviour
+public class PlayerRetireWall : MonoBehaviour
 {
     /****************************************
     *                Fields
