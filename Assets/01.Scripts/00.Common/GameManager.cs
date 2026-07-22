@@ -34,11 +34,13 @@ namespace Minsung.Common
         private DateTime _bossEnterAt;         // 보스방 최초 입장 시각 (UTC)
         private DateTime _bossEndAt;           // 보스 격파 확정 시각 (UTC) = 입장 시각 + 클리어 타임
         private RingBuffer<int> _bossTimerBuffer; // 리와인드 복원용 - 씬마다 RewindManager와 함께 새로 만든다
+        private bool  _rewindUsedDuringBossRun; // 이번 보스 런 동안 되감기를 한 번이라도 썼는지 - "되감기 없이 클리어" 업적 조건
 
         public bool     IsBossRunActive => _bossRunActive;
         public DateTime BossEnterAt     => _bossEnterAt;
         public DateTime BossEndAt       => _bossEndAt;
         public int      BossClearTimeMs => _bossElapsedMs; // 서버 제출 시 duration_ms로 사용
+        public bool     RewindUsedDuringBossRun => _rewindUsedDuringBossRun;
 
         /****************************************
         *              Unity Event
@@ -222,11 +224,12 @@ namespace Minsung.Common
             {
                 return;
             }
-            _bossRunActive         = true;
-            _bossElapsedMs         = 0;
-            _bossEnterAt           = DateTime.UtcNow;
-            _bossTransitionPaused  = false;
-            _bossGamePaused        = false;
+            _bossRunActive           = true;
+            _bossElapsedMs           = 0;
+            _bossEnterAt             = DateTime.UtcNow;
+            _bossTransitionPaused    = false;
+            _bossGamePaused          = false;
+            _rewindUsedDuringBossRun = false; // 새 런 시작 - "되감기 없이 클리어" 업적 조건 초기화
         }
 
         /// <summary> 보스 격파 시 호출 - 종료 시각과 클리어 타임을 확정한다. BossClearTimeMs/BossEnterAt/BossEndAt로 서버에 제출. </summary>
@@ -242,15 +245,26 @@ namespace Minsung.Common
             // 보스 클리어 여부: 로컬 저장(주) + 서버 미러(백업, 닉네임 없으면 자동 스킵)
             SaveManager.Instance?.SetBossCleared(true);
             BackendMirror.Instance?.MirrorBossCleared();
+            BackendMirror.Instance?.SubmitBossClearScore(_bossElapsedMs); // 랭킹용 클리어 타임 제출
         }
 
         /// <summary> 진행 중이던 기록을 폐기한다 (보스전 중 사망 - 보스방에서 쫓겨남 / 보스전 재시작). </summary>
         public void ResetBossTimer()
         {
-            _bossRunActive        = false;
-            _bossElapsedMs        = 0;
-            _bossTransitionPaused = false;
-            _bossGamePaused       = false;
+            _bossRunActive           = false;
+            _bossElapsedMs           = 0;
+            _bossTransitionPaused    = false;
+            _bossGamePaused          = false;
+            _rewindUsedDuringBossRun = false;
+        }
+
+        /// <summary> 보스전 도중 되감기를 사용했음을 통지 (PlayerRewind.OnRewindStart가 호출). "되감기 없이 클리어" 업적 조건을 무효화한다. </summary>
+        public void NotifyRewindUsed()
+        {
+            if (_bossRunActive)
+            {
+                _rewindUsedDuringBossRun = true;
+            }
         }
 
         /// <summary> 보스 페이즈 전환/아웃트로 컷신 동안 타이머 정지. BossController가 컷신 시작/종료 시점에 호출. </summary>

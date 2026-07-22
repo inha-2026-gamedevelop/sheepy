@@ -44,7 +44,10 @@ namespace ConstructImport
         public static void BuildFromManifest()
         {
             string abs = EditorUtility.OpenFilePanel("Construct 매니페스트(JSON) 선택", Application.dataPath, "json");
-            if (string.IsNullOrEmpty(abs)) { return; }
+            if (string.IsNullOrEmpty(abs))
+            {
+                return;
+            }
 
             string assetPath = ToAssetPath(abs);
             if (assetPath == null)
@@ -121,7 +124,7 @@ namespace ConstructImport
             // 레이어별 그룹 캐시
             var layerGroups = new System.Collections.Generic.Dictionary<int, Transform>();
 
-            for (int i = 0; i < m.instances.Length; i++)
+            for (int i = 0; i < m.instances.Length; ++i)
             {
                 Inst it = m.instances[i];
 

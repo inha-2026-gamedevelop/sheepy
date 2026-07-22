@@ -32,6 +32,7 @@ namespace Minsung.Common
         public static class Scene
         {
             public const string MAIN_MENU = "MainMenu";
+            public const string NICKNAME  = "Nickname"; // 닉네임 등록 씬
             public const string LOADING   = "Loading";
             public const string PAUSE     = "Pause";
             public const string MAP_1     = "Map1";

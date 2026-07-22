@@ -85,4 +85,4 @@ MonoBehaviour:
   - _sfxName: UI
     _clips:
     - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 10ad2ede579a8954f8591f5d1e03495f, type: 3}

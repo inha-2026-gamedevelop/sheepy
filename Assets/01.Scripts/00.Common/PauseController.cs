@@ -147,9 +147,11 @@ namespace Minsung.Common
             ReleaseCapturedSettingsBackdrop();
         }
 
-        /// <summary> 게임 종료 </summary>
+        /// <summary> 게임 종료 - PlayerSaveOnExit(OnApplicationQuit)에 더해 명시적으로 한 번 더 저장해 확실히 남긴다 </summary>
         public void QuitGame()
         {
+            FindAnyObjectByType<PlayerController>()?.PersistProgress();
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

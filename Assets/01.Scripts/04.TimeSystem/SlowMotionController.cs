@@ -1,6 +1,7 @@
 // Unity
 using UnityEngine;
 
+using Minsung.Achievement;
 using Minsung.Common;
 using Minsung.Common.Data;
 using Minsung.Utility;
@@ -86,6 +87,11 @@ namespace Minsung.TimeSystem
         /// <summary> 슬로우모션 켜기/끄기. timeScale에 비례해 fixedDeltaTime도 함께 보정한다. </summary>
         public void SetSlow(bool on)
         {
+            if (on)
+            {
+                AchievementTrigger.SlowMotionUsed();
+            }
+
             IsSlow       = on;
             _targetScale = on ? _slowScale : 1f;
             Time.fixedDeltaTime = _defaultFixedDelta * _targetScale;
