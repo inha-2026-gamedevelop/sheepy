@@ -26,7 +26,7 @@ namespace Minsung.Monster
         public float CurrentHealth => _currentHealth;
         public bool  IsDead        => _currentHealth <= 0f;
 
-        public event Action OnDeath;   // 사망 순간 1회 (아이템 드랍/MP 충전 등 후속 연동 지점)
+        public event Action OnDeath;   // 사망 순간 1회 (아이템 드랍 등 후속 연동 지점)
         public event Action OnDamaged; // 피해가 실제로 들어갔지만 생존한 순간 (피격 모션/플래시 연동 지점)
 
         /****************************************

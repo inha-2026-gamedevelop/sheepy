@@ -12,7 +12,7 @@ using Minsung.TimeSystem;
 
 namespace Minsung.Item
 {
-    // 포션(회복 소비 아이템) 전역 매니저 - 씬에 하나만 존재(없으면 자동 생성, LpManager와 동일한 패턴). 드랍/자석 픽업/소지 개수를 소유하고 풀 슬롯 상태를 모두 리와인드에 태운다.
+    // 포션(회복 소비 아이템) 전역 매니저 - 씬에 하나만 존재(없으면 자동 생성, RewindManager와 동일한 패턴). 드랍/자석 픽업/소지 개수를 소유하고 풀 슬롯 상태를 모두 리와인드에 태운다.
     [DefaultExecutionOrder(-90)] // RewindManager(-100) 다음으로 이르게 - Register가 같은 프레임에 걸리게
     public class PotionManager : MonoBehaviour, IRewindable
     {

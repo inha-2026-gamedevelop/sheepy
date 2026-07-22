@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Minsung.Common.Data
 {
-    // 타임리와인드/분신/슬로우/MP 밸런싱 데이터 DB - 에셋: 08.Data/Time/TimeDB.asset (GameDB.Time으로 접근)
+    // 타임리와인드/분신/슬로우 밸런싱 데이터 DB - 에셋: 08.Data/Time/TimeDB.asset (GameDB.Time으로 접근)
     [CreateAssetMenu(fileName = "TimeDB", menuName = "TheLastRewind/GameDB/TimeDB")]
     public class TimeDataSO : ScriptableObject
     {

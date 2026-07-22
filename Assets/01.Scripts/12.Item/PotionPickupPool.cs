@@ -5,7 +5,7 @@ using Minsung.Common;
 
 namespace Minsung.Item
 {
-    // 포션 드랍 오브젝트 풀. LpPickupPool과 동일하게 생성/파괴 대신 슬롯 활성/비활성으로 관리한다.
+    // 포션 드랍 오브젝트 풀. 생성/파괴 대신 슬롯 활성/비활성으로 관리한다.
     public class PotionPickupPool
     {
         /****************************************
