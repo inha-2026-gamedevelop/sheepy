@@ -38,12 +38,13 @@ namespace Minsung.Item
         *              Constructor
         ****************************************/
 
-        public PotionPickupPool(int size)
+        public PotionPickupPool(int size, Transform parent)
         {
             _slots = new PoolSlot[size];
             for (int i = 0; i < size; ++i)
             {
                 GameObject go = new GameObject($"PotionPickup_{i}");
+                go.transform.SetParent(parent);
                 go.SetActive(false);
                 SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = PotionSprite();

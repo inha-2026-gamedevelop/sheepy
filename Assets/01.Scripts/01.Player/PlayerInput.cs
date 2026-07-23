@@ -5,6 +5,7 @@ using System;
 using UnityEngine;
 
 using Minsung.Common;
+using Minsung.Item;
 
 namespace Minsung.Player
 {
@@ -72,6 +73,10 @@ namespace Minsung.Player
             if (Input.GetKeyDown(Constants.Player.KEY_CLEAR_CLONES))
             {
                 _rewind?.RequestClearClones();
+            }
+            if (Input.GetKeyDown(Constants.Player.KEY_USE_POTION))
+            {
+                PotionManager.Instance?.TryUsePotion();
             }
             if (Input.GetKeyDown(Constants.Player.KEY_DODGE_INVINCIBLE))
             {
