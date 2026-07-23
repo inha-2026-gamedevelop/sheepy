@@ -20,6 +20,12 @@ public class PlayerRetireZone : MonoBehaviour
         {
             Minsung.Achievement.AchievementTrigger.PlayerFellIntoRetireZone(); // "이걸 떨어져?" - 처음으로 낙하
 
+            // 리타이어 존 추락은 하트 반 칸 피해
+            if (collision.TryGetComponent(out Minsung.Player.PlayerHealth playerHealth))
+            {
+                playerHealth.TakeDamageHalves(1);
+            }
+
             // 플레이어의 위치를 지정된 스폰 포인트 위치로 이동
             collision.transform.position = spawnPoint.position;
 
