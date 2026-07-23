@@ -5,8 +5,10 @@ namespace Minsung.Common
         public static class Audio
         {
             // 볼륨 기본값 (0~1)
-            public const float DEFAULT_BGM_VOLUME = 0.7f;
+            public const float DEFAULT_BGM_VOLUME = 1.0f;
             public const float DEFAULT_SFX_VOLUME = 1.0f;
+            public const float BASE_BGM_VOLUME    = 0.5f;
+            public const float BASE_SFX_VOLUME    = 0.2f;
 
             // SoundManager 풀 크기 (개)
             public const int ONESHOT_POOL_SIZE  = 8;

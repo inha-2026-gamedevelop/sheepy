@@ -1,5 +1,6 @@
 // System
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 // Unity
@@ -96,6 +97,7 @@ namespace Minsung.Sound
 
         // 씬에 직접 배치할 때만 인스펙터로 지정. 비어 있으면 Resources에서 자동 로드
         [SerializeField] private SoundData _soundDB;
+        [SerializeField] private float _bgmCrossFadeDuration = 1f;
 
         [SerializeField] private float _bgmVolume = Constants.Audio.DEFAULT_BGM_VOLUME; // 현재 BGM 볼륨 (0~1)
         [SerializeField] private float _sfxVolume = Constants.Audio.DEFAULT_SFX_VOLUME; // 현재 SFX 볼륨 (0~1)
@@ -105,6 +107,10 @@ namespace Minsung.Sound
         private readonly List<DurationAudioData> _durationSources = new(); // 지속형 SFX 풀 (시작/정지를 직접 제어)
 
         // 같은 프레임대에 동일 클립이 여러 번 울려 소리가 뭉치는 현상 방지
+        private AudioSource _bgmCrossFadeSource;
+        private AudioSource _activeBgmSource;
+        private AudioSource _inactiveBgmSource;
+
         private readonly Dictionary<AudioClip, int> _lastPlayFrame = new();
 
         // Resume하려면 무엇을 어디까지 어떤 설정으로 재생 중이었는지 알아야 해서 스냅샷으로 저장
@@ -118,6 +124,10 @@ namespace Minsung.Sound
         }
         private readonly List<PausedSfxData> _pausedSfx = new();
 
+        private Coroutine _coBgmCrossFade;
+        private float     _bgmCrossFadeProgress = 1f;
+        private float     _outgoingBgmGain      = 1f;
+
         private Transform _root;      // 모든 AudioSource를 묶는 부모 ("@Sound")
         private bool _isSfxPaused;    // SFX 전체 일시정지 상태 (중복 Pause/Resume 방지)
 
@@ -129,6 +139,9 @@ namespace Minsung.Sound
 
         public float BgmVolume => _bgmVolume;
         public float SfxVolume => _sfxVolume;
+
+        private float BgmOutputVolume => _bgmVolume * Constants.Audio.BASE_BGM_VOLUME;
+        private float SfxOutputVolume => _sfxVolume * Constants.Audio.BASE_SFX_VOLUME;
 
         /// <summary> 마지막으로 PlayBGM에 성공한 카테고리. BGM 존 트리거처럼 이전 곡으로 되돌아가야 하는 경우 조회용 </summary>
         public EBgm CurrentBgm { get; private set; }
@@ -175,7 +188,7 @@ namespace Minsung.Sound
         *              BGM Methods
         ****************************************/
 
-        /// <summary> BGM 재생. 이미 재생 중이면 정지 후 새 클립으로 교체. 카테고리에 클립이 여러 개면 그 중 하나를 무작위로 재생 </summary>
+        /// <summary> BGM 재생. 이미 재생 중이면 새 클립과 크로스페이드한다. 카테고리에 클립이 여러 개면 그 중 하나를 무작위로 재생 </summary>
         public void PlayBGM(EBgm bgm, bool isLoop = true, float pitch = 1f)
         {
             PlayBGM(bgm, -1, isLoop, pitch);
@@ -190,16 +203,14 @@ namespace Minsung.Sound
                 return;
             }
 
-            if (_bgmSource.isPlaying)
+            if ((_activeBgmSource == null) || !_activeBgmSource.isPlaying || (_bgmCrossFadeDuration <= 0f))
             {
-                _bgmSource.Stop();
+                PlayBgmImmediately(clip, isLoop, pitch);
             }
-
-            _bgmSource.loop  = isLoop;
-            _bgmSource.pitch = pitch;
-            _bgmSource.clip  = clip;
-            _bgmSource.time  = 0f;
-            _bgmSource.Play();
+            else
+            {
+                StartBgmCrossFade(clip, isLoop, pitch);
+            }
 
             CurrentBgm = bgm;
         }
@@ -207,22 +218,28 @@ namespace Minsung.Sound
         /// <summary> BGM 일시정지 (메뉴 열림 등에서 호출) </summary>
         public void PauseBGM()
         {
-            _bgmSource.Pause();
+            _activeBgmSource?.Pause();
+            _inactiveBgmSource?.Pause();
         }
 
         /// <summary> 일시정지한 BGM 재개 </summary>
         public void UnPauseBGM()
         {
-            _bgmSource.UnPause();
+            _activeBgmSource?.UnPause();
+            _inactiveBgmSource?.UnPause();
         }
 
         /// <summary> BGM 완전 정지 </summary>
         public void StopBGM()
         {
-            if (_bgmSource.isPlaying)
+            if (_coBgmCrossFade != null)
             {
-                _bgmSource.Stop();
+                StopCoroutine(_coBgmCrossFade);
+                _coBgmCrossFade = null;
             }
+            _activeBgmSource?.Stop();
+            _inactiveBgmSource?.Stop();
+            _bgmCrossFadeProgress = 1f;
         }
 
         /// <summary> BGM 카테고리에서 클립만 조회 (재생하지 않음). 라디오처럼 BGM 카테고리의 클립을 SFX 채널로 재생하고 싶을 때 클립 해석용으로 사용 </summary>
@@ -252,7 +269,7 @@ namespace Minsung.Sound
 
             AudioSource source = GetOneShotSource();
             source.pitch  = pitch;
-            source.volume = _sfxVolume;
+            source.volume = SfxOutputVolume;
             source.clip   = clip; // Pause 시점에 클립을 알 수 있도록 PlayOneShot 대신 직접 할당
             source.time   = 0f;
             source.Play();
@@ -269,7 +286,7 @@ namespace Minsung.Sound
 
             AudioSource source = GetOneShotSource();
             source.pitch  = 1f;
-            source.volume = Mathf.Clamp01(_sfxVolume * volumeScale);
+            source.volume = Mathf.Clamp01(SfxOutputVolume * volumeScale);
             source.clip   = clip;
             source.time   = 0f;
             source.Play();
@@ -285,7 +302,7 @@ namespace Minsung.Sound
             }
 
             DurationAudioData data = GetDurationAudio();
-            data.Source.volume = _sfxVolume;
+            data.Source.volume = SfxOutputVolume;
             data.Play(clip, state, index, identity, pitch, isLoop);
         }
 
@@ -298,7 +315,7 @@ namespace Minsung.Sound
             }
 
             DurationAudioData data = GetDurationAudio();
-            data.Source.volume = _sfxVolume;
+            data.Source.volume = SfxOutputVolume;
             data.Play(clip, ESfxState.NONE, -1, identity, pitch, isLoop);
         }
 
@@ -374,8 +391,17 @@ namespace Minsung.Sound
         /// <summary> BGM 볼륨 설정 (설정 UI 슬라이더에서 호출) </summary>
         public void SetBgmVolume(float value)
         {
-            _bgmVolume        = Mathf.Clamp01(value);
-            _bgmSource.volume = _bgmVolume;
+            _bgmVolume = Mathf.Clamp01(value);
+
+            if (_coBgmCrossFade != null)
+            {
+                _activeBgmSource.volume = _bgmCrossFadeProgress * BgmOutputVolume;
+                _inactiveBgmSource.volume = (1f - _bgmCrossFadeProgress) * _outgoingBgmGain * BgmOutputVolume;
+            }
+            else if (_activeBgmSource != null)
+            {
+                _activeBgmSource.volume = BgmOutputVolume;
+            }
 
             OnBgmVolumeChanged?.Invoke(_bgmVolume);
         }
@@ -387,12 +413,12 @@ namespace Minsung.Sound
 
             for (int i = 0; i < _oneShotSources.Count; ++i)
             {
-                _oneShotSources[i].volume = _sfxVolume;
+                _oneShotSources[i].volume = SfxOutputVolume;
             }
 
             for (int i = 0; i < _durationSources.Count; ++i)
             {
-                _durationSources[i].Source.volume = _sfxVolume;
+                _durationSources[i].Source.volume = SfxOutputVolume;
             }
 
             OnSfxVolumeChanged?.Invoke(_sfxVolume);
@@ -410,7 +436,10 @@ namespace Minsung.Sound
 
             _bgmSource             = CreateSource("BGM");
             _bgmSource.loop        = true;
-            _bgmSource.volume      = _bgmVolume;
+            _bgmSource.volume      = BgmOutputVolume;
+            _bgmCrossFadeSource = CreateSource("BGM Crossfade");
+            _activeBgmSource     = _bgmSource;
+            _inactiveBgmSource   = _bgmCrossFadeSource;
 
             for (int i = 0; i < Constants.Audio.ONESHOT_POOL_SIZE; ++i)
             {
@@ -434,6 +463,71 @@ namespace Minsung.Sound
             source.loop         = false;
             source.spatialBlend = 0f; // 2D 프로젝트라 공간 음향 미사용
             return source;
+        }
+
+        /****************************************
+        *           BGM Cross Fade
+        ****************************************/
+
+        private void PlayBgmImmediately(AudioClip clip, bool isLoop, float pitch)
+        {
+            if (_coBgmCrossFade != null)
+            {
+                StopCoroutine(_coBgmCrossFade);
+                _coBgmCrossFade = null;
+            }
+
+            _inactiveBgmSource.Stop();
+            ConfigureBgmSource(_activeBgmSource, clip, isLoop, pitch, BgmOutputVolume);
+            _bgmCrossFadeProgress = 1f;
+        }
+
+        private void StartBgmCrossFade(AudioClip clip, bool isLoop, float pitch)
+        {
+            if (_coBgmCrossFade != null)
+            {
+                StopCoroutine(_coBgmCrossFade);
+                _coBgmCrossFade = null;
+            }
+
+            _inactiveBgmSource.Stop();
+
+            AudioSource outgoing = _activeBgmSource;
+            AudioSource incoming = _inactiveBgmSource;
+            _outgoingBgmGain = (BgmOutputVolume > 0f) ? Mathf.Clamp01(outgoing.volume / BgmOutputVolume) : 1f;
+
+            ConfigureBgmSource(incoming, clip, isLoop, pitch, 0f);
+
+            _activeBgmSource      = incoming;
+            _inactiveBgmSource    = outgoing;
+            _bgmCrossFadeProgress = 0f;
+            _coBgmCrossFade = StartCoroutine(CoCrossFadeBgm(outgoing, incoming, _outgoingBgmGain));
+        }
+
+        private void ConfigureBgmSource(AudioSource source, AudioClip clip, bool isLoop, float pitch, float volume)
+        {
+            source.loop   = isLoop;
+            source.pitch  = pitch;
+            source.volume = volume;
+            source.clip   = clip;
+            source.time   = 0f;
+            source.Play();
+        }
+
+        private IEnumerator CoCrossFadeBgm(AudioSource outgoing, AudioSource incoming, float outgoingGain)
+        {
+            while (_bgmCrossFadeProgress < 1f)
+            {
+                _bgmCrossFadeProgress += Time.unscaledDeltaTime / _bgmCrossFadeDuration;
+                float progress = Mathf.Clamp01(_bgmCrossFadeProgress);
+                outgoing.volume = (1f - progress) * outgoingGain * BgmOutputVolume;
+                incoming.volume = progress * BgmOutputVolume;
+                yield return null;
+            }
+
+            outgoing.Stop();
+            outgoing.volume = 0f;
+            _coBgmCrossFade = null;
         }
 
         // 단발 SFX 풀에서 재생 중이 아닌 소스를 반환. 모두 사용 중이면 동적 추가
