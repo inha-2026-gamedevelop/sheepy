@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Common.Data.BossDataSO
   _cloneCrowdAvoidHorizontalRange: 0.75
   _cloneCrowdAvoidVerticalRange: 1.25
-  _totalHealth: 1000
-  _timeLimit: 600
+  _totalHealth: 20000
+  _timeLimit: 1800
   _attackHalves: 2
   _cloneAttackHalves: 1
   _reflectHalves: 2
@@ -34,7 +34,7 @@ MonoBehaviour:
   _dodgeTriggerRange: 1.5
   _dodgeBackDistance: 3
   _dodgeDuration: 0.3
-  _cloneHealth: 1
+  _cloneHealth: 3000
   _cloneCount: 2
   _cloneAttackRange: 0.7
   _cloneAttackCooldown: 1.5

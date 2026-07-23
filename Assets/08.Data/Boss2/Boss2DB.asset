@@ -26,7 +26,7 @@ MonoBehaviour:
   _chargeSpeed: 9
   _chargeDuration: 1.2
   _chargeArriveThreshold: 0.2
-  _maxHealth: 2
+  _maxHealth: 1
   _phaseCount: 2
   _lightningInterval: 4
   _lightningTelegraphTime: 0.8
@@ -158,3 +158,6 @@ MonoBehaviour:
   _deathFadeDuration: 1.2
   _deathCameraZoomSize: 4.5
   _deathCameraBlend: 0.5
+  _endingHoldDuration: 5
+  _endingZoomEndSize: 1.5
+  _endingFadeDuration: 1.5
