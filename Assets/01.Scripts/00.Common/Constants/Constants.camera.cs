@@ -4,6 +4,10 @@ namespace Minsung.Common
     {
         public static class Camera
         {
+            public const int REFERENCE_WIDTH  = 1920;
+            public const int REFERENCE_HEIGHT = 1080;
+            public const float REFERENCE_ASPECT = (float)REFERENCE_WIDTH / REFERENCE_HEIGHT;
+
             // Cinemachine 카메라 우선순위 (숫자가 높을수록 우선 적용)
             // 플레이어 카메라는 항상 PRIORITY_DEFAULT로 고정 - 포커스 카메라만 IDLE/FOCUS 사이를 오가며 전환한다.
             // (플레이어와 포커스가 같은 값으로 동률이 되면 Brain이 전환하지 않는 경우가 있어 반드시 값을 벌려둔다)
