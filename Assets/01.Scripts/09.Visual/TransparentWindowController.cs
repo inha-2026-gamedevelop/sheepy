@@ -15,7 +15,7 @@ namespace Minsung.Visual
         ****************************************/
 
         private const string PREF_DESKTOP_REVEAL  = "Visual.DesktopReveal.Enabled";
-        private const int    DESKTOP_REVEAL_DEFAULT = 0;
+        private const int    DESKTOP_REVEAL_DEFAULT = 1; // 켜기 = 1, 끄기 = 0
 
         private static bool _active;
 
