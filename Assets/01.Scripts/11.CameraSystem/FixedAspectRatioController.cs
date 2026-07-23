@@ -23,18 +23,26 @@ namespace Minsung.CameraSystem
         private const int BAR_SORTING_ORDER = short.MaxValue;
         private const int CANVAS_REFRESH_FRAME_INTERVAL = 30;
 
+        // ScreenSpaceCamera로 바꾸면 캔버스가 월드 스프라이트와 같은 정렬 규칙을 타므로
+        // 최상위 Sorting Layer + 이 여유값만큼 올려 맵 오브젝트에 가리지 않게 한다
+        private const int OVERLAY_SORTING_ORDER_OFFSET = 10000;
+
         private readonly Dictionary<Canvas, CanvasState> _overlayCanvasStates = new();
+        private readonly List<Canvas> _releasedCanvases = new();
 
         private Camera           _targetCamera;
         private RectTransform[]  _blackBars;
         private int              _screenWidth;
         private int              _screenHeight;
+        private int              _topSortingLayerId;
 
         private struct CanvasState
         {
             public RenderMode RenderMode;
             public Camera     WorldCamera;
             public float      PlaneDistance;
+            public int        SortingLayerId;
+            public int        SortingOrder;
         }
 
         /****************************************
@@ -55,6 +63,7 @@ namespace Minsung.CameraSystem
 
         protected override void OnSingletonAwake()
         {
+            _topSortingLayerId = FindTopSortingLayerId();
             CreateBlackBars();
             SceneManager.sceneLoaded += HandleSceneLoaded;
             StartCoroutine(CoApplyAfterSceneLoad());
@@ -97,7 +106,27 @@ namespace Minsung.CameraSystem
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            PruneDestroyedCanvasStates();
             StartCoroutine(CoApplyAfterSceneLoad());
+        }
+
+        // 씬이 바뀌면 이전 씬의 캔버스는 파괴된다 - 원본 상태 기록을 계속 들고 있으면 계속 쌓인다
+        private void PruneDestroyedCanvasStates()
+        {
+            _releasedCanvases.Clear();
+            foreach (KeyValuePair<Canvas, CanvasState> pair in _overlayCanvasStates)
+            {
+                if (pair.Key == null)
+                {
+                    _releasedCanvases.Add(pair.Key);
+                }
+            }
+
+            foreach (Canvas canvas in _releasedCanvases)
+            {
+                _overlayCanvasStates.Remove(canvas);
+            }
+            _releasedCanvases.Clear();
         }
 
         private IEnumerator CoApplyAfterSceneLoad()
@@ -167,6 +196,8 @@ namespace Minsung.CameraSystem
                         RenderMode = canvas.renderMode,
                         WorldCamera = canvas.worldCamera,
                         PlaneDistance = canvas.planeDistance,
+                        SortingLayerId = canvas.sortingLayerID,
+                        SortingOrder = canvas.sortingOrder,
                     };
                     _overlayCanvasStates.Add(canvas, state);
                 }
@@ -174,6 +205,11 @@ namespace Minsung.CameraSystem
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = _targetCamera;
                 canvas.planeDistance = state.PlaneDistance;
+
+                // Overlay였을 때는 항상 월드 위에 그려졌지만 ScreenSpaceCamera는 스프라이트와 같은 정렬을 탄다.
+                // 최상위 Sorting Layer로 올리되 원본 순서에 offset만 더해 캔버스끼리의 상대 순서는 유지한다
+                canvas.sortingLayerID = _topSortingLayerId;
+                canvas.sortingOrder = state.SortingOrder + OVERLAY_SORTING_ORDER_OFFSET;
             }
         }
 
@@ -190,9 +226,23 @@ namespace Minsung.CameraSystem
                 canvas.renderMode = pair.Value.RenderMode;
                 canvas.worldCamera = pair.Value.WorldCamera;
                 canvas.planeDistance = pair.Value.PlaneDistance;
+                canvas.sortingLayerID = pair.Value.SortingLayerId;
+                canvas.sortingOrder = pair.Value.SortingOrder;
             }
 
             _overlayCanvasStates.Clear();
+        }
+
+        // 프로젝트에 정의된 Sorting Layer 중 가장 나중에 그려지는(=최상위) 레이어 id
+        private static int FindTopSortingLayerId()
+        {
+            SortingLayer[] layers = SortingLayer.layers;
+            if ((layers == null) || (layers.Length == 0))
+            {
+                return 0;
+            }
+
+            return layers[layers.Length - 1].id;
         }
 
         private static Rect GetViewport(float screenAspect)
