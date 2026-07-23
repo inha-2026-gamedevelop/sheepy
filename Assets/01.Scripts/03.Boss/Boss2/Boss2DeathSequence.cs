@@ -134,6 +134,11 @@ namespace Minsung.Boss2
             }
 
             _endingPortal?.SetActive(true);
+
+            // 사망 연출이 끝난 뒤에도 Boss2EmotionController의 감정 루프(CoConfusionLoop 등)가 멈추지 않아
+            // 형체가 사라진 뒤에도 플레이어에게 상태이상(조작 반전 등)이 계속 부여되는 문제 - 보스 오브젝트를 완전히 비활성화해
+            // OnDisable로 모든 하위 컴포넌트(감정 루프 포함)를 정리한다
+            gameObject.SetActive(false);
         }
 
         // Phase4Aura 파티클을 재사용해 사방(2D 360도)으로 즉시 분출한다.
