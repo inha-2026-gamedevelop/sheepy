@@ -4337,6 +4337,98 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &123306550
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 123306553}
+  - component: {fileID: 123306552}
+  - component: {fileID: 123306551}
+  m_Layer: 0
+  m_Name: SpaceTearWindowCinematic
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &123306551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 123306550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22ee55b3561fc014ebd593c1162ef9e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Visual.SpaceTearWindowPresentation
+  _sourceCamera: {fileID: 1936869359}
+  _presentationRoot: {fileID: 1777889317}
+  _boss: {fileID: 1684505829}
+  _fakeDesktop: {fileID: 123306552}
+  _windowAspect: {x: 1280, y: 720}
+  _windowHeightRatio: 0.62
+  _windowFrameColor: {r: 0, g: 0, b: 0, a: 0.9}
+  _windowFrameThickness: 3
+  _windowShadowColor: {r: 0, g: 0, b: 0, a: 0.45}
+  _windowShadowSpread: 18
+  _showTitleBar: 1
+  _windowTitle: The Last Re:wind
+  _windowIcon: {fileID: 5352906672607264348, guid: 536dc99f742f21846bb00f4dbbaad807, type: 3}
+  _titleFont: {fileID: 11400000, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}
+  _titleBarHeight: 34
+  _titleBarColor: {r: 0.96, g: 0.96, b: 0.97, a: 1}
+  _titleTextColor: {r: 0.1, g: 0.1, b: 0.12, a: 1}
+  _titleIconColor: {r: 0.35, g: 0.55, b: 0.95, a: 1}
+  _keyColor: {r: 0, g: 1, b: 0, a: 1}
+  _removeWindowBorder: 0
+  _revealTime: 0.45
+  _cutTime: 2.5
+  _dropTime: 3
+  _cutTravelViewport: 0.75
+  _dropGravity: 170
+  _dropSpinDeg: 26
+  _dropShards: 44
+  _dropSparkles: 60
+  _taskbarHeight: 48
+  _holdAfterDropTime: 1
+  _cutAngleDeg: -28
+  _rtResolutionScale: 0.75
+  _playOnStart: 0
+--- !u!114 &123306552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 123306550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9245cf64afbce714c8887479fa8f0d69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Visual.FakeDesktopBackground
+  _desktopTexture: {fileID: 0}
+  _fallbackColor: {r: 0.07, g: 0.08, b: 0.12, a: 1}
+--- !u!4 &123306553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 123306550}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &127106735
 GameObject:
   m_ObjectHideFlags: 0
@@ -37740,6 +37832,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Sound.SoundManager
   _soundDB: {fileID: 11400000, guid: 535706205f437bb488fc9443c6f1bbb4, type: 2}
+  _bgmCrossFadeDuration: 1
   _bgmVolume: 0.7
   _sfxVolume: 1
 --- !u!1 &983667772
@@ -70621,7 +70714,6 @@ MonoBehaviour:
   _health: {fileID: 1342816283}
   _movement: {fileID: 1684505830}
   _patterns: {fileID: 1684505834}
-  _overlay: {fileID: 2142294218}
   _banner: {fileID: 39620583}
   _player: {fileID: 1540819921}
   _dataSo: {fileID: 11400000, guid: 7744d4dd47f44a34b823a2cea6d4e593, type: 2}
@@ -70638,6 +70730,11 @@ MonoBehaviour:
   _playerOvershootDistance: 3
   _bannerText: "\uBCF4\uC2A4\uBCF4\uB2E4 \uC2DC\uAC04\uC744 \uB290\uB9AC\uAC8C \uD558\uC5EC
     \uBCF4\uC2A4\uC758 \uD328\uD134\uC744 \uB9C9\uC544\uBCF4\uC138\uC694!"
+  _useWindowCinematic: 1
+  _windowPresentation: {fileID: 123306551}
+  _cinematicMoveSpeed: 14
+  _cinematicDashSpeed: 7
+  _bossGrowMultiplier: 2
 --- !u!114 &1684505839
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -89952,7 +90049,6 @@ GameObject:
   - component: {fileID: 2142294221}
   - component: {fileID: 2142294220}
   - component: {fileID: 2142294219}
-  - component: {fileID: 2142294218}
   m_Layer: 0
   m_Name: SpaceTearCanvas
   m_TagString: Untagged
@@ -89960,58 +90056,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2142294218
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2142294217}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3d730a542d541947a959fb1fe593fdf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Visual.ScreenTearOverlay
-  _sourceCamera: {fileID: 1936869359}
-  _shardRoot: {fileID: 1777889317}
-  _cutLines:
-  - StartUV: {x: 0.06, y: 1}
-    EndUV: {x: 0.3, y: 0}
-  - StartUV: {x: -0.04, y: 0.45}
-    EndUV: {x: 1.05, y: 0.94}
-  - StartUV: {x: 0.94, y: 1.07}
-    EndUV: {x: 0.81, y: -0.06}
-  _rtResolutionScale: 0.75
-  _nonPlayerOrthoSizeMultiplier: 1.6
-  _shatterOffset: 0.5
-  _cameraAnchors:
-  - SampleUV: {x: 0.127, y: 0.893}
-    Point: {fileID: 2064471770}
-  - SampleUV: {x: 0.807, y: 0.04}
-    Point: {fileID: 1260887654}
-  - SampleUV: {x: 0.218, y: 0.765}
-    Point: {fileID: 110097495}
-  - SampleUV: {x: 0.84, y: 0.807}
-    Point: {fileID: 633644958}
-  _crackColor: {r: 0.05, g: 0.05, b: 0.05, a: 0.85}
-  _crackThickness: 3
-  _crackDrawDuration: 0.8
-  _cutHeadColor: {r: 0.85, g: 0.97, b: 1, a: 1}
-  _cutHeadSize: 26
-  _glassEmitInterval: 0.025
-  _glassShardsPerEmit: 3
-  _glassSparklesPerEmit: 3
-  _glassSpeedMin: 200
-  _glassSpeedMax: 550
-  _glassLifeMin: 0.6
-  _glassLifeMax: 1
-  _shardMaterial: {fileID: 0}
-  _wipeMaxRadius: 0.53
-  _wipeFeather: 0.12
-  _wipeEdgeNoise: 0.06
-  _grayInDuration: 0.7
-  _cutStaggerTime: 0.5
-  _activateOnStart: 0
 --- !u!114 &2142294219
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90332,3 +90376,4 @@ SceneRoots:
   - {fileID: 1671844529}
   - {fileID: 573407994}
   - {fileID: 767280292}
+  - {fileID: 123306553}

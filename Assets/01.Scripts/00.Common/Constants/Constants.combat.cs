@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Minsung.Common
 {
     public static partial class Constants
@@ -51,6 +53,11 @@ namespace Minsung.Common
 
             // 보스 계열 스프라이트 원본 아트 응시 방향 (-1 = 왼쪽) - 시트 교체로 기본 방향이 바뀌면 이 값만 수정
             public const float BOSS_ART_FACING_SIGN = -1f;
+
+            // 디버그 - 체력 조건 없이 공간찢기를 즉시 실행하는 테스트 키(상단 숫자열/숫자패드 6 모두 인식)
+            // 에디터와 개발 빌드에서만 동작한다
+            public const KeyCode KEY_DEBUG_SPACE_TEAR         = KeyCode.Alpha6;
+            public const KeyCode KEY_DEBUG_SPACE_TEAR_KEYPAD  = KeyCode.Keypad6;
         }
     }
 }

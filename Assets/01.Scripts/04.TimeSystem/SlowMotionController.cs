@@ -1,5 +1,6 @@
 // Unity
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 using Minsung.Achievement;
 using Minsung.Common;
@@ -14,6 +15,14 @@ namespace Minsung.TimeSystem
         /****************************************
         *                Fields
         ****************************************/
+
+        // 슬로우 없이는 파훼 불가한 기믹이 있는 씬 - 여기서 시작하면 Map1 해금 연출을 거치지 않았어도 능력을 연다
+        // (1페이즈 즉사 레이저의 안전구역은 슬로우 중에만 보인다)
+        private static readonly string[] AUTO_UNLOCK_SCENES =
+        {
+            Constants.Scene.MAP_2,
+            Constants.Scene.MAP_3,
+        };
 
         [Header("테스트 입력 (나중에 스킬 시스템이 대체)")]
         [SerializeField] private KeyCode _slowKey = KeyCode.LeftShift;
@@ -106,6 +115,24 @@ namespace Minsung.TimeSystem
         private static void RestoreAbilityUnlock()
         {
             IsAbilityUnlocked = (SaveManager.Instance != null) && SaveManager.Instance.IsSlowAbilityUnlocked();
+
+            // 보스 맵에서 바로 시작한 경우 - 세이브는 건드리지 않고 이번 플레이에서만 능력을 연다
+            if (!IsAbilityUnlocked && IsAutoUnlockScene(SceneManager.GetActiveScene().name))
+            {
+                IsAbilityUnlocked = true;
+            }
+        }
+
+        private static bool IsAutoUnlockScene(string sceneName)
+        {
+            for (int i = 0; i < AUTO_UNLOCK_SCENES.Length; ++i)
+            {
+                if (AUTO_UNLOCK_SCENES[i] == sceneName)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void SetSlow(bool on)

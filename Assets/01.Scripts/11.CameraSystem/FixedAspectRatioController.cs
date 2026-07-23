@@ -22,7 +22,6 @@ namespace Minsung.CameraSystem
         ****************************************/
 
         private const int BAR_SORTING_ORDER = short.MaxValue;
-        private const int CANVAS_REFRESH_FRAME_INTERVAL = 30;
 
         // ScreenSpaceCamera로 바꾸면 캔버스가 월드 스프라이트와 같은 정렬 규칙을 타므로
         // 최상위 Sorting Layer + 이 여유값만큼 올려 맵 오브젝트에 가리지 않게 한다
@@ -93,17 +92,20 @@ namespace Minsung.CameraSystem
             {
                 ApplyViewport();
             }
-
-            // 런타임에 생성되는 UI(보스 HUD, 팝업 등)도 16:9 카메라 영역을 기준으로 맞춘다.
-            if ((Time.frameCount % CANVAS_REFRESH_FRAME_INTERVAL) == 0)
-            {
-                ApplyOverlayCanvasViewport();
-            }
         }
 
         /****************************************
         *                Methods
         ****************************************/
+
+        /// <summary>
+        /// 씬 로드/해상도 변경 이후에 루트 Canvas를 새로 만들었다면 호출한다 - 그 캔버스도 16:9 영역 기준으로 맞춘다.
+        /// (씬 배치 UI와 Awake에서 만드는 UI는 씬 로드 시 자동으로 잡히므로 호출할 필요 없다)
+        /// </summary>
+        public void RefreshCanvases()
+        {
+            ApplyOverlayCanvasViewport();
+        }
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {

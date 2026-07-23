@@ -11,6 +11,7 @@ using Minsung.Achievement;
 using Minsung.Backend;
 using Minsung.Common;
 using Minsung.Sound;
+using Minsung.Visual;
 
 namespace Minsung.UI
 {
@@ -30,8 +31,18 @@ namespace Minsung.UI
         *                Fields
         ****************************************/
 
+        // 켜기 전에 반드시 안내해야 하는 문구 - 이 연출은 게임 창 일부를 투명하게 만들어 실제 바탕화면을 드러낸다
+        private const string DESKTOP_REVEAL_NOTICE =
+            "공간찢기 연출 중 게임 창 일부가 투명해져 바탕화면, 알림, 다른 앱 창이 화면과 방송/녹화에 그대로 노출됩니다.";
+        private const string DESKTOP_REVEAL_UNSUPPORTED =
+            "이 연출은 Windows 빌드에서만 사용할 수 있습니다.";
+
         [SerializeField] private Slider _bgmSlider;
         [SerializeField] private Slider _sfxSlider;
+
+        [Header("실제 데스크톱 노출 연출 - Windows 빌드 전용, 기본 꺼짐")]
+        [SerializeField] private Toggle   _desktopRevealToggle;
+        [SerializeField] private TMP_Text _desktopRevealNoticeText; // 노출 위험 안내 (미지정 시 생략)
 
         [Header("데이터 초기화 - 같은 버튼을 제한시간 안에 한 번 더 누르면 실행")]
         [SerializeField] private TMP_Text _resetMessageText;               // 확인 안내/결과 메시지 표시 (미지정 시 생략)
@@ -46,6 +57,8 @@ namespace Minsung.UI
 
         private void OnEnable()
         {
+            RefreshDesktopRevealToggle();
+
             if (SoundManager.Instance == null)
             {
                 return;
@@ -83,6 +96,49 @@ namespace Minsung.UI
         public void OnSfxSliderChanged(float value)
         {
             SoundManager.Instance?.SetSfxVolume(value);
+        }
+
+        /// <summary> 실제 데스크톱 노출 연출 토글 OnValueChanged 콜백 </summary>
+        public void OnDesktopRevealToggleChanged(bool isOn)
+        {
+            if (isOn && !TransparentWindowController.IsSupported)
+            {
+                RefreshDesktopRevealToggle(); // 지원하지 않는 플랫폼에서는 켜지지 않게 되돌린다
+                return;
+            }
+
+            TransparentWindowController.IsUserEnabled = isOn;
+            SetDesktopRevealNotice(isOn ? DESKTOP_REVEAL_NOTICE : string.Empty);
+        }
+
+        // 현재 저장값/플랫폼 지원 여부를 토글에 반영한다
+        private void RefreshDesktopRevealToggle()
+        {
+            if (_desktopRevealToggle == null)
+            {
+                return;
+            }
+
+            bool supported = TransparentWindowController.IsSupported;
+            bool enabled    = supported && TransparentWindowController.IsUserEnabled;
+
+            _desktopRevealToggle.interactable = supported;
+            _desktopRevealToggle.SetIsOnWithoutNotify(enabled);
+
+            if (!supported)
+            {
+                SetDesktopRevealNotice(DESKTOP_REVEAL_UNSUPPORTED);
+                return;
+            }
+            SetDesktopRevealNotice(enabled ? DESKTOP_REVEAL_NOTICE : string.Empty);
+        }
+
+        private void SetDesktopRevealNotice(string message)
+        {
+            if (_desktopRevealNoticeText != null)
+            {
+                _desktopRevealNoticeText.text = message;
+            }
         }
 
         /// <summary> 닫기 버튼 </summary>
