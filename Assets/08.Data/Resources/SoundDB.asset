@@ -33,7 +33,11 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
   - _clips: []
-  - _clips: []
+  - _clips:
+    - {fileID: 8300000, guid: c66093bdba967554095b4c5bd940193c, type: 3}
+    - {fileID: 8300000, guid: b4b8466d1d3c7a94fa1cc9e258688b94, type: 3}
+    - {fileID: 8300000, guid: 1bee8fc202635a0408385ce4a11dfd42, type: 3}
+    - {fileID: 8300000, guid: 4f596318b91aa5b48a47ce5c68ef3557, type: 3}
   - _clips:
     - {fileID: 8300000, guid: d557133e2caf8d54998ee8718e41ea54, type: 3}
     - {fileID: 8300000, guid: aca7943f9c6b7e04d96a82459c241690, type: 3}
