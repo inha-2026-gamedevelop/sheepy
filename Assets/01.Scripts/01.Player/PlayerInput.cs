@@ -55,7 +55,7 @@ namespace Minsung.Player
             {
                 _movement?.RequestJump();
             }
-            if (Input.GetKeyDown(Constants.Player.KEY_ATTACK))
+            if (Input.GetKey(Constants.Player.KEY_ATTACK))
             {
                 _combat?.RequestAttack(); // 누른 즉시 일반 공격 (반응성 유지)
                 _combat?.BeginCharge();   // 동시에 차지 시작 - 홀드 유지 시 강화 공격으로 이어진다

@@ -30,6 +30,7 @@ namespace Minsung.Player
         private bool _attackedThisTick; // 이번 물리 틱에 공격 실행 여부 (되감기 기록용)
         private bool _attackWasCharged; // 이번 틱 공격이 차지공격인지 (되감기 기록용)
         private bool _attackFlashing;
+        private float _nextAttackTime;
 
         private bool  _isCharging;      // X 홀드로 차지 중
         private float _chargeStartTime; // 차지 시작 시각 (Time.time)
@@ -81,6 +82,10 @@ namespace Minsung.Player
         /// <summary> X 홀드 시작 - 차지 타이머 개시 (일반 공격과 별개로 진행). </summary>
         public void BeginCharge()
         {
+            if (_isCharging)
+            {
+                return;
+            }
             if (_coordinator.IsRewinding || _coordinator.IsStunned || _coordinator.IsInteracting)
             {
                 return;
@@ -113,16 +118,20 @@ namespace Minsung.Player
         // 코디네이터의 FixedUpdate가 이동 처리 뒤에 호출한다.
         public void Tick()
         {
-            bool charged = _chargedPending;
-            _attackedThisTick = _attackPending || _chargedPending;
-            _attackWasCharged = charged;
-            _attackPending    = false;
-            _chargedPending   = false;
+            _attackedThisTick = false;
+            _attackWasCharged = false;
 
-            if (_attackedThisTick)
+            if ((_attackPending || _chargedPending) && (Time.time >= _nextAttackTime))
             {
+                bool charged = _chargedPending;
+                _attackedThisTick = true;
+                _attackWasCharged = charged;
+                _chargedPending = false;
+                _nextAttackTime = Time.time + GameDB.Player.AttackCooldown;
                 PlayAttack(reversed: false, charged: charged);
             }
+
+            _attackPending = false;
         }
 
         // 범위 안에 적이 있으면 오브가 날아가 타격하고, 없으면 근접 히트박스로 폴백.
