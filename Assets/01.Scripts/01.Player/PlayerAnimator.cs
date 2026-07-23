@@ -125,6 +125,12 @@ namespace Minsung.Player
             SetTriggerSafe(PARAM_DO_LEVER);
         }
 
+        /// <summary> GetSlow 획득 연출 동안 플레이어 스프라이트를 숨긴다 - 트리거 쪽 전용 Animator가 그 자리에서 별도로 연출을 재생한다. </summary>
+        public void SetVisible(bool visible)
+        {
+            _spriteRenderer.enabled = visible;
+        }
+
         // 실존 파라미터만 통과시키는 가드 - 컨트롤러에 없는 파라미터를 Set하면 콘솔 에러가 나므로
         private void SetFloatSafe(int paramHash, float value)
         {

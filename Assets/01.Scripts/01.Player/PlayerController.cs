@@ -58,6 +58,13 @@ namespace Minsung.Player
 
         public event Action<bool> OnInputInvertedChanged; // 혼란 아이콘 UI 연동용
 
+        /// <summary> 공중 -> 접지 전이 순간 1회. GetSlow 연출처럼 착지 시점이 필요한 외부 트리거가 구독. </summary>
+        public event Action OnLanded
+        {
+            add => _movement.OnLanded += value;
+            remove => _movement.OnLanded -= value;
+        }
+
         /****************************************
         *              Unity Event
         ****************************************/
