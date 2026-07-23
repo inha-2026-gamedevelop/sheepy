@@ -198,6 +198,9 @@ namespace Minsung.Player
 
             // 트리거를 실제로 통과하지 않고 복원되므로, BGM/포스트프로세싱 존은 가장 가까운 것을 찾아 즉시 적용한다.
             ApplyNearestEnvironmentZones(data.PlayerPosition);
+
+            // 복원 직후 되감기를 쓰면 씬 배치 스폰 위치로 끌려간다 - 기록이 갈릴 때까지 잠근다
+            _rewind.LockRewindAfterTeleport();
         }
 
         // 저장 위치 복원 시 가장 가까운 BgmZoneTrigger/PostProcessZoneTrigger를 찾아 충돌 없이 즉시 적용한다.
@@ -351,6 +354,7 @@ namespace Minsung.Player
         {
             _health.ResetHearts();
             _rewind.RequestClearClones(); // 사망 이전 분신 정리
+            _rewind.LockRewindAfterTeleport(); // 버퍼에 남은 사망 지점 기록으로 되돌아가는 것을 막는다
             _isDead = false;
         }
 
@@ -379,6 +383,9 @@ namespace Minsung.Player
 
         /// <summary> 살아있는 분신 전부 회수. </summary>
         public void RequestClearClones() => _rewind.RequestClearClones();
+
+        /// <summary> 순간이동(리스폰/보스 복귀/이어하기) 직후 기록 길이만큼 되감기를 잠근다. RespawnManager 등이 호출. </summary>
+        public void LockRewindAfterTeleport() => _rewind.LockRewindAfterTeleport();
 
         private void ForwardInvertedChanged(bool inverted) => OnInputInvertedChanged?.Invoke(inverted);
 
