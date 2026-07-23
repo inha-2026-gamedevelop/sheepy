@@ -58,6 +58,17 @@ namespace Minsung.UI
 
         private void CreateTooltip()
         {
+            // 디자이너가 미리 배치한 EmotionTooltip[OFF](Boss1의 BossEmotionIconTooltip과 동일한 관례)가 있으면 그대로 재사용하고,
+            // 없을 때만 아래처럼 런타임에 즉석으로 만든다
+            TextMeshProUGUI existingText = GetComponentInChildren<TextMeshProUGUI>(true);
+            if (existingText != null)
+            {
+                _tooltipPanel = existingText.transform.parent.gameObject;
+                _tooltipText  = existingText;
+                _tooltipPanel.SetActive(false);
+                return;
+            }
+
             _tooltipPanel = new GameObject("EmotionTooltip[Runtime]", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             _tooltipPanel.transform.SetParent(transform, false);
 
