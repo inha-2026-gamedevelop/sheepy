@@ -80,6 +80,9 @@ namespace Minsung.Boss
         [SerializeField] private BossOutroVideoUI _introVideo;      // 보스방 입장 후 전투 시작 전에 재생할 풀스크린 영상
         [SerializeField] private string _nextSceneName = Constants.Scene.MAP_3;
 
+        [SerializeField] private GameObject _transitionDeathAnim;   // _transitionToNextScene 전용 사망 연출(Circle+Light Animator 하위 포함, 씬 배치, 비활성 시작)
+                                                                     // CoPhaseEndGimmick의 페이드아웃보다 먼저 재생되어야 해서 _deathLightFx/_deathCircleFx(2->3페이즈 전환용)와 별도로 둔다
+
         private BossState[] _states;       // 페이즈별 상태 객체 (인덱스 = 페이즈)
         private int _phaseIndex;           // 현재 페이즈 인덱스 (0부터)
         private float _currentHealth;      // 총 피통(64,000)에서 시작하는 단일 값
@@ -557,12 +560,26 @@ namespace Minsung.Boss
             {
                 _phaseEndRewindLock = RewindManager.Instance.AcquireRewindLock(this);
             }
-            PlayAnimTrigger(PARAM_ROAR); // 기믹 시전 시그널
+            // 이 씬을 마감하고 다음 씬으로 전환하는 마지막 페이즈인지(Map2->Map3 등) - 이 경우 곧바로 Death를 트리거하므로
+            // Roar를 같은 프레임에 함께 걸면 아직 소진되지 않은 Roar 트리거가 다음 프레임에 AnyState로 다시 끼어들어
+            // DeathBody에서 Roar로 튕겨나가 버린다(실측 확인) - 따라서 이 경로에서는 Roar 시그널을 생략한다
+            bool isSceneTransitionEnding = (_phaseIndex >= _finalPhaseIndex) && _transitionToNextScene;
+
+            if (!isSceneTransitionEnding)
+            {
+                PlayAnimTrigger(PARAM_ROAR); // 기믹 시전 시그널
+            }
 
             // 1페이즈 즉사 기믹 진입 시 중앙 경고 배너 (다른 페이즈 기믹은 각자 상태에서 ShowBanner 호출)
             if (_phaseIndex == 0)
             {
                 ShowBanner(_phase1GimmickMessage);
+            }
+
+            // CoPhaseEndGimmick가 화면을 페이드아웃하기 전에 보스 사망 연출(DeathBody+DeathLightFx+DeathCircleFx)을 먼저 재생해 보여준다
+            if (isSceneTransitionEnding)
+            {
+                yield return CoPlayTransitionDeathSequence();
             }
 
             yield return _states[_phaseIndex].CoPhaseEndGimmick();
@@ -648,6 +665,40 @@ namespace Minsung.Boss
         {
             yield return new WaitForSeconds(GameDB.Boss.DeathCircleDelay);
             _deathCircleFx?.PlaySequence(GameDB.Boss.DeathCircleLaunchDirection);
+        }
+
+        // _transitionToNextScene 전용 - DeathBody 트리거 + DeathLightFx/DeathCircleFx를 원래 페이즈2->3 전환과 동일한
+        // 타이밍(GameDB.Boss)으로 재생하고, CoActivateDeathLightFx/CoActivateDeathCircleFx(fire-and-forget)와 달리
+        // Circle의 사출->부유->귀환까지 전부 끝날 때까지 기다린다 - 화면 페이드아웃은 이 뒤에 와야 하므로
+        private IEnumerator CoPlayTransitionDeathSequence()
+        {
+            if (_transitionDeathAnim != null)
+            {
+                _transitionDeathAnim.SetActive(true); // DeathAnim(Circle+Light) 컨테이너 - 자식 활성화 전에 먼저 켜야 한다
+            }
+
+            PlayAnimTrigger(PARAM_DEATH);
+
+            yield return new WaitForSeconds(GameDB.Boss.DeathLightDelay);
+            _deathLightFx?.SetActive(true);
+
+            yield return new WaitForSeconds(GameDB.Boss.DeathCircleDelay - GameDB.Boss.DeathLightDelay);
+            _deathCircleFx?.PlaySequence(GetFacingAwareDeathCircleLaunchDirection());
+
+            while ((_deathCircleFx != null) && _deathCircleFx.IsPlaying)
+            {
+                yield return null;
+            }
+        }
+
+        // 보스가 보는 방향에 맞춰 DeathCircle 사출 방향의 좌우 부호를 뒤집는다
+        // (오른쪽을 보면 1사분면으로, 왼쪽을 보면 2사분면으로 - transform.localScale.x는 FaceTo가 뒤집는 본체 스케일)
+        private Vector2 GetFacingAwareDeathCircleLaunchDirection()
+        {
+            Vector2 direction  = GameDB.Boss.DeathCircleLaunchDirection;
+            float   facingSign = -Mathf.Sign(transform.localScale.x); // BOSS_ART_FACING_SIGN(-1) 컨벤션: localScale.x<0 = 오른쪽을 봄
+            direction.x = Mathf.Abs(direction.x) * facingSign;
+            return direction;
         }
 
         /****************************************

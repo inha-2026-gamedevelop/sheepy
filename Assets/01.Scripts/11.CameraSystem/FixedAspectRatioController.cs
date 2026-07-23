@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 using Minsung.Common;
+using Minsung.UI;
 using Minsung.Utility;
 
 namespace Minsung.CameraSystem
@@ -180,6 +181,12 @@ namespace Minsung.CameraSystem
             foreach (Canvas canvas in canvases)
             {
                 if ((canvas == null) || !canvas.isRootCanvas || canvas.transform.IsChildOf(transform))
+                {
+                    continue;
+                }
+
+                // FPS 카운터는 letterbox 뷰포트에 갇히지 않고 항상 화면 전체 위에 떠 있어야 한다
+                if (canvas.TryGetComponent(out FpsCounterUI _))
                 {
                     continue;
                 }
