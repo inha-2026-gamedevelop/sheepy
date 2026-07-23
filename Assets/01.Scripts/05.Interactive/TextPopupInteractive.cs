@@ -21,6 +21,7 @@ namespace Minsung.Interactive
         ****************************************/
 
         [Header("표시 대상")]
+        [SerializeField] private GameObject _blurOverlay; // 켜고 끌 블러 캔버스
         [SerializeField] private GameObject _textRoot; // 켜고 끌 루트
         [SerializeField] private TMP_Text   _label;    // 문구를 출력할 TMP
 
@@ -124,7 +125,7 @@ namespace Minsung.Interactive
         /// <summary> 문구를 띄운다 </summary>
         public void Show()
         {
-            if (_textRoot == null)
+            if (_textRoot == null || _blurOverlay == null)
             {
                 return;
             }
@@ -142,6 +143,7 @@ namespace Minsung.Interactive
                 _label.text = _message;
             }
 
+            _blurOverlay.SetActive(true);
             _textRoot.SetActive(true);
             UpdatePlacement(); // 켜진 첫 프레임에 엉뚱한 위치로 보이지 않게 즉시 배치
 
@@ -314,6 +316,11 @@ namespace Minsung.Interactive
             if (_textRoot != null)
             {
                 _textRoot.SetActive(false);
+            }
+
+            if (_blurOverlay != null)
+            {
+                _blurOverlay.SetActive(false);
             }
         }
 
