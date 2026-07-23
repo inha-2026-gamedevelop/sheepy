@@ -27,6 +27,7 @@ MonoBehaviour:
   _maxHearts: 6
   _invincibleDuration: 0.5
   _deathRespawnDelay: 0.6
+  _dodgeInvincibleDuration: 2.3
   _knockbackForceX: 6
   _knockbackForceY: 4
   _knockbackStunTime: 0.15

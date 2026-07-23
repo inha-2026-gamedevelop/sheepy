@@ -20,8 +20,6 @@ namespace Minsung.Visual
         *                Fields
         ****************************************/
 
-        private const int CHROME_SORTING_ORDER = short.MaxValue - 1;
-
         private const int CANVAS_RESCAN_FRAME_INTERVAL = 10;
 
         private static readonly Rect FULL_SCREEN_VIEWPORT = new Rect(0f, 0f, 1f, 1f);
@@ -64,18 +62,28 @@ namespace Minsung.Visual
         [SerializeField] private float _cutTravelViewport = 0.75f;
 
         [Header("위쪽 조각 낙하")]
-        [SerializeField] private float _dropGravity  = 170f;
-        [SerializeField] private float _dropSpinDeg  = 26f;   // 떨어지며 기우는 각도
+        [Tooltip("낙하 가속도(px/s^2) - 중력처럼 점점 빨라진다. 높을수록 툭 떨어진다")]
+        [SerializeField] private float _dropGravity  = 1500f;
+        [Tooltip("낙하 최대 속도(px/s) - 이 속도 상한까지만 가속한다")]
+        [SerializeField] private float _dropMaxSpeed = 3000f;
+        [Tooltip("떨어지며 제자리 Z 회전하는 각속도(도/초) - 조각이 빙글빙글 돌며 떨어진다")]
+        [SerializeField] private float _dropSpinSpeed = 90f;
         [SerializeField] private int   _dropShards   = 44;    // 작업표시줄 충돌 시 산산조각 나는 파편 수
         [SerializeField] private int   _dropSparkles = 60;
+        [Tooltip("산산조각 파편이 바닥으로 가라앉는 가속도(px/s^2) - 높을수록 빨리 쌓인다")]
+        [SerializeField] private float _shatterSettleGravity = 1400f;
         [Tooltip("화면 아래 작업표시줄 높이(px) - 조각의 아래 끝이 이 선에 닿으면 산산조각이 난다")]
         [SerializeField] private float _taskbarHeight = 48f;
         [Tooltip("조각이 부서진 뒤 HUD가 돌아온 화면을 보여주는 시간(unscaled 초)")]
         [SerializeField] private float _holdAfterDropTime = 1f;
 
+        [Header("절단선 (UV 0~1 창 좌표 - 두 점을 잇는 직선으로 자른다)")]
+        [Tooltip("절단선 시작점 - (0,0)=좌하단, (1,1)=우상단, (0.5,0.5)=창 중앙")]
+        [SerializeField] private Vector2 _cutUvStart = new Vector2(1f, 0.6f);   // 오른쪽 벽, 중앙보다 살짝 위
+        [Tooltip("절단선 끝점")]
+        [SerializeField] private Vector2 _cutUvEnd   = new Vector2(0.2f, 1f);   // 위쪽 벽 20% 지점
+
         [Header("연출 강도")]
-        [Tooltip("보스의 베기 방향과 맞춘 사선 절단 각도(도)")]
-        [SerializeField] private float _cutAngleDeg = -28f;
         [SerializeField, Range(0.2f, 1f)] private float _rtResolutionScale = 0.75f;
 
         [Header("프로토타입")]
@@ -86,6 +94,7 @@ namespace Minsung.Visual
         private readonly List<float>   _titleBarBaseAlphas = new List<float>(); // 요소별 원래 알파(페이드 기준값)
         private ScreenTearShard _playerFragment;
         private ScreenTearShard _bossFragment;
+        private ScreenTearGlassBurst _dropBurst; // 산산조각 후 바닥에 쌓여 남는 파편 - 창이 닫힐 때 함께 정리
         private RenderTexture  _bossFragmentSource; // 보스 조각이 지금 보여주는 소스 - 절단 직후 잠깐은 플레이어 화면을 쓴다
         private Camera         _playerCamera;
         private Camera         _hudCamera;    // HUD 전용 - 조각과 별개로 렌더해 절단돼도 사라지지 않는다
@@ -98,6 +107,7 @@ namespace Minsung.Visual
         private readonly List<Vector2> _windowPoly = new List<Vector2>();
         private List<Vector2> _playerPoly;
         private List<Vector2> _bossPoly;
+        private Vector2 _bossFragmentCentroid; // 떨어지는 조각의 무게중심(창 로컬) - 제자리 Z 회전 축
         private Vector2 _playerFragmentOffset;
         private Vector2 _bossFragmentOffset;
 
@@ -120,7 +130,6 @@ namespace Minsung.Visual
         private readonly List<Camera>     _capturedCameras = new List<Camera>();
         private readonly List<float>      _capturedPlaneDistances = new List<float>();
 
-        private Canvas _chromeCanvas; // 타이틀 바 전용 - 플레이어 카메라로 렌더해 게임 화면과 함께 잘린다
         private FixedAspectRatioController _fixedAspectRatioController;
         private Rect                       _savedSourceCameraRect;
         private int                        _uiLayer = -1;
@@ -283,18 +292,25 @@ namespace Minsung.Visual
                 return false;
             }
 
-            float rad = _cutAngleDeg * Mathf.Deg2Rad;
-            Vector2 dir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
-
-            // 화면 중앙을 지나는 선을 뷰포트 밖까지 연장한다
-            Vector3 center = _sourceCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, Mathf.Abs(_sourceCamera.nearClipPlane) + 1f));
-            Vector3 edge   = _sourceCamera.ViewportToWorldPoint(new Vector3(0.5f + _cutTravelViewport, 0.5f, Mathf.Abs(_sourceCamera.nearClipPlane) + 1f));
-            float half = Mathf.Abs(edge.x - center.x);
-
-            Vector3 offset = new Vector3(dir.x, dir.y, 0f) * half;
-            start = new Vector3(center.x, center.y, 0f) + offset;  // 오른쪽 바깥
-            end   = new Vector3(center.x, center.y, 0f) - offset;  // 왼쪽 바깥
+            // 지정한 UV 절단선 두 점을 그대로 월드로 변환한다(연장 없음)
+            // 보스가 이 구간을 등속으로 훑고, 크랙도 같은 시간 동안 그려지므로 절단이 보스 위치와 동기화된다
+            float z = Mathf.Abs(_sourceCamera.nearClipPlane) + 1f;
+            start = _sourceCamera.ViewportToWorldPoint(new Vector3(_cutUvStart.x, _cutUvStart.y, z));
+            end   = _sourceCamera.ViewportToWorldPoint(new Vector3(_cutUvEnd.x, _cutUvEnd.y, z));
+            start.z = 0f;
+            end.z   = 0f;
             return true;
+        }
+
+        // 지정한 UV 절단선을 현재 창 로컬 좌표계의 (선 위 한 점, 방향)으로 변환한다
+        private void GetCutLineLocal(out Vector2 point, out Vector2 dir)
+        {
+            Rect rect = _windowRect.rect;
+            Vector2 a = new Vector2(Mathf.Lerp(rect.xMin, rect.xMax, _cutUvStart.x), Mathf.Lerp(rect.yMin, rect.yMax, _cutUvStart.y));
+            Vector2 b = new Vector2(Mathf.Lerp(rect.xMin, rect.xMax, _cutUvEnd.x), Mathf.Lerp(rect.yMin, rect.yMax, _cutUvEnd.y));
+            point = a;
+            Vector2 delta = b - a;
+            dir = (delta.sqrMagnitude > 0.0001f) ? delta.normalized : Vector2.right;
         }
 
         /// <summary> 화면 중앙 월드 좌표(보스를 정중앙으로 보낼 때 쓴다) </summary>
@@ -346,8 +362,8 @@ namespace Minsung.Visual
 
             EnterSpaceTearViewport();
             CreateCameras();
-            CreateChromeCanvas(); // 타이틀 바를 게임 화면과 같은 RenderTexture에 그린다
             CreateWindow();
+            CreateTitleBarAboveWindow(); // 창을 만든 뒤, 그 위쪽 바깥에 타이틀 바를 띄운다
 
             // 처음에는 창이 화면 전체 크기 - 이 상태에서 배경을 투명(알파 0)으로 바꿔야 불투명 배경이 한 프레임도 보이지 않는다
             SetWindowSize(_presentationRoot.rect.size);
@@ -410,12 +426,10 @@ namespace Minsung.Visual
                 yield break;
             }
 
-            float rad = _cutAngleDeg * Mathf.Deg2Rad;
-            Vector2 dir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
-
             // 창 안에서 실제로 지나가는 구간만 그린다 - 창 밖까지 선이 삐져나가면 빈 공간을 가로지른다
             RebuildWindowPolygon();
-            if (!ConvexPolygonSplitter.TryGetCrackSegment(_windowPoly, Vector2.zero, dir, out Vector2 edgeA, out Vector2 edgeB))
+            GetCutLineLocal(out Vector2 cutPoint, out Vector2 dir);
+            if (!ConvexPolygonSplitter.TryGetCrackSegment(_windowPoly, cutPoint, dir, out Vector2 edgeA, out Vector2 edgeB))
             {
                 yield break;
             }
@@ -466,37 +480,45 @@ namespace Minsung.Visual
             float fragmentBottom = _windowRect.anchoredPosition.y + rect.yMin;
             float fallLimit = Mathf.Max(1f, fragmentBottom - taskbarTop);
 
-            ScreenTearGlassBurst burst = CreateBurst();
-
             float velocity = 0f;
             float fallen   = 0f;
             float elapsed  = 0f;
+            float angle    = 0f;
             float duration = Mathf.Max(0.01f, _dropTime);
 
             while ((elapsed < duration) && (fallen < fallLimit))
             {
                 float dt = Time.unscaledDeltaTime;
                 elapsed  += dt;
-                velocity += _dropGravity * dt;
+                velocity  = Mathf.Min(velocity + (_dropGravity * dt), _dropMaxSpeed); // 중력으로 가속(상한만 제한)
                 fallen   += velocity * dt;
+                angle    += _dropSpinSpeed * dt; // 빙글빙글 회전하며 떨어진다
 
-                float t = Mathf.Clamp01(fallen / fallLimit);
-                _bossFragmentOffset = new Vector2(0f, -fallen);
-                _bossFragment.rectTransform.localRotation = Quaternion.Euler(0f, 0f, _dropSpinDeg * t);
+                // 조각 무게중심을 축으로 제자리 Z 회전 - localRotation은 창 중앙(pivot)을 축으로 돌므로,
+                // 무게중심이 고정되도록 anchoredPosition을 보정한다(창 중앙을 도는 궤도처럼 보이지 않게)
+                float rad = angle * Mathf.Deg2Rad;
+                float cos = Mathf.Cos(rad);
+                float sin = Mathf.Sin(rad);
+                Vector2 c = _bossFragmentCentroid;
+                Vector2 rotatedC = new Vector2((c.x * cos) - (c.y * sin), (c.x * sin) + (c.y * cos));
+                Vector2 spinComp = c - rotatedC;
+
+                _bossFragmentOffset = new Vector2(0f, -fallen) + spinComp;
+                _bossFragment.rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
                 ApplyFragmentOffsets();
                 yield return null;
             }
 
-            // 작업표시줄에 충돌 - 조각을 지우고 화면 폭 전체에 파편이 터진다
-            burst.Emit(new Vector2(rootRect.xMin, taskbarTop), new Vector2(rootRect.xMax, taskbarTop),
-                _dropShards, _dropSparkles, 320f, 780f, 0.6f, 1.1f);
+            // 작업표시줄에 충돌 - 조각을 지우고 산산조각 나 바닥(작업표시줄 윗변)에 쌓여 남는다
+            _dropBurst = CreateBurst();
+            _dropBurst.EmitShatterAndSettle(new Vector2(rootRect.xMin, taskbarTop), new Vector2(rootRect.xMax, taskbarTop),
+                _dropShards, _dropSparkles, 200f, 620f, taskbarTop, _shatterSettleGravity);
 
             _bossFragment.gameObject.SetActive(false);
             if (_hudUpper != null)
             {
                 _hudUpper.gameObject.SetActive(false); // 위쪽 조각과 함께 떨어진 HUD 조각도 정리
             }
-            StartCoroutine(CoDestroyWhenFinished(burst));
 
             RestoreHudToFullWindow(); // 조각이 부서지고 나면 남은 화면에 HUD를 다시 채운다
             yield return new WaitForSecondsRealtime(_holdAfterDropTime);
@@ -602,25 +624,16 @@ namespace Minsung.Visual
             }
         }
 
-        // 타이틀 바 전용 캔버스 - 플레이어 카메라(RenderTexture)로 렌더해 게임 화면의 일부가 된다
-        // 그래서 창이 축소되면 함께 줄고, 사선 절단이 들어가면 타이틀 바도 같이 잘린다
-        private void CreateChromeCanvas()
+        // 타이틀 바 - 창(_windowRect)의 위쪽 바깥에 붙는다. Main Camera가 UI 레이어로 직접 그리므로 게임 화면(RT)을 덮지 않고 창 바로 위에 뜬다
+        // 창에 앵커돼 있어 창이 축소/이동하면 함께 따라가고, RT 밖이라 사선 절단에 잘리지 않는다
+        private void CreateTitleBarAboveWindow()
         {
-            if (!_showTitleBar || (_playerCamera == null))
+            if (!_showTitleBar || (_windowRect == null))
             {
                 return;
             }
-
-            GameObject go = new GameObject("WindowChromeCanvas");
-            ApplyUiLayer(go);
-
-            _chromeCanvas = go.AddComponent<Canvas>();
-            _chromeCanvas.renderMode    = RenderMode.ScreenSpaceCamera;
-            _chromeCanvas.worldCamera   = _playerCamera;
-            _chromeCanvas.planeDistance = Mathf.Max(_playerCamera.nearClipPlane + 0.1f, 1f);
-            _chromeCanvas.sortingOrder  = CHROME_SORTING_ORDER; // HUD보다 위 - 창 크롬이 가장 앞이다
-
-            CreateTitleBar(_chromeCanvas.GetComponent<RectTransform>());
+            CreateTitleBar(_windowRect);
+            SetTitleBarAlpha(0f); // 창과 함께 페이드인하도록 처음엔 숨긴다(타이틀 바 base 알파 기록 후 0으로)
         }
 
         // 연출 동안 모든 UI 캔버스를 플레이어 카메라로 옮겨 그린다 - 축소된 창 안에 HUD가 함께 들어가고 절단도 같이 받는다
@@ -648,9 +661,9 @@ namespace Minsung.Visual
                 {
                     continue;
                 }
-                if ((canvas == presentationRoot) || (canvas == _chromeCanvas))
+                if (canvas == presentationRoot)
                 {
-                    continue; // 가짜 창 자체와 창 크롬은 화면에 그대로 남아야 한다
+                    continue; // 가짜 창 자체는 화면에 그대로 남아야 한다
                 }
                 if (canvas.renderMode == RenderMode.WorldSpace)
                 {
@@ -718,9 +731,10 @@ namespace Minsung.Visual
             bar.SetParent(parent, false);
             bar.anchorMin        = new Vector2(0f, 1f);
             bar.anchorMax        = new Vector2(1f, 1f);
-            bar.pivot            = new Vector2(0.5f, 1f); // 위쪽 끝이 화면 상단에 붙는다
+            bar.pivot            = new Vector2(0.5f, 0f); // 아래변이 창 위변에 붙고 위로 뻗는다 -> 창을 덮지 않고 바로 위에 뜬다
             bar.sizeDelta        = new Vector2(0f, _titleBarHeight);
             bar.anchoredPosition = Vector2.zero;
+            bar.SetAsLastSibling();
 
             Image background = barGo.AddComponent<Image>();
             background.color = _titleBarColor;
@@ -926,10 +940,9 @@ namespace Minsung.Visual
                 return;
             }
 
-            float rad = _cutAngleDeg * Mathf.Deg2Rad;
-            Vector2 lineDir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
+            GetCutLineLocal(out Vector2 cutPoint, out Vector2 lineDir);
             List<List<Vector2>> source = new List<List<Vector2>> { _windowPoly };
-            List<List<Vector2>> split = ConvexPolygonSplitter.SplitByLine(source, Vector2.zero, lineDir);
+            List<List<Vector2>> split = ConvexPolygonSplitter.SplitByLine(source, cutPoint, lineDir);
 
             if (split.Count != 2)
             {
@@ -940,6 +953,7 @@ namespace Minsung.Visual
             int upperIndex = ResolveUpperPolygonIndex(split);
             _bossPoly   = split[upperIndex];
             _playerPoly = split[1 - upperIndex];
+            _bossFragmentCentroid = ConvexPolygonSplitter.Centroid(_bossPoly); // 제자리 회전 축
 
             _playerFragment.Setup(_playerRt, _playerPoly);
             if (!_bossFragment.gameObject.activeSelf)
@@ -1167,12 +1181,6 @@ namespace Minsung.Visual
             ExitSpaceTearViewport();
             RestoreAspectRatioBars();
 
-            if (_chromeCanvas != null)
-            {
-                Destroy(_chromeCanvas.gameObject);
-                _chromeCanvas = null;
-            }
-
             DestroyCamera(ref _playerCamera, ref _playerRt);
             DestroyCamera(ref _hudCamera, ref _hudRt);
 
@@ -1180,6 +1188,12 @@ namespace Minsung.Visual
             {
                 Destroy(_windowRect.gameObject);
                 _windowRect = null;
+            }
+
+            if (_dropBurst != null)
+            {
+                Destroy(_dropBurst.gameObject); // 바닥에 쌓여 남아있던 파편을 창과 함께 정리
+                _dropBurst = null;
             }
 
             _titleBarGraphics.Clear();

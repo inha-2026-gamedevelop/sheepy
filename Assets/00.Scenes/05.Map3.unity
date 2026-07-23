@@ -4373,6 +4373,8 @@ MonoBehaviour:
   _fakeDesktop: {fileID: 123306552}
   _windowAspect: {x: 1280, y: 720}
   _windowHeightRatio: 0.62
+  _crackColor: {r: 0, g: 0, b: 0, a: 0.9}
+  _crackThickness: 3
   _showTitleBar: 1
   _windowTitle: The Last Re:wind
   _windowIcon: {fileID: 5352906672607264348, guid: 536dc99f742f21846bb00f4dbbaad807, type: 3}
@@ -4387,14 +4389,17 @@ MonoBehaviour:
   _cutTime: 2.5
   _dropTime: 3
   _cutTravelViewport: 0.75
-  _dropGravity: 170
-  _dropSpinDeg: 26
+  _dropGravity: 1500
+  _dropMaxSpeed: 1500
+  _dropSpinSpeed: 120
   _dropShards: 44
   _dropSparkles: 60
+  _shatterSettleGravity: 200
   _taskbarHeight: 48
   _holdAfterDropTime: 1
-  _cutAngleDeg: -28
-  _rtResolutionScale: 0.75
+  _cutUvStart: {x: 1, y: 0.6}
+  _cutUvEnd: {x: 0.2, y: 1}
+  _rtResolutionScale: 0.83
   _playOnStart: 0
 --- !u!114 &123306552
 MonoBehaviour:
@@ -70713,24 +70718,17 @@ MonoBehaviour:
   _banner: {fileID: 39620583}
   _player: {fileID: 1540819921}
   _dataSo: {fileID: 11400000, guid: 7744d4dd47f44a34b823a2cea6d4e593, type: 2}
-  _presetLines:
-  - Start: {fileID: 905291347}
-    End: {fileID: 701708428}
-  - Start: {fileID: 458334699}
-    End: {fileID: 1735765851}
-  - Start: {fileID: 968139219}
-    End: {fileID: 1059172914}
-  - Start: {fileID: 990439957}
-    End: {fileID: 212489897}
   _playerLineStart: {fileID: 1852824777}
   _playerOvershootDistance: 3
   _bannerText: "\uBCF4\uC2A4\uBCF4\uB2E4 \uC2DC\uAC04\uC744 \uB290\uB9AC\uAC8C \uD558\uC5EC
     \uBCF4\uC2A4\uC758 \uD328\uD134\uC744 \uB9C9\uC544\uBCF4\uC138\uC694!"
-  _useWindowCinematic: 1
+  _swallowWarningText: "\uC7A1\uC544\uBA39\uD78C\uB2E4! Ctrl\uB85C \uD68C\uD53C\uD558\uB77C!"
   _windowPresentation: {fileID: 123306551}
   _cinematicMoveSpeed: 14
   _cinematicDashSpeed: 7
-  _bossGrowMultiplier: 2
+  _bossGrowMultiplier: 5
+  _bossGrowTime: 0.6
+  _swallowDelay: 1.5
 --- !u!114 &1684505839
 MonoBehaviour:
   m_ObjectHideFlags: 0

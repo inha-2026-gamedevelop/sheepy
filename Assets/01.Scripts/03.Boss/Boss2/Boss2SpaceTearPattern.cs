@@ -1,6 +1,5 @@
 // System
 using System.Collections;
-using System.Collections.Generic;
 
 // Unity
 using UnityEngine;
@@ -9,41 +8,17 @@ using Minsung.Common;
 using Minsung.TimeSystem;
 using Minsung.Visual;
 using Minsung.UI;
-using Minsung.Boss;
 using Minsung.Player;
 
 namespace Minsung.Boss2
 {
     // 공간찢기(4페이즈 즉사기) 오케스트레이터 - Boss2Health가 체력 임계(기본 10%)를 처음 통과할 때 1회 발동
-    // 순서: 배너 예고 -> 창 침식 시네마틱(옵션, SpaceTearWindowPresentation) -> 고정 4라인 예고(랜덤 순서) ->
-    //   고정 4회 돌진 -> 대기(반응 시간) -> 보스->플레이어 돌진(무적키로 회피) -> 정리 + 동결 해제
-    // 과거의 화면 균열(순차 절단) 연출은 폐기됐다 - 화면 연출은 창 침식 시네마틱이 전담한다
-    // 파훼: 각 돌진 판정(Boss2DodgeableKillHazard)에 맞기 직전 전용 무적키로 회피. 절대 즉사(DamageHazard/Kill)는 건드리지 않는다
+    // 순서: 배너 예고 -> 창 절단 시네마틱(가로지르며 공간을 찢음) -> 보스 5배 확대 -> 플레이어를 삼키듯 돌진(잡아먹기)
+    //   -> 삼키는 순간 전용 무적키(Ctrl)로 회피 못하면 즉사 -> 정리 + 동결 해제
+    // 과거의 고정 4라인 예고 + 5회 돌진 연출은 폐기됐다 - 이제 절단 후 '보스가 커져 삼키는' 단일 파훼로 대체된다
+    // 파훼: 삼키기 판정(Boss2DodgeableKillHazard)에 맞기 직전 전용 무적키로 회피. 절대 즉사(DamageHazard/Kill)는 건드리지 않는다
     public class Boss2SpaceTearPattern : MonoBehaviour
     {
-        /****************************************
-        *                Types
-        ****************************************/
-
-        [System.Serializable]
-        private struct LineAnchor
-        {
-            public Transform Start;
-            public Transform End;
-        }
-
-        private struct DashLine
-        {
-            public Vector2 Start;
-            public Vector2 End;
-
-            public DashLine(Vector2 start, Vector2 end)
-            {
-                Start = start;
-                End = end;
-            }
-        }
-
         /****************************************
         *                Fields
         ****************************************/
@@ -53,34 +28,38 @@ namespace Minsung.Boss2
         [SerializeField] private BossFloatMovement   _movement;
         [SerializeField] private Boss2AttackPatterns _patterns;   // 시퀀스 동안 일반 패턴 정지/재개
         [SerializeField] private BossBannerUI        _banner;
-        [SerializeField] private Transform           _player;     // 마지막 돌진의 조준 대상
+        [SerializeField] private Transform           _player;     // 삼키기 돌진의 조준 대상
         [SerializeField] private Boss2DataSO         _dataSo;
 
-        [Header("고정 돌진 라인 (권장 4개, 순서는 매번 랜덤)")]
-        [SerializeField] private LineAnchor[] _presetLines;
-
-        [Header("마지막 돌진(플레이어 조준) 시작점 - 종료점은 실행 순간 플레이어 위치에서 더 연장한 지점")]
+        [Header("삼키기 돌진 시작점(비우면 보스 현재 위치) - 종료점은 실행 순간 플레이어 위치에서 더 연장한 지점")]
         [SerializeField] private Transform _playerLineStart;
         [SerializeField] private float _playerOvershootDistance = 3f; // 시작점->플레이어 직선을 이 거리만큼 관통해서 더 연장(플레이어 지점에서 딱 멈추지 않는다)
 
         [Header("예고 문구")]
         [SerializeField, TextArea] private string _bannerText = "보스보다 시간을 느리게 하여 보스의 패턴을 막아보세요!";
+        [SerializeField, TextArea] private string _swallowWarningText = "잡아먹힌다! Ctrl로 회피하라!";
 
-        [Header("창 절단 시네마틱 (옵션) - 켜면 돌진 패턴 앞에 화면이 잘리는 연출을 먼저 재생한다")]
-        [SerializeField] private bool _useWindowCinematic;
+        [Header("창 절단 시네마틱 - 가로지르며 공간을 찢는 연출")]
         [SerializeField] private SpaceTearWindowPresentation _windowPresentation;
         [SerializeField] private float _cinematicMoveSpeed = 14f; // 중앙 이동/퇴장 속도
         [Tooltip("절단선을 가르는 돌진 속도 - 절단선 길이(약 17유닛) 기준 7이면 약 2.4초 동안 화면이 갈라진다")]
         [SerializeField] private float _cinematicDashSpeed = 7f;
-        [Tooltip("화면을 부순 뒤 보스가 커지는 배율 - 되돌리지 않고 그대로 유지된다")]
-        [SerializeField] private float _bossGrowMultiplier = 2f;
 
-        private GameObject _hitbox;   // 돌진 즉사 판정(보스 몸통에 붙여 스윕)
-        private BossHazardPool _telegraphPool; // 고정 라인 예고선(판정 없음) - Minsung.Boss 공용 인프라 재사용
+        [Header("삼키기 - 보스 확대")]
+        [Tooltip("공간을 찢은 뒤 보스가 커지는 배율 - 되돌리지 않고 그대로 유지된다")]
+        [SerializeField] private float _bossGrowMultiplier = 5f;
+        [Tooltip("확대된 보스가 커지는 데 걸리는 시간(초)")]
+        [SerializeField] private float _bossGrowTime = 0.6f;
+        [Tooltip("'잡아먹힌다' 문구 표시 후 먹히는 판정(돌진)까지의 대기 시간(초) - 플레이어가 Ctrl로 반응할 시간")]
+        [SerializeField] private float _swallowDelay = 1.5f;
+
+        private GameObject _hitbox;   // 삼키기 즉사 판정(보스 몸통에 붙여 스윕)
         private RewindManager.RewindLockHandle? _rewindLock; // 시퀀스 동안 임시 리와인드 잠금
         private PlayerHealth _playerHealth;
         private bool _running;
-        private bool _bossEnlarged; // 보스 확대는 한 전투에 한 번만
+        private bool _bossEnlarged; // 보스 확대는 시퀀스 중 한 번만
+        private Vector3 _bossOriginalScale; // 확대 전 원래 스케일 - 패턴 종료 시 복원
+        private bool _bossScaleSaved;
 
         /****************************************
         *              Unity Event
@@ -161,16 +140,25 @@ namespace Minsung.Boss2
             }
             yield return new WaitForSeconds(_dataSo.SpaceTearBannerTime);
 
-            // 창 절단 시네마틱 - 보스 이동과 화면 연출을 번갈아 진행한다
-            if (_useWindowCinematic && (_windowPresentation != null) && began)
+            // 창 절단 시네마틱 - 보스가 화면을 가로지르며 공간을 찢는다
+            if ((_windowPresentation != null) && began)
             {
                 yield return CoWindowCutCinematic();
+
+                // 절단 후 보스는 화면 밖(왼쪽)이라 그 자리서 커지면 안 보인다 - 확대가 보이도록 화면 중앙으로 데려온다
+                Vector2 center = _windowPresentation.GetScreenCenterWorld();
+                yield return _movement.CoScriptedDash(_movement.transform.position, center, _cinematicMoveSpeed);
             }
 
-            // 고정 라인은 매번 랜덤 순서로 예고 후 보스가 지나간다
-            List<DashLine> fixedLines = BuildFixedLines();
-            Shuffle(fixedLines);
-            yield return CoShowTelegraph(fixedLines);
+            // 공간을 찢은 뒤 보스가 5배로 커진다(잡아먹기 예고)
+            yield return CoEnlargeBoss();
+
+            // 삼키기 - '잡아먹힌다' 문구를 띄우고 _swallowDelay(1.5초) 뒤에 먹히는 판정(돌진)을 한다. 그 사이 Ctrl로 반응
+            if (_banner != null)
+            {
+                _banner.Show(_swallowWarningText, _swallowDelay);
+            }
+            yield return new WaitForSeconds(_swallowDelay);
 
             EnsureHitbox();
             if (_hitbox != null)
@@ -178,54 +166,39 @@ namespace Minsung.Boss2
                 _hitbox.SetActive(true);
             }
 
-            WaitForSeconds waitInterval = new WaitForSeconds(_dataSo.SpaceTearDashInterval);
-
-            // 고정 라인들 - 예고선을 따라 보스가 차례로 지나간다(연출용, 결정타 아님)
-            for (int i = 0; i < fixedLines.Count; ++i)
-            {
-                if (began)
-                {
-                    yield return _movement.CoScriptedDash(fixedLines[i].Start, fixedLines[i].End, _dataSo.SpaceTearDashSpeed);
-                }
-                yield return waitInterval;
-            }
-
-            // 마지막 - 진짜 위협: 보스가 플레이어를 향해 돌진한다. 그 전에 반응할 시간을 준다
-            yield return new WaitForSeconds(_dataSo.SpaceTearPlayerWarningTime);
-
-            Vector2 startPos = (_playerLineStart != null) ? (Vector2)_playerLineStart.position
-                : (_movement != null ? (Vector2)_movement.transform.position : (Vector2)transform.position);
-
-            // 종료점은 플레이어 위치가 아니라 시작점->플레이어 직선을 관통해서 더 연장한 지점(_playerOvershootDistance)
-            // - 보스가 플레이어 지점에서 딱 멈추지 않고 뚫고 지나가는 느낌을 준다. 실행 순간 플레이어 위치 기준 - 사전 스냅샷 아님
-            Vector2 endPos;
-            if (_player != null)
-            {
-                Vector2 playerPos = _player.position;
-                Vector2 dir = playerPos - startPos;
-                if (dir.sqrMagnitude > 0.0001f)
-                {
-                    dir.Normalize();
-                }
-                else
-                {
-                    dir = Vector2.right;
-                }
-                endPos = playerPos + (dir * _playerOvershootDistance);
-            }
-            else
-            {
-                endPos = startPos + (Vector2.right * 6f);
-            }
-
             if (began)
             {
-                // 고정 라인보다 느린 전용 속도 - 실제 파훼 대상이라 플레이어가 반응할 시간을 준다
-                yield return _movement.CoScriptedDash(startPos, endPos, _dataSo.SpaceTearPlayerDashSpeed);
+                yield return _movement.CoScriptedDash(GetSwallowStart(), GetSwallowEnd(), _dataSo.SpaceTearPlayerDashSpeed);
             }
 
             Cleanup();
             _running = false;
+        }
+
+        // 삼키기 돌진 시작점 - 지정 앵커가 있으면 그곳, 없으면 보스 현재 위치
+        private Vector2 GetSwallowStart()
+        {
+            if (_playerLineStart != null)
+            {
+                return _playerLineStart.position;
+            }
+            return (_movement != null) ? (Vector2)_movement.transform.position : (Vector2)transform.position;
+        }
+
+        // 삼키기 돌진 종료점 - 플레이어 위치가 아니라 시작점->플레이어 직선을 관통해서 더 연장한 지점(_playerOvershootDistance)
+        // 보스가 플레이어 지점에서 딱 멈추지 않고 뚫고 지나가며 삼키는 느낌을 준다. 실행 순간 플레이어 위치 기준 - 사전 스냅샷 아님
+        private Vector2 GetSwallowEnd()
+        {
+            Vector2 startPos = GetSwallowStart();
+            if (_player == null)
+            {
+                return startPos + (Vector2.right * 6f);
+            }
+
+            Vector2 playerPos = _player.position;
+            Vector2 dir = playerPos - startPos;
+            dir = (dir.sqrMagnitude > 0.0001f) ? dir.normalized : Vector2.right;
+            return playerPos + (dir * _playerOvershootDistance);
         }
 
         // 창 절단 시네마틱 - 보스가 화면 중앙으로 이동 -> 오른쪽 밖으로 퇴장 -> 화면 축소 ->
@@ -257,111 +230,34 @@ namespace Minsung.Boss2
             }
 
             // 5) 위쪽 조각이 작업표시줄까지 떨어져 산산조각 나고, 남은 화면에 HUD가 돌아온다
+            // 창은 여기서 닫지 않는다 - 잡아먹힐 때까지 잘린 창을 유지하고, 삼키기 판정 후 Cleanup에서 닫는다
             yield return _windowPresentation.CoDropUpperFragment();
-
-            // 6) 화면을 부순 보스는 두 배로 커진 채 남는다(되돌리지 않는다)
-            EnlargeBossOnce();
-
-            _windowPresentation.EndWindow();
         }
 
-        // 보스를 지정 배율로 한 번만 키운다 - 디버그 키로 여러 번 발동해도 계속 커지지 않게 막는다
-        private void EnlargeBossOnce()
+        // 보스를 지정 배율까지 부드럽게 한 번만 키운다 - 디버그 키로 여러 번 발동해도 계속 커지지 않게 막는다
+        private IEnumerator CoEnlargeBoss()
         {
             if (_bossEnlarged || (_movement == null) || (_bossGrowMultiplier <= 0f))
             {
-                return;
+                yield break;
             }
             _bossEnlarged = true;
-            _movement.transform.localScale *= _bossGrowMultiplier;
-        }
 
-        // 고정 프리셋 라인(앵커)만 수집한다. 프리셋이 모자라면 보스 위치 중심 방사형으로 채운다(플레이어 조준 라인은 별도 처리)
-        private List<DashLine> BuildFixedLines()
-        {
-            List<DashLine> list = new List<DashLine>();
-
-            if (_presetLines != null)
+            Transform bossTf   = _movement.transform;
+            Vector3   startScl = bossTf.localScale;
+            _bossOriginalScale = startScl; // 종료 시 이 크기로 되돌린다
+            _bossScaleSaved    = true;
+            Vector3   endScl   = startScl * _bossGrowMultiplier;
+            float     dur      = Mathf.Max(0.01f, _bossGrowTime);
+            float     elapsed  = 0f;
+            while (elapsed < dur)
             {
-                for (int i = 0; i < _presetLines.Length; ++i)
-                {
-                    LineAnchor a = _presetLines[i];
-                    if ((a.Start != null) && (a.End != null))
-                    {
-                        list.Add(new DashLine(a.Start.position, a.End.position));
-                    }
-                }
+                elapsed += Time.deltaTime;
+                float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / dur));
+                bossTf.localScale = Vector3.Lerp(startScl, endScl, t);
+                yield return null;
             }
-
-            // 프리셋 미배치 대비 - 목표 개수(전체 돌진 수 - 플레이어 조준 1개)까지 방사형 라인으로 채운다
-            int target = Mathf.Max(1, _dataSo.SpaceTearDashCount - 1);
-            Vector2 bossPos = (_movement != null) ? (Vector2)_movement.transform.position : (Vector2)transform.position;
-            const float halfLen = 12f;
-            int guard = 0;
-            while ((list.Count < target) && (guard < target))
-            {
-                float ang = Mathf.Deg2Rad * (list.Count * (360f / target));
-                Vector2 dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
-                list.Add(new DashLine(bossPos - (dir * halfLen), bossPos + (dir * halfLen)));
-                ++guard;
-            }
-            return list;
-        }
-
-        // Fisher-Yates - 고정 라인이 몇 번째 화면 조각을 맡을지 매 발동마다 랜덤하게 섞는다
-        private static void Shuffle(List<DashLine> list)
-        {
-            for (int i = list.Count - 1; i > 0; --i)
-            {
-                int j = Random.Range(0, i + 1);
-                (list[i], list[j]) = (list[j], list[i]);
-            }
-        }
-
-        // 고정 라인들을 동시에 점멸 경고선으로 표시(판정 없음) - 사각형 공식은 기존 Boss2LaserPattern과 동일(center/length/angle/scale)
-        private IEnumerator CoShowTelegraph(List<DashLine> lines)
-        {
-            EnsureTelegraphPool(lines.Count);
-
-            int[] slots = new int[lines.Count];
-            for (int i = 0; i < lines.Count; ++i)
-            {
-                Vector2 delta  = lines[i].End - lines[i].Start;
-                Vector2 center = (lines[i].Start + lines[i].End) * 0.5f;
-                float   angle  = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
-                Vector2 scale  = new Vector2(delta.magnitude, _dataSo.SpaceTearTelegraphThickness);
-
-                slots[i] = _telegraphPool.Alloc(center, scale, _dataSo.SpaceTearTelegraphColor, false, rotationDeg: angle);
-            }
-
-            bool  visible = true;
-            float elapsed = 0f;
-            float blink   = Mathf.Max(0.02f, _dataSo.SpaceTearTelegraphBlink);
-            while (elapsed < _dataSo.SpaceTearTelegraphTime)
-            {
-                yield return new WaitForSeconds(blink);
-                elapsed += blink;
-                visible = !visible;
-                for (int i = 0; i < slots.Length; ++i)
-                {
-                    if (slots[i] >= 0)
-                    {
-                        _telegraphPool.SetVisible(slots[i], visible);
-                    }
-                }
-            }
-
-            _telegraphPool.FreeAll(); // 실제 돌진이 시작되기 직전 예고선 정리 - 보스 몸의 실제 궤적이 그 자리를 대신한다
-        }
-
-        private void EnsureTelegraphPool(int count)
-        {
-            if ((_telegraphPool != null) && (_telegraphPool.Size >= count))
-            {
-                return;
-            }
-            _telegraphPool?.Dispose();
-            _telegraphPool = new BossHazardPool(count, "SpaceTearTelegraph");
+            bossTf.localScale = endScl;
         }
 
         private void EnsureHitbox()
@@ -391,7 +287,15 @@ namespace Minsung.Boss2
             {
                 _hitbox.SetActive(false);
             }
-            _telegraphPool?.FreeAll();
+
+            // 확대했던 보스 크기를 원래대로 되돌린다
+            if (_bossScaleSaved && (_movement != null))
+            {
+                _movement.transform.localScale = _bossOriginalScale;
+            }
+            _bossScaleSaved = false;
+            _bossEnlarged   = false;
+
             _windowPresentation?.Stop(); // 시네마틱 도중 중단돼도 창/카메라가 잔류하지 않게 한다
 
             // 이동 재개/패턴 재개는 코루틴을 시작하므로 오브젝트가 살아있을 때만 호출한다
@@ -411,47 +315,24 @@ namespace Minsung.Boss2
             }
         }
 
-        private void OnDestroy()
-        {
-            _telegraphPool?.Dispose();
-        }
-
     #if UNITY_EDITOR
-        // 프리셋 라인/플레이어 시작점 배치 실수를 바로 알 수 있도록 경고
+        // 삼키기 돌진 시작점 배치 실수를 바로 알 수 있도록 경고
         private void OnValidate()
         {
-            if ((_presetLines != null) && (_presetLines.Length != 4))
-            {
-                Debug.LogWarning($"[Boss2SpaceTearPattern] 고정 라인은 4개를 권장합니다(현재 {_presetLines.Length}개) - 나머지 1개는 플레이어 조준으로 자동 추가됩니다.", this);
-            }
             if (_playerLineStart == null)
             {
                 Debug.LogWarning("[Boss2SpaceTearPattern] _playerLineStart 미배치 - 실행 시 보스의 현재 위치를 시작점으로 대체합니다.", this);
             }
         }
 
-        // 고정 라인 4개 + 플레이어 조준 라인의 시작점을 Scene View에 표시 - 앵커 배치 확인용
+        // 삼키기 돌진 시작점을 Scene View에 표시 - 앵커 배치 확인용
         private void OnDrawGizmosSelected()
         {
-            if (_presetLines != null)
-            {
-                for (int i = 0; i < _presetLines.Length; ++i)
-                {
-                    LineAnchor a = _presetLines[i];
-                    if ((a.Start == null) || (a.End == null))
-                    {
-                        continue;
-                    }
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawLine(a.Start.position, a.End.position);
-                    UnityEditor.Handles.Label((a.Start.position + a.End.position) * 0.5f, "Line " + i);
-                }
-            }
             if (_playerLineStart != null)
             {
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawWireSphere(_playerLineStart.position, 0.3f);
-                UnityEditor.Handles.Label(_playerLineStart.position, "Player Line Start (End=플레이어 실시간 위치)");
+                UnityEditor.Handles.Label(_playerLineStart.position, "Swallow Dash Start (End=플레이어 실시간 위치)");
             }
         }
     #endif
