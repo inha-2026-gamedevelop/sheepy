@@ -4373,10 +4373,6 @@ MonoBehaviour:
   _fakeDesktop: {fileID: 123306552}
   _windowAspect: {x: 1280, y: 720}
   _windowHeightRatio: 0.62
-  _windowFrameColor: {r: 0, g: 0, b: 0, a: 0.9}
-  _windowFrameThickness: 3
-  _windowShadowColor: {r: 0, g: 0, b: 0, a: 0.45}
-  _windowShadowSpread: 18
   _showTitleBar: 1
   _windowTitle: The Last Re:wind
   _windowIcon: {fileID: 5352906672607264348, guid: 536dc99f742f21846bb00f4dbbaad807, type: 3}
@@ -4385,8 +4381,8 @@ MonoBehaviour:
   _titleBarColor: {r: 0.96, g: 0.96, b: 0.97, a: 1}
   _titleTextColor: {r: 0.1, g: 0.1, b: 0.12, a: 1}
   _titleIconColor: {r: 0.35, g: 0.55, b: 0.95, a: 1}
-  _keyColor: {r: 0, g: 1, b: 0, a: 1}
-  _removeWindowBorder: 0
+  _keyColor: {r: 1, g: 0, b: 1, a: 1}
+  _removeWindowBorder: 1
   _revealTime: 0.45
   _cutTime: 2.5
   _dropTime: 3

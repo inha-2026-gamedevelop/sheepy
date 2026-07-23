@@ -23,6 +23,8 @@ namespace Minsung.CameraSystem
 
         private const int BAR_SORTING_ORDER = short.MaxValue;
 
+        private static readonly Rect FULL_SCREEN_VIEWPORT = new Rect(0f, 0f, 1f, 1f);
+
         // ScreenSpaceCamera로 바꾸면 캔버스가 월드 스프라이트와 같은 정렬 규칙을 타므로
         // 최상위 Sorting Layer + 이 여유값만큼 올려 맵 오브젝트에 가리지 않게 한다
         private const int OVERLAY_SORTING_ORDER_OFFSET = 10000;
@@ -35,6 +37,7 @@ namespace Minsung.CameraSystem
         private int              _screenWidth;
         private int              _screenHeight;
         private int              _topSortingLayerId;
+        private bool             _spaceTearViewportActive;
 
         private struct CanvasState
         {
@@ -88,6 +91,15 @@ namespace Minsung.CameraSystem
                 return;
             }
 
+            if (_spaceTearViewportActive)
+            {
+                if ((_screenWidth != Screen.width) || (_screenHeight != Screen.height) || (_targetCamera.rect != FULL_SCREEN_VIEWPORT))
+                {
+                    ApplyFullScreenViewport();
+                }
+                return;
+            }
+
             if ((_screenWidth != Screen.width) || (_screenHeight != Screen.height))
             {
                 ApplyViewport();
@@ -105,6 +117,35 @@ namespace Minsung.CameraSystem
         public void RefreshCanvases()
         {
             ApplyOverlayCanvasViewport();
+        }
+
+        /// <summary>
+        /// 공간 찢기 연출 동안 16:9 뷰포트와 검정 여백을 해제한다.
+        /// 연출이 끝나면 현재 해상도 기준의 일반 레터박스 상태로 즉시 되돌린다.
+        /// </summary>
+        public void SetSpaceTearViewport(bool isActive)
+        {
+            if (_spaceTearViewportActive == isActive)
+            {
+                return;
+            }
+
+            _spaceTearViewportActive = isActive;
+            FindTargetCamera();
+            if (_targetCamera == null)
+            {
+                _screenWidth  = 0;
+                _screenHeight = 0;
+                return;
+            }
+
+            if (_spaceTearViewportActive)
+            {
+                ApplyFullScreenViewport();
+                return;
+            }
+
+            ApplyViewport();
         }
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -137,7 +178,14 @@ namespace Minsung.CameraSystem
             yield return null;
             _targetCamera = null;
             FindTargetCamera();
-            ApplyViewport();
+            if (_spaceTearViewportActive)
+            {
+                ApplyFullScreenViewport();
+            }
+            else
+            {
+                ApplyViewport();
+            }
 
             // Scene Start에서 만들어지는 Canvas까지 포함한다.
             yield return null;
@@ -167,6 +215,21 @@ namespace Minsung.CameraSystem
             _targetCamera.rect = viewport;
 
             UpdateBlackBars(viewport);
+            ApplyOverlayCanvasViewport();
+            _screenWidth  = Screen.width;
+            _screenHeight = Screen.height;
+        }
+
+        private void ApplyFullScreenViewport()
+        {
+            if ((_targetCamera == null) || (Screen.height <= 0))
+            {
+                return;
+            }
+
+            _targetCamera.rect = FULL_SCREEN_VIEWPORT;
+
+            UpdateBlackBars(FULL_SCREEN_VIEWPORT);
             ApplyOverlayCanvasViewport();
             _screenWidth  = Screen.width;
             _screenHeight = Screen.height;

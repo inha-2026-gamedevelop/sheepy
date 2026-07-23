@@ -7,27 +7,25 @@ using UnityEngine;
 
 namespace Minsung.Visual
 {
-    // Unity 최상위 창을 레이어드 윈도로 바꿔 '지정한 키 색상 픽셀만' 투명하게 만든다
-    // 투명해진 영역 뒤로는 Windows(DWM)가 합성하는 실제 데스크톱이 그대로 보인다 - 화면을 읽거나 캡처하거나 저장하지 않는다
-    // Windows 스탠드얼론 + 사용자 토글 ON에서만 동작하고, 그 외에는 아무 것도 하지 않고 false를 반환한다(폴백 배경은 호출부 책임)
+    // 지정한 키 색상만 투명하게 바꿈
     public static class TransparentWindowController
     {
         /****************************************
         *                Fields
         ****************************************/
 
-        // 사용자 설정 - 공간찢기 연출에 실제 데스크톱 노출이 필수라 기본 ON이다(기획서 6장의 기본 OFF 방침에서 변경됨)
-        // 설정에서 끌 수 있으며, 켜져 있는 동안 바탕화면/알림/다른 앱이 화면과 방송·녹화에 노출될 수 있음을 반드시 안내해야 한다
         private const string PREF_DESKTOP_REVEAL  = "Visual.DesktopReveal.Enabled";
-        private const int    DESKTOP_REVEAL_DEFAULT = 1;
+        private const int    DESKTOP_REVEAL_DEFAULT = 0;
 
         private static bool _active;
 
-        // 레이어드 창 투명은 DWM 합성이 필요해 전체화면(독립 플립)에서는 무시된다 - 연출 동안만 창 모드로 바꾼다
         private static FullScreenMode _savedFullScreenMode;
         private static int  _savedWidth;
         private static int  _savedHeight;
         private static bool _windowModeSaved;
+
+
+        // WINAPI 활용
 
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
         private const int GWL_STYLE   = -16;
@@ -49,6 +47,9 @@ namespace Minsung.Visual
         [DllImport("user32.dll")]
         private static extern IntPtr GetActiveWindow();
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
@@ -65,10 +66,10 @@ namespace Minsung.Visual
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint crKey, byte bAlpha, uint dwFlags);
 
-        private const uint SWP_NOZORDER    = 0x0004;
-        private const uint SWP_NOACTIVATE  = 0x0010;
+        private const uint SWP_NOZORDER     = 0x0004;
+        private const uint SWP_NOACTIVATE   = 0x0010;
         private const uint SWP_FRAMECHANGED = 0x0020;
-        private const uint SWP_SHOWWINDOW  = 0x0040;
+        private const uint SWP_SHOWWINDOW   = 0x0040;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
@@ -102,6 +103,23 @@ namespace Minsung.Visual
                 ? SetWindowLongPtr64(hWnd, nIndex, value)
                 : new IntPtr(SetWindowLong(hWnd, nIndex, value.ToInt32()));
         }
+
+        // Unity 창 핸들 - 보통 게임 창이 활성/포그라운드라 둘 중 하나로 잡힌다
+        private static IntPtr ResolveUnityWindow()
+        {
+            IntPtr handle = GetActiveWindow();
+            if (handle == IntPtr.Zero)
+            {
+                handle = GetForegroundWindow();
+            }
+            return handle;
+        }
+
+        // Win32 COLORREF는 0x00BBGGRR 순서 - Color32(RGBA)와 바이트 순서가 다르다
+        private static uint ToColorRef(Color32 color)
+        {
+            return (uint)(color.r | (color.g << 8) | (color.b << 16));
+        }
 #endif
 
         /****************************************
@@ -121,7 +139,7 @@ namespace Minsung.Visual
             }
         }
 
-        /// <summary> 사용자 설정 토글 - 기본 ON. 켜져 있으면 바탕화면/알림/다른 창이 화면과 방송·녹화에 노출될 수 있다 </summary>
+        /// <summary> 사용자 설정 토글 - 기본 OFF. 켜져 있으면 바탕화면/알림/다른 창이 화면과 방송·녹화에 노출될 수 있다 </summary>
         public static bool IsUserEnabled
         {
             get { return PlayerPrefs.GetInt(PREF_DESKTOP_REVEAL, DESKTOP_REVEAL_DEFAULT) != 0; }
@@ -138,11 +156,8 @@ namespace Minsung.Visual
         /// <summary> 실제 데스크톱 노출을 쓸 수 있는 조건인가(플랫폼 + 사용자 토글) </summary>
         public static bool CanReveal => IsSupported && IsUserEnabled;
 
-        /// <summary>
-        /// 레이어드 투명이 동작할 수 있도록 전체화면을 창 모드로 바꾼다.
-        /// Screen.SetResolution은 다음 프레임에 적용되므로, 호출부는 한 프레임 이상 기다린 뒤 TryEnable을 호출해야 한다.
-        /// </summary>
-        public static void EnterWindowedForReveal()
+        /// <summary> 테두리 없는 풀스크린 으로 수정 </summary>
+        public static void EnterBorderlessForReveal()
         {
             if (!CanReveal || _windowModeSaved)
             {
@@ -155,10 +170,10 @@ namespace Minsung.Visual
             _windowModeSaved     = true;
 
             Resolution current = Screen.currentResolution;
-            Screen.SetResolution(current.width, current.height, FullScreenMode.Windowed);
+            Screen.SetResolution(current.width, current.height, FullScreenMode.FullScreenWindow);
         }
 
-        /// <summary> 연출 전 화면 모드/해상도로 되돌린다(두 번 호출해도 안전) </summary>
+        /// <summary> 연출 전 화면 모드/해상도로 되돌린다 </summary>
         public static void RestoreWindowMode()
         {
             if (!_windowModeSaved)
@@ -188,7 +203,7 @@ namespace Minsung.Visual
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
             try
             {
-                _windowHandle = GetActiveWindow();
+                _windowHandle = ResolveUnityWindow();
                 if (_windowHandle == IntPtr.Zero)
                 {
                     return false;
@@ -199,9 +214,8 @@ namespace Minsung.Visual
                 _originalExStyle = GetWindowLongAuto(_windowHandle, GWL_EXSTYLE);
                 _styleSaved      = true;
 
-                long exStyle = _originalExStyle.ToInt64() | WS_EX_LAYERED;
-
                 // WS_EX_TRANSPARENT는 마우스 입력을 통째로 아래 데스크톱으로 넘기므로 절대 추가하지 않는다
+                long exStyle = _originalExStyle.ToInt64() | WS_EX_LAYERED;
                 SetWindowLongAuto(_windowHandle, GWL_EXSTYLE, new IntPtr(exStyle));
 
                 if (removeBorder)
@@ -274,15 +288,7 @@ namespace Minsung.Visual
             _windowHandle  = IntPtr.Zero;
 #endif
             _active = false;
-            RestoreWindowMode(); // 전체화면으로 되돌린다
+            RestoreWindowMode();
         }
-
-#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
-        // Win32 COLORREF는 0x00BBGGRR 순서 - Color32(RGBA)와 바이트 순서가 다르다
-        private static uint ToColorRef(Color32 color)
-        {
-            return (uint)(color.r | (color.g << 8) | (color.b << 16));
-        }
-#endif
     }
 }

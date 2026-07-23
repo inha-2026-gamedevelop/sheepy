@@ -9,38 +9,37 @@ using UnityEngine.Rendering.Universal;
 
 using TMPro;
 
+using Minsung.CameraSystem;
+
 namespace Minsung.Visual
 {
-    // 공간찢기 '보스 침식' 시네마틱 - 게임 화면을 중앙의 가짜 창(1280x720 비율)으로 줄이고, 사선으로 두 조각을 갈라
-    // 보스 조각이 자기 창 경계를 부수고 사라진 뒤, 보스가 창 밖에서 플레이어 창을 삼키러 넘어온다
-    // 실제 OS 창 크기/해상도/창 모드는 바꾸지 않는다. 창 바깥은 레이어드 윈도의 키 색상 투명 영역이며,
-    // 그 뒤로 Windows가 합성하는 실제 데스크톱이 보인다(읽거나 캡처하지 않는다). 불가능한 환경에서는 FakeDesktopBackground로 폴백한다
+    // 공간찢기 시네마틱
     public class SpaceTearWindowPresentation : MonoBehaviour
     {
         /****************************************
         *                Fields
         ****************************************/
 
-        // 창 크롬(타이틀 바)은 창 안의 모든 UI보다 앞이어야 한다
         private const int CHROME_SORTING_ORDER = short.MaxValue - 1;
 
-        // 연출 도중 새로 생기는 캔버스를 다시 훑는 주기(프레임)
         private const int CANVAS_RESCAN_FRAME_INTERVAL = 10;
 
+        private static readonly Rect FULL_SCREEN_VIEWPORT = new Rect(0f, 0f, 1f, 1f);
+
         [Header("참조")]
-        [SerializeField] private Camera _sourceCamera;             // Main Camera - Cinemachine이 위치를 구동한다
-        [SerializeField] private RectTransform _presentationRoot;  // 풀스크린 RectTransform(Canvas 아래)
+        [SerializeField] private Camera _sourceCamera;
+        [SerializeField] private RectTransform _presentationRoot;  // 풀스크린 RectTransform
         [SerializeField] private Transform _boss;
-        [SerializeField] private FakeDesktopBackground _fakeDesktop; // 투명 창을 못 쓸 때의 폴백 배경
+        [SerializeField] private FakeDesktopBackground _fakeDesktop;
 
         [Header("가짜 창")]
         [SerializeField] private Vector2 _windowAspect = new Vector2(1280f, 720f);
         [Tooltip("화면 높이 대비 가짜 창 높이 비율")]
         [SerializeField, Range(0.2f, 1f)] private float _windowHeightRatio = 0.62f;
-        [SerializeField] private Color _windowFrameColor = new Color(0.55f, 0.24f, 1f, 0.9f);
-        [SerializeField] private float _windowFrameThickness = 3f;
-        [SerializeField] private Color _windowShadowColor = new Color(0f, 0f, 0f, 0.45f);
-        [SerializeField] private float _windowShadowSpread = 18f;
+
+        [Header("절단 자국")]
+        [SerializeField] private Color _crackColor     = new Color(0.55f, 0.24f, 1f, 0.9f);
+        [SerializeField] private float _crackThickness  = 3f;
 
         [Header("타이틀 바 - OS 창처럼 보이게 하는 상단 띠")]
         [SerializeField] private bool   _showTitleBar   = true;
@@ -53,23 +52,18 @@ namespace Minsung.Visual
         [SerializeField] private Color _titleIconColor = new Color(0.35f, 0.55f, 0.95f, 1f);
 
         [Header("실제 데스크톱 노출")]
-        [Tooltip("이 색과 정확히 같은 픽셀만 투명해진다. Bloom/AA가 오염시키지 않도록 배경 카메라는 포스트를 끈다")]
-        [SerializeField] private Color _keyColor = new Color(0f, 1f, 0f, 1f); // #00FF00
-        [Tooltip("OS 창의 캡션/프레임을 제거할지 - 가짜 타이틀 바와 겹치지 않게 기본으로 켠다. 종료 시 원래 스타일로 되돌린다")]
+        [SerializeField] private Color _keyColor = new Color(1f, 0f, 1f, 1f); // #FF00FF
         [SerializeField] private bool _removeWindowBorder = true;
 
         [Header("타임라인 (unscaled 초)")]
-        [SerializeField] private float _revealTime = 0.45f; // 화면 축소
+        [SerializeField] private float _revealTime = 2.45f; // 화면 축소
         [SerializeField] private float _cutTime    = 2.5f;  // 보스가 절단선을 지나며 화면이 갈라지는 시간
-        [Tooltip("낙하 시간 상한 - 실제 낙하 시간은 중력으로 정해지고 이 값은 안전장치다. 중력보다 짧으면 작업표시줄에 닿기 전에 끊긴다")]
-        [SerializeField] private float _dropTime   = 3f;
+        [SerializeField] private float _dropTime   = 1.3f;
 
         [Header("보스 이동 범위")]
-        [Tooltip("화면 중앙에서 바깥으로 나가는 거리(뷰포트 비율) - 보스 퇴장 지점과 절단선 길이를 함께 정한다")]
         [SerializeField] private float _cutTravelViewport = 0.75f;
 
         [Header("위쪽 조각 낙하")]
-        [Tooltip("px/s^2 - 낙하 거리(창 아래변에서 작업표시줄까지, 약 157px)에 대해 170이면 약 1.35초 걸린다")]
         [SerializeField] private float _dropGravity  = 170f;
         [SerializeField] private float _dropSpinDeg  = 26f;   // 떨어지며 기우는 각도
         [SerializeField] private int   _dropShards   = 44;    // 작업표시줄 충돌 시 산산조각 나는 파편 수
@@ -88,8 +82,6 @@ namespace Minsung.Visual
         [SerializeField] private bool _playOnStart; // 켜면 Start에서 바로 재생(테스트용)
 
         private RectTransform  _windowRect;
-        private Image[]        _frameImages;  // 창 테두리 4변 - 안쪽을 채우지 않는다(조각이 사라진 자리로 데스크톱이 보여야 하므로)
-        private Image[]        _shadowImages; // 테두리 바깥 얕은 그림자 4변
         private readonly List<Graphic> _titleBarGraphics = new List<Graphic>(); // 타이틀 바 구성 요소 - 창과 함께 페이드된다
         private readonly List<float>   _titleBarBaseAlphas = new List<float>(); // 요소별 원래 알파(페이드 기준값)
         private ScreenTearShard _playerFragment;
@@ -129,8 +121,12 @@ namespace Minsung.Visual
         private readonly List<float>      _capturedPlaneDistances = new List<float>();
 
         private Canvas _chromeCanvas; // 타이틀 바 전용 - 플레이어 카메라로 렌더해 게임 화면과 함께 잘린다
-        private int                _uiLayer = -1;
+        private FixedAspectRatioController _fixedAspectRatioController;
+        private Rect                       _savedSourceCameraRect;
+        private int                        _uiLayer = -1;
         private bool               _transparentApplied;
+        private bool               _sourceCameraRectSaved;
+        private bool               _spaceTearViewportActive;
         private bool               _split;
         private bool               _running;
 
@@ -348,17 +344,18 @@ namespace Minsung.Visual
             _playerFragmentOffset = Vector2.zero;
             _bossFragmentOffset   = Vector2.zero;
 
+            EnterSpaceTearViewport();
             CreateCameras();
             CreateChromeCanvas(); // 타이틀 바를 게임 화면과 같은 RenderTexture에 그린다
             CreateWindow();
 
-            // 처음에는 창이 화면 전체 크기 - 이 상태에서 배경을 키 색상으로 바꿔야 초록이 한 프레임도 보이지 않는다
+            // 처음에는 창이 화면 전체 크기 - 이 상태에서 배경을 투명(알파 0)으로 바꿔야 불투명 배경이 한 프레임도 보이지 않는다
             SetWindowSize(_presentationRoot.rect.size);
             RebuildFragments();
 
             ForceCanvasLayers();
             CaptureUiIntoWindow(); // HUD 등 모든 UI를 창 안으로 - 축소·절단을 게임 화면과 함께 받는다
-            ApplyKeyColorBackground();
+            ApplyTransparentBackground();
             HideAspectRatioBars();
         }
 
@@ -367,8 +364,8 @@ namespace Minsung.Visual
         {
             if (TransparentWindowController.CanReveal)
             {
-                TransparentWindowController.EnterWindowedForReveal();
-                // Screen.SetResolution은 다음 프레임에 반영된다 - 창 모드가 실제로 적용된 뒤에 스타일을 걸어야 한다
+                TransparentWindowController.EnterBorderlessForReveal();
+                // Screen.SetResolution은 다음 프레임에 반영된다 - 풀스크린 창 모드가 실제로 적용된 뒤에 스타일을 걸어야 한다
                 yield return null;
                 yield return null;
             }
@@ -393,12 +390,12 @@ namespace Minsung.Visual
                 elapsed += Time.unscaledDeltaTime;
                 float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / duration));
                 SetWindowSize(Vector2.Lerp(fullSize, targetSize, t));
-                SetFrameAlpha(t);
+                SetTitleBarAlpha(t);
                 RebuildFragments();
                 yield return null;
             }
             SetWindowSize(targetSize);
-            SetFrameAlpha(1f);
+            SetTitleBarAlpha(1f);
             RebuildFragments();
         }
 
@@ -528,7 +525,7 @@ namespace Minsung.Visual
             rt.SetAsLastSibling();
 
             Image image = go.AddComponent<Image>();
-            image.color = _windowFrameColor;
+            image.color = _crackColor;
             image.raycastTarget = false;
             return rt;
         }
@@ -542,7 +539,7 @@ namespace Minsung.Visual
             Vector2 delta = tip - from;
             stroke.anchoredPosition = from;
             stroke.localRotation    = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
-            stroke.sizeDelta        = new Vector2(delta.magnitude, _windowFrameThickness);
+            stroke.sizeDelta        = new Vector2(delta.magnitude, _crackThickness);
         }
 
         /****************************************
@@ -701,10 +698,6 @@ namespace Minsung.Visual
             _windowRect.SetParent(_presentationRoot, false);
             _windowRect.anchorMin = _windowRect.anchorMax = new Vector2(0.5f, 0.5f);
 
-            // 그림자를 먼저(더 바깥) 만들고 그 위에 테두리를 얹는다
-            _shadowImages = CreateBorder("WindowShadow", _windowShadowColor, _windowFrameThickness + _windowShadowSpread, _windowFrameThickness);
-            _frameImages  = CreateBorder("WindowFrame", _windowFrameColor, _windowFrameThickness, 0f);
-
             // 아래 조각(플레이어가 남는 쪽) / 위 조각(잘려 떨어지는 쪽) - 둘 다 같은 화면을 보여 이음매가 없다
             _playerFragment     = CreateFragment("LowerFragmentMask", _playerRt);
             _bossFragment       = CreateFragment("UpperFragmentMask", _playerRt);
@@ -713,43 +706,7 @@ namespace Minsung.Visual
 
             CreateHudShards(); // 조각의 자식으로 붙어 절단 모양대로 함께 잘린다
 
-            SetFrameAlpha(0f);
-        }
-
-        // 창 테두리를 4변 스트립으로 만든다 - 안쪽을 채우지 않아야 조각이 사라진 자리로 바깥(데스크톱)이 보인다
-        // thickness는 선 두께, expand는 창 경계에서 바깥으로 밀어내는 거리
-        private Image[] CreateBorder(string borderName, Color color, float thickness, float expand)
-        {
-            Vector2[] anchorMin = { new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(1f, 0f) };
-            Vector2[] anchorMax = { new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f) };
-            float offset = expand + (thickness * 0.5f);
-            Vector2[] position = { new Vector2(0f, offset), new Vector2(0f, -offset), new Vector2(-offset, 0f), new Vector2(offset, 0f) };
-            Vector2[] size =
-            {
-                new Vector2((expand + thickness) * 2f, thickness),
-                new Vector2((expand + thickness) * 2f, thickness),
-                new Vector2(thickness, (expand + thickness) * 2f),
-                new Vector2(thickness, (expand + thickness) * 2f),
-            };
-
-            Image[] images = new Image[4];
-            for (int i = 0; i < 4; ++i)
-            {
-                GameObject go = new GameObject(borderName + "_" + i, typeof(RectTransform));
-                ApplyUiLayer(go);
-                RectTransform rt = go.GetComponent<RectTransform>();
-                rt.SetParent(_windowRect, false);
-                rt.anchorMin        = anchorMin[i];
-                rt.anchorMax        = anchorMax[i];
-                rt.pivot            = new Vector2(0.5f, 0.5f);
-                rt.sizeDelta        = size[i];
-                rt.anchoredPosition = position[i];
-
-                images[i] = go.AddComponent<Image>();
-                images[i].color = color;
-                images[i].raycastTarget = false;
-            }
-            return images;
+            SetTitleBarAlpha(0f);
         }
 
         // OS 창처럼 보이게 하는 상단 타이틀 바 - 게임 화면 위쪽 안쪽에 얹혀 화면과 함께 축소되고 함께 잘린다
@@ -938,15 +895,12 @@ namespace Minsung.Visual
 
         private void SetWindowSize(Vector2 size)
         {
-            _windowRect.sizeDelta = size; // 테두리/그림자는 창 rect에 앵커돼 있어 함께 늘어난다
+            _windowRect.sizeDelta = size;
         }
 
-        private void SetFrameAlpha(float alpha)
+        private void SetTitleBarAlpha(float alpha)
         {
             float t = Mathf.Clamp01(alpha);
-            SetBorderAlpha(_frameImages, _windowFrameColor.a * t);
-            SetBorderAlpha(_shadowImages, _windowShadowColor.a * t);
-
             for (int i = 0; i < _titleBarGraphics.Count; ++i)
             {
                 if ((_titleBarGraphics[i] == null) || (i >= _titleBarBaseAlphas.Count))
@@ -956,24 +910,6 @@ namespace Minsung.Visual
                 Color c = _titleBarGraphics[i].color;
                 c.a = _titleBarBaseAlphas[i] * t;
                 _titleBarGraphics[i].color = c;
-            }
-        }
-
-        private static void SetBorderAlpha(Image[] images, float alpha)
-        {
-            if (images == null)
-            {
-                return;
-            }
-            for (int i = 0; i < images.Length; ++i)
-            {
-                if (images[i] == null)
-                {
-                    continue;
-                }
-                Color c = images[i].color;
-                c.a = alpha;
-                images[i].color = c;
             }
         }
 
@@ -1051,8 +987,8 @@ namespace Minsung.Visual
         ****************************************/
 
         // Main Camera를 '키 색상만 출력하는 투명 배경 카메라'로 바꾼다 - 월드는 복제 카메라가 RenderTexture로 그린다
-        // UI 레이어는 계속 그려야 가짜 창과 HUD가 보이므로 컬링 마스크에서 UI만 남긴다
-        private void ApplyKeyColorBackground()
+        // 그리지 않은 영역은 키 색상으로 남아 OS 색상 키가 투명 처리하고 그 뒤로 데스크톱이 보인다. UI 레이어는 계속 그려야 가짜 창과 HUD가 보인다
+        private void ApplyTransparentBackground()
         {
             if (_cameraStateSaved)
             {
@@ -1068,7 +1004,7 @@ namespace Minsung.Visual
             _savedAntialiasing   = (data != null) ? data.antialiasing : AntialiasingMode.None;
             if (data != null)
             {
-                // Bloom/색수차가 키 색상을 오염시키면 초록 가장자리가 남아 투명 처리가 깨진다
+                // Bloom/색수차가 키 색상을 오염시키면 색상 키가 빗나가 투명 처리가 깨진다
                 data.renderPostProcessing = false;
                 data.antialiasing         = AntialiasingMode.None;
             }
@@ -1080,7 +1016,7 @@ namespace Minsung.Visual
             // UI 레이어만 남긴다 - 월드를 한 픽셀이라도 그리면 키 색상이 덮여 투명 영역이 생기지 않는다
             _sourceCamera.cullingMask     = 1 << _uiLayer;
             _sourceCamera.clearFlags      = CameraClearFlags.SolidColor;
-            _sourceCamera.backgroundColor = _keyColor;
+            _sourceCamera.backgroundColor = _keyColor; // 키 색상 - OS 색상 키가 이 픽셀만 투명 처리
             _cameraStateSaved = true;
         }
 
@@ -1120,7 +1056,7 @@ namespace Minsung.Visual
             _movedCanvasLayers.Clear();
         }
 
-        private void RestoreKeyColorBackground()
+        private void RestoreTransparentBackground()
         {
             if (!_cameraStateSaved || (_sourceCamera == null))
             {
@@ -1170,6 +1106,49 @@ namespace Minsung.Visual
         }
 
         // 정상 종료/중단/비활성 어디서 불려도 동일하게 원상복구(두 번 호출해도 안전)
+        private void EnterSpaceTearViewport()
+        {
+            if (_spaceTearViewportActive)
+            {
+                return;
+            }
+
+            _fixedAspectRatioController = FixedAspectRatioController.Instance;
+            if (_fixedAspectRatioController != null)
+            {
+                _fixedAspectRatioController.SetSpaceTearViewport(true);
+            }
+            else if (_sourceCamera != null)
+            {
+                _savedSourceCameraRect = _sourceCamera.rect;
+                _sourceCamera.rect = FULL_SCREEN_VIEWPORT;
+                _sourceCameraRectSaved = true;
+            }
+
+            _spaceTearViewportActive = true;
+        }
+
+        private void ExitSpaceTearViewport()
+        {
+            if (!_spaceTearViewportActive)
+            {
+                return;
+            }
+
+            if (_fixedAspectRatioController != null)
+            {
+                _fixedAspectRatioController.SetSpaceTearViewport(false);
+                _fixedAspectRatioController = null;
+            }
+            else if (_sourceCameraRectSaved && (_sourceCamera != null))
+            {
+                _sourceCamera.rect = _savedSourceCameraRect;
+            }
+
+            _sourceCameraRectSaved = false;
+            _spaceTearViewportActive = false;
+        }
+
         private void Cleanup()
         {
             if (_transparentApplied || TransparentWindowController.IsActive)
@@ -1182,9 +1161,10 @@ namespace Minsung.Visual
                 _fakeDesktop.Hide();
             }
 
-            RestoreKeyColorBackground();
+            RestoreTransparentBackground();
             RestoreUiCanvases(); // 카메라 파괴 전에 원래 렌더 모드로 되돌려야 UI가 사라지지 않는다
             RestoreCanvasLayers();
+            ExitSpaceTearViewport();
             RestoreAspectRatioBars();
 
             if (_chromeCanvas != null)
@@ -1208,8 +1188,6 @@ namespace Minsung.Visual
             _hudUpper           = null;
             _playerFragment     = null;
             _bossFragment       = null;
-            _frameImages        = null;
-            _shadowImages       = null;
             _bossFragmentSource = null;
             _playerPoly         = null;
             _bossPoly           = null;
