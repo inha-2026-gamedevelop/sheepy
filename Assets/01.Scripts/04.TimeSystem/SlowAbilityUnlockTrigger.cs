@@ -5,6 +5,8 @@ using System.Collections;
 using UnityEngine;
 
 // Project
+using Minsung.CameraSystem;
+using Minsung.Common;
 using Minsung.Player;
 
 namespace Minsung.TimeSystem
@@ -26,6 +28,10 @@ namespace Minsung.TimeSystem
         [Header("연출 타이밍")]
         [SerializeField] private float _getSlowAnimDuration = 4.5f; // GetSlow.anim 길이와 맞춰 조절 - 짧으면 연출이 끝나기 전에 플레이어가 복귀한다
         [SerializeField] private float _shiftImageDisplayDuration = 5f; // 착지 후 ShiftImage를 표출할 시간
+
+        [Header("카메라 연출")]
+        [SerializeField] private float _cameraFocusSize = Constants.Camera.FOCUS_ORTHOGRAPHIC_SIZE;
+        [SerializeField] private float _cameraBlendTime  = Constants.Camera.DEFAULT_BLEND_TIME;
 
         private Collider2D _trigger;
         private Animator   _getSlowAnimator; // 이 오브젝트에 등록된, GetSlow 연출 전용 Animator
@@ -91,6 +97,7 @@ namespace Minsung.TimeSystem
             {
                 _getSlowAnimator.Play(GET_SLOW_STATE, 0, 0f);
             }
+            CameraManager.Instance?.Focus(transform, _cameraFocusSize, _cameraBlendTime);
 
             playerController.SetInteracting(true); // 연출 재생 동안 이동/점프/공격 입력과 물리를 잠근다
             StartCoroutine(CoPlayGetSlowSequence(playerController, playerAnimator));
@@ -112,6 +119,8 @@ namespace Minsung.TimeSystem
         private IEnumerator CoPlayGetSlowSequence(PlayerController playerController, PlayerAnimator playerAnimator)
         {
             yield return new WaitForSeconds(_getSlowAnimDuration);
+
+            CameraManager.Instance?.UnFocus(); // 연출 종료 - 플레이어 카메라로 복귀
 
             if (playerController == null)
             {
