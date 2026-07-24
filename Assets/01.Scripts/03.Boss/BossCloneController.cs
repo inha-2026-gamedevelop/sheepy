@@ -106,8 +106,11 @@ namespace Minsung.Boss
                 yield break;
             }
 
+            int index = Array.IndexOf(_boss.Phase1Clones, this);
+            float offsetX = (index == 0) ? -2.5f : ((index == 1) ? 2.5f : 0f);
+
             Vector2 landingPoint = _boss.Body.transform.position;
-            yield return CoLeapTo(landingPoint.x, landingPoint.y, GameDB.Boss.CloneEntranceLeapHeight);
+            yield return CoLeapTo(landingPoint.x + offsetX, landingPoint.y, GameDB.Boss.CloneEntranceLeapHeight);
         }
 
         /// <summary> 퇴장 + 타임라인 이탈. 페이즈 정리(Phase1State.Exit)에서 호출한다 </summary>

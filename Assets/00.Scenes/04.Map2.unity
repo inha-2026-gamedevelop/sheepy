@@ -8526,6 +8526,8 @@ MonoBehaviour:
   _boss: {fileID: 1047445313}
   _clone: {fileID: 1313617314}
   _slider: {fileID: 199287158}
+  _shakeAmplitude: 6
+  _shakeDuration: 0.15
 --- !u!114 &199287158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35477,6 +35479,8 @@ MonoBehaviour:
   _boss: {fileID: 1047445313}
   _clone: {fileID: 689947053}
   _slider: {fileID: 811914354}
+  _shakeAmplitude: 6
+  _shakeDuration: 0.15
 --- !u!114 &811914354
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59210,7 +59214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46e4d2a3a89fc5f4db321f53785582ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.TimeSystem.SlowMotionController
-  _slowKey: 119
+  _slowKey: 304
 --- !u!1 &1356110824
 GameObject:
   m_ObjectHideFlags: 0
@@ -63948,7 +63952,8 @@ MonoBehaviour:
   _textRoot: {fileID: 1755584618}
   _label: {fileID: 182666713}
   _blurOverlay: {fileID: 46759291}
-  _message: "\uC774\uC2A4\uD130\uC5D0\uADF8 \uC785\uB2C8\uB2E4."
+  _message: "\uB3D9\uAD74 \uB05D\uC5D0, \uC545\uB839 \uB4E4\uB9B0 \uC778\uD615\uC5D0\uAC8C
+    \uB3C4\uB9DD\uCE58\uC9C0 \uBABB\uD588\uB2E4."
   _anchorAboveBounds: 1
   _boundsSource: {fileID: 0}
   _verticalPadding: 0.15

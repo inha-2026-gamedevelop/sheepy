@@ -30,8 +30,8 @@ namespace Minsung.Common.Data
         [SerializeField] private float _attackCooldown   = 1.5f;  // 본체 Combat 재사용 대기시간(초)
         [SerializeField] private float _castCooldown     = 1.5f;  // 본체 Casting 애니메이션 재사용 대기시간(초)
         [SerializeField] private float _attackActiveTime = 0.25f; // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
-        [SerializeField] private Vector2 _combatHitboxSize   = new Vector2(1.738f, 0.959f); // Combat 9프레임 모션 전체 범위
-        [SerializeField] private Vector2 _combatHitboxCenter = new Vector2(-0.082f, 0.16f); // 보스 루트 기준 모션 중심
+        [SerializeField] private Vector2 _combatHitboxSize   = new Vector2(3.5f, 1.5f); // Combat 모션의 거대한 검기 이펙트에 맞춘 범위
+        [SerializeField] private Vector2 _combatHitboxCenter = new Vector2(1.5f, 0.16f); // 보스 앞쪽으로 치우친 모션 중심
 
         [Header("근접 유닛 공통 - 점프/회피 (본체·분신 공용, 개별 스탯 아님)")]
         [SerializeField] private float _jumpCooldown       = 4f;   // 최소 재사용 대기시간(초) TODO: 밸런싱

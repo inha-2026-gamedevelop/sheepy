@@ -68,6 +68,7 @@ namespace Minsung.Player
             _jumpForce       = playerSo.JumpForce;
             _rb.gravityScale = playerSo.GravityScale;
             _rb.constraints  = RigidbodyConstraints2D.FreezeRotation; // 캐릭터가 넘어지지 않게 회전 고정
+            _rb.sleepMode    = RigidbodySleepMode2D.NeverSleep;
         }
 
         public void Init(PlayerController coordinator, PlayerAnimator animator)
@@ -263,6 +264,7 @@ namespace Minsung.Player
         // 되감기 재생 시 한 틱의 포즈를 강제로 세팅 (ICommandActor.SetPose 경로).
         public void SetPose(Vector2 position, Vector2 velocity, bool grounded)
         {
+            transform.position = position;
             _rb.position = position;
 
             if (_animator != null)

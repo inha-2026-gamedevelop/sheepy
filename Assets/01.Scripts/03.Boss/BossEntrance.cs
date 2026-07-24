@@ -51,7 +51,9 @@ namespace Minsung.Boss
             {
                 if (_playerSpawn != null)
                 {
+                    Vector2 prevPos = player.transform.position;
                     player.SetPose(_playerSpawn.position, Vector2.zero, false);
+                    Unity.Cinemachine.CinemachineCore.OnTargetObjectWarped(player.transform, (Vector2)_playerSpawn.position - prevPos);
                 }
             });
             _used = _oneShot;

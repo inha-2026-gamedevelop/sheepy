@@ -135,6 +135,7 @@ namespace Minsung.Boss
             _rb  = GetComponent<Rigidbody2D>();
             _col = GetComponent<Collider2D>();
             _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            _rb.sleepMode   = RigidbodySleepMode2D.NeverSleep;
             _verticalAvoidHorizontalRange = GameDB.Boss.CloneCrowdAvoidHorizontalRange;
             _verticalAvoidHeight          = GameDB.Boss.CloneCrowdAvoidVerticalRange;
             _stuckEscapeDelay             = GameDB.Boss.StuckEscapeDelay;
@@ -156,6 +157,7 @@ namespace Minsung.Boss
                     // 콜라이더 타입이 바뀌는 등의 이유로 캐싱에 실패하면 Combat 모션 범위 자동 보정이 무효화된다.
                     Debug.LogWarning("AttackHitbox에 BoxCollider2D가 없어 Combat 모션 범위를 적용할 수 없다", this);
                 }
+                _attackHitbox.gameObject.SetActive(false);
             }
         }
 
@@ -215,6 +217,7 @@ namespace Minsung.Boss
             if (_attackHitbox != null)
             {
                 _attackHitbox.Configure(AttackHalves);
+                ConfigureCombatHitbox();
                 _attackHitbox.gameObject.SetActive(false);
             }
 
@@ -272,9 +275,14 @@ namespace Minsung.Boss
             _isIgnoringPlayerBodyCollision = ignored;
         }
 
-        // ConfigureCombatHitbox and ApplyCombatMotionToHitboxCollider were removed.
-
-
+        private void ConfigureCombatHitbox()
+        {
+            if (_attackHitboxCollider != null)
+            {
+                _attackHitboxCollider.size = GameDB.Boss.CombatHitboxSize;
+                _attackHitboxCollider.offset = GameDB.Boss.CombatHitboxCenter;
+            }
+        }
 
         /// <summary> 공격/도약/회피 루프 전부 정지 + 켜져 있던 히트박스 정리. 사망/퇴장/되감기에서 호출한다 </summary>
         protected void StopCombatLoops()
