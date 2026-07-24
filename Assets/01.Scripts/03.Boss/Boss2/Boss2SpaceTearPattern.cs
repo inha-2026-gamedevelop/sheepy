@@ -37,7 +37,7 @@ namespace Minsung.Boss2
 
         [Header("예고 문구")]
         [SerializeField, TextArea] private string _bannerText = "보스보다 시간을 느리게 하여 보스의 패턴을 막아보세요!";
-        [SerializeField, TextArea] private string _swallowWarningText = "잡아먹힌다! Ctrl로 회피하라!";
+        [SerializeField, TextArea] private string _swallowWarningText = "잡아먹힌다! S로 회피하라!";
 
         [Header("창 절단 시네마틱 - 가로지르며 공간을 찢는 연출")]
         [SerializeField] private SpaceTearWindowPresentation _windowPresentation;
@@ -52,7 +52,7 @@ namespace Minsung.Boss2
         [SerializeField] private float _bossGrowTime = 0.6f;
         [Tooltip("'잡아먹힌다' 문구를 화면에 유지하는 시간(초) - 이 문구가 완전히 닫힌 뒤 다시 _killDelayAfterSwallowBanner 후에 즉사 판정")]
         [SerializeField] private float _swallowDelay = 1.5f;
-        [Tooltip("'잡아먹힌다' 문구가 닫히고 나서 먹히는 판정(즉사)까지의 대기 시간(초) - 이 사이 Ctrl로 회피")]
+        [Tooltip("'잡아먹힌다' 문구가 닫히고 나서 먹히는 판정(즉사)까지의 대기 시간(초) - 이 사이 S로 회피")]
         [SerializeField] private float _killDelayAfterSwallowBanner = 1f;
 
         private GameObject _hitbox;   // 삼키기 즉사 판정(보스 몸통에 붙여 스윕)
