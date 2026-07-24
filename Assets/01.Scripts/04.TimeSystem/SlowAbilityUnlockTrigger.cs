@@ -56,8 +56,14 @@ namespace Minsung.TimeSystem
         [SerializeField] private float _brightFlashDuration = 0.4f; // 밝기 섬광이 원래대로 가라앉는 시간
         [SerializeField] private float _brightFlashPeak = 1.5f; // 캐릭터/오브 색상 배율 최대치 (1보다 커야 밝아진다)
 
-        private static readonly int PROGRESS = Shader.PropertyToID("_Progress");
+        [Header("파동 강도 및 사운드")]
+        [SerializeField] private float _continuousRippleIntensity = 0.5f;
+        [SerializeField] private float _explosionRippleIntensity = 3.0f;
+        [SerializeField] private AudioClip _endPowerupSound;
 
+        private static readonly int RADIUS = Shader.PropertyToID("_Radius");
+        private static readonly int DISTORTION = Shader.PropertyToID("_DistortionStrength");
+        private static readonly int COLOR = Shader.PropertyToID("_Color");
         private Collider2D _trigger;
         private Animator   _getSlowAnimator; // 이 오브젝트에 등록된, GetSlow 연출 전용 Animator
         private GameObject _shiftImage;
@@ -224,12 +230,30 @@ namespace Minsung.TimeSystem
             gameObject.SetActive(false); // 시퀀스가 완전히 끝난 뒤에야 트리거 오브젝트를 정리한다
         }
 
-        // GetSlow 중반 대기 -> 오브 왕복 -> 충격파 순으로 순차 진행(모두 끝나야 완료로 취급된다).
+        // GetSlow 중반 대기 -> 첫 번째 파동(은은함) -> 오브 왕복 -> 두 번째 파동(과격함) + 섬광 순으로 진행
         private IEnumerator CoPlayPowerupSequence()
         {
+            // 연출 시작과 동시에 기존 BGM 일시정지 및 전용 사운드 재생
+            Minsung.Sound.SoundManager.Instance?.PauseBGM();
+            if (_endPowerupSound != null)
+            {
+                Minsung.Sound.SoundManager.Instance?.PlaySFX(_endPowerupSound);
+            }
+            
             yield return new WaitForSeconds(Mathf.Max(0f, _powerupVfxDelay));
+            
+            // 처음에는 은은하게 파동 유지 (오브 출발부터 돌아올 때까지 계속 물결침)
+            float totalOrbTime = _orbFlightDuration + _orbArrivalPause + _orbReturnDuration;
+            StartCoroutine(CoPlayShockwave(totalOrbTime, intensity: _continuousRippleIntensity, endRadius: 1.5f));
+            
             yield return CoPlayPowerupOrbs();
-            yield return CoPlayShockwaveAndFlash();
+            
+            // 끝에는 과격하게 파동 한 번 + 번쩍이는 섬광 (오브 흡수 시점 폭발)
+            StartCoroutine(CoPlayBrightFlash());
+            yield return CoPlayShockwave(_shockwaveDuration, intensity: _explosionRippleIntensity, endRadius: 2.0f);
+            
+            // 연출 완료 후 기존 BGM 다시 재개
+            Minsung.Sound.SoundManager.Instance?.UnPauseBGM();
         }
 
         // 씬에 미리 배치된 오브 2개(powerup2_15647/15648)가 가이드4 지점에서 시작해 4->3->2->1 곡선으로 뻗어나갔다가,
@@ -295,8 +319,8 @@ namespace Minsung.TimeSystem
             }
         }
 
-        // GetSlow 연출 초입에 재생 - 확산되는 파동파 스프라이트(_Progress 0->1)와 캐릭터/오브 밝기 섬광을 함께 진행한다.
-        private IEnumerator CoPlayShockwaveAndFlash()
+        // 독립적인 파동파 연출 - 강도를 받아와서 다르게 연출할 수 있도록 분리
+        private IEnumerator CoPlayShockwave(float duration, float intensity, float endRadius)
         {
             if (_shockwaveRenderer != null)
             {
@@ -305,18 +329,40 @@ namespace Minsung.TimeSystem
             _shockwaveProps ??= new MaterialPropertyBlock();
 
             float elapsed = 0f;
-            while ((elapsed < _shockwaveDuration) || (elapsed < _brightFlashDuration))
+            while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
 
-                if ((_shockwaveRenderer != null) && (elapsed <= _shockwaveDuration))
+                if (_shockwaveRenderer != null)
                 {
-                    float shockT = Mathf.Clamp01(elapsed / _shockwaveDuration);
                     _shockwaveRenderer.GetPropertyBlock(_shockwaveProps);
-                    _shockwaveProps.SetFloat(PROGRESS, shockT);
+                    _shockwaveProps.SetFloat(RADIUS, Mathf.Lerp(0f, endRadius, t));
+                    _shockwaveProps.SetFloat(DISTORTION, intensity * (1f - t)); // 시간이 지날수록 약해지게
+                    
+                    // 알파 페이드 아웃
+                    Color baseColor = _shockwaveRenderer.color;
+                    _shockwaveProps.SetColor(COLOR, new Color(baseColor.r, baseColor.g, baseColor.b, 1f - t));
+                    
                     _shockwaveRenderer.SetPropertyBlock(_shockwaveProps);
                 }
 
+                yield return null;
+            }
+
+            if (_shockwaveRenderer != null)
+            {
+                _shockwaveRenderer.gameObject.SetActive(false);
+            }
+        }
+
+        // 캐릭터/오브 밝기 섬광 독립 재생
+        private IEnumerator CoPlayBrightFlash()
+        {
+            float elapsed = 0f;
+            while (elapsed < _brightFlashDuration)
+            {
+                elapsed += Time.deltaTime;
                 float flashT = Mathf.Clamp01(elapsed / _brightFlashDuration);
                 float brightness = Mathf.Lerp(_brightFlashPeak, 1f, flashT); // 시작 즉시 확 밝아졌다가 서서히 원래 밝기로
                 SetSpriteBrightness(_getSlowSpriteRenderer, brightness);
@@ -326,10 +372,6 @@ namespace Minsung.TimeSystem
                 yield return null;
             }
 
-            if (_shockwaveRenderer != null)
-            {
-                _shockwaveRenderer.gameObject.SetActive(false);
-            }
             SetSpriteBrightness(_getSlowSpriteRenderer, 1f);
             SetSpriteBrightness(_orbASpriteRenderer, 1f);
             SetSpriteBrightness(_orbBSpriteRenderer, 1f);
