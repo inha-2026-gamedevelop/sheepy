@@ -42,8 +42,12 @@ namespace Minsung.Player
 
         private Material  _material; // _renderer의 인스턴스 머티리얼 캐시
         private CharaGlow _glow;     // 피격 플래시용 글로우 (없으면 플래시 생략)
+        private PlayerDeathBurstEffect _deathBurst; // 사망/RetireZone 빛 분해 연출 (없으면 연출 생략)
+        private PlayerOrbs _orbs; // 사망/RetireZone 동안 잠시 비활성화(오브가 계속 떠있지 않게)
 
         private bool _isDead;                    // 사망 -> 리스폰 완료까지 입력/물리 잠금
+        private bool _isRespawning;              // RetireZone 복귀 등 사망은 아니지만 입력/물리를 잠가야 하는 구간 (_isDead와 분리 - 보스 AI/업적 등이 진짜 사망으로 오인하지 않도록)
+        private bool _controlsFrozen;            // 연출(HUD 튜토리얼 등) 중 입력만 잠금 - 물리/애니메이터는 그대로 유지
         private WaitForSeconds _waitDeathDelay;  // 사망 후 페이드 시작까지 대기 캐시
 
         // ---- 외부가 참조하는 상태 파사드 ----
@@ -91,6 +95,8 @@ namespace Minsung.Player
                 gameObject.AddComponent<PlayerSoundController>();
             }
             TryGetComponent(out _health);
+            TryGetComponent(out _deathBurst);
+            TryGetComponent(out _orbs);
 
             if (_renderer != null)
             {
@@ -100,7 +106,7 @@ namespace Minsung.Player
             // 컴포넌트 간 참조 주입 = 코디네이터의 핵심 역할.
             _input.Init(_movement, _combat, _rewind, _health);
             _movement.Init(this, _playerAnimator);
-            _combat.Init(this, _playerAnimator, GetComponent<PlayerOrbs>(), _health);
+            _combat.Init(this, _playerAnimator, _orbs, _health);
             _interaction.Init(_movement);
             _statusEffects.Init(this, _movement);
             _rewind.Init(this, _movement, _combat, _interaction, _playerAnimator, _health, _statusEffects);
@@ -262,15 +268,18 @@ namespace Minsung.Player
             {
                 return; // 사망 중 입력 잠금
             }
-            _input.HandleInput();
+            if (!_controlsFrozen)
+            {
+                _input.HandleInput();
+            }
             AchievementTrigger.IdleTick(Input.anyKeyDown, Time.deltaTime); // "잠만보" - 5분 무입력 판정
         }
 
         private void FixedUpdate()
         {
-            if (_isDead)
+            if (_isDead || _isRespawning)
             {
-                return; // 사망 중 물리/공격 정지
+                return; // 사망/RetireZone 복귀 중 물리/공격 정지
             }
             // 되감기 재생은 RewindManager가 ApplyRewindTick으로 구동한다.
             if (_rewind.IsRewinding)
@@ -317,9 +326,20 @@ namespace Minsung.Player
         {
             _isDead = true;
             _movement.SetPose(transform.position, Vector2.zero, _movement.IsGrounded);
+            _movement.FreezePhysics(); // 낙하 등 잔여 물리를 멈춰 카메라가 사망 지점에 고정되게 한다
             // 사망 애니메이션 - Animator에 Death 트리거가 추가되면 여기서 재생
 
             yield return _waitDeathDelay;
+
+            if (_orbs != null)
+            {
+                _orbs.enabled = false;
+            }
+            if (_deathBurst != null)
+            {
+                _playerAnimator?.SetVisible(false);
+                yield return _deathBurst.PlayRoutine();
+            }
 
             // 보스전 사망은 BossController.HandlePlayerDeath가 Map2를 통째로 리로드해 복귀시킨다
             // 여기서 별도로 체크포인트 복귀 페이드를 걸면 같은 ScreenFade 슬롯을 다퉈 리로드용 페이드의
@@ -359,10 +379,55 @@ namespace Minsung.Player
         // 화면이 어두운 시점(위치 복귀 직후)에 호출 - 상태 복원
         private void OnRespawned()
         {
+            _playerAnimator?.SetVisible(true); // 빛 분해 연출로 숨겼던 스프라이트 복귀
+            _movement.UnfreezePhysics(); // CoDeathRespawn에서 걸어둔 물리 정지 해제
+            if (_orbs != null)
+            {
+                _orbs.enabled = true;
+            }
             _health.ResetHearts();
             _rewind.RequestClearClones(); // 사망 이전 분신 정리
             _rewind.LockRewindAfterTeleport(); // 버퍼에 남은 사망 지점 기록으로 되돌아가는 것을 막는다
             _isDead = false;
+        }
+
+        /// <summary> RetireZone(낙하 구역) 복귀 - PlayerRetireZone이 호출. 사망은 아니지만 동일한 빛 분해 연출 + 페이드로 스폰 지점까지 이동시킨다. </summary>
+        public void PlayRetireRespawn(Transform spawnPoint)
+        {
+            if (_isDead || _isRespawning || (spawnPoint == null))
+            {
+                return; // 이미 사망/복귀 처리 중이거나 목적지 없음 - 중복 트리거 방지
+            }
+            StartCoroutine(CoRetireRespawn(spawnPoint));
+        }
+
+        private IEnumerator CoRetireRespawn(Transform spawnPoint)
+        {
+            _isRespawning = true;
+            _movement.SetPose(transform.position, Vector2.zero, _movement.IsGrounded);
+            _movement.FreezePhysics(); // 낙하 등 잔여 물리를 멈춰 카메라가 그 자리에 고정되게 한다
+
+            if (_orbs != null)
+            {
+                _orbs.enabled = false;
+            }
+            if (_deathBurst != null)
+            {
+                _playerAnimator?.SetVisible(false);
+                yield return _deathBurst.PlayRoutine();
+            }
+
+            ScreenFade.Instance?.FadeOutIn(() =>
+            {
+                _movement.SetPose(spawnPoint.position, Vector2.zero, false);
+                _movement.UnfreezePhysics();
+                _playerAnimator?.SetVisible(true);
+                if (_orbs != null)
+                {
+                    _orbs.enabled = true;
+                }
+                _isRespawning = false;
+            }, Constants.UI.SCENE_FADE_DURATION);
         }
 
         /****************************************
@@ -384,6 +449,16 @@ namespace Minsung.Player
 
         /// <summary> 상호작용 연출 중 입력 잠금. LeverInteractive가 호출. </summary>
         public void SetInteracting(bool interacting) => _interaction.SetInteracting(interacting);
+
+        /// <summary> 입력만 잠금/해제 (물리/애니메이터는 유지). PlayerHudTutorialUI가 호출. </summary>
+        public void SetControlsFrozen(bool frozen)
+        {
+            _controlsFrozen = frozen;
+            if (frozen)
+            {
+                _movement.SetMoveInput(0f); // 얼어붙는 순간 잔여 이동 입력으로 미끄러지지 않도록
+            }
+        }
 
         /// <summary> E키 상호작용 실행 통지. PlayerInteractionSensor가 호출. </summary>
         public void NotifyInteracted(GameObject target) => _interaction.NotifyInteracted(target);

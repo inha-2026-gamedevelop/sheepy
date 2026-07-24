@@ -292,6 +292,19 @@ namespace Minsung.Player
         // 되감기 종료: 물리 복구.
         public void OnRewindEnd()
         {
+            UnfreezePhysics();
+        }
+
+        /// <summary> 물리 정지(Kinematic) - 사망/RetireZone 복귀 등 위치가 그 자리에 고정돼야 하는 구간에 재사용(카메라가 계속 낙하를 따라가지 않도록). </summary>
+        public void FreezePhysics()
+        {
+            _rb.bodyType = RigidbodyType2D.Kinematic;
+            _rb.linearVelocity = Vector2.zero;
+        }
+
+        /// <summary> 물리 복구. </summary>
+        public void UnfreezePhysics()
+        {
             _rb.bodyType = RigidbodyType2D.Dynamic;
             _rb.linearVelocity = Vector2.zero;
         }
