@@ -8,7 +8,7 @@ using Minsung.Utility;
 namespace Minsung.CameraSystem
 {
     // 포커스 연출(라디오 등) 전용 카메라 매니저. 씬에 하나만 존재하며 상호작용 오브젝트는 알지 못한다.
-    public class CameraManager : PersistentSingleton<CameraManager>
+    public class CameraManager : SceneSingleton<CameraManager>
     {
         /****************************************
         *                Fields

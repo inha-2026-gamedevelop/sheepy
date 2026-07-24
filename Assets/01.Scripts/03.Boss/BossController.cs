@@ -53,6 +53,7 @@ namespace Minsung.Boss
         [SerializeField] private BossBannerUI _patternBanner;        // 미연결 시 배너 무시
         [SerializeField] private float _bannerDuration = 2.5f;       // 문구 유지 시간(초, 페이드 제외)
         [SerializeField, TextArea] private string _phase1GimmickMessage = "경고: 전장에 즉사 패턴이 전개됩니다.";
+        [SerializeField, TextArea] private string _phase1LaserMessage = "크리스탈과 동일한 색상의 안전구역으로 대피하세요!";
 
         [Header("아레나 경계 (낙뢰/레이저/안전구역 배치 기준)")]
         [SerializeField] private float _arenaMinX = -10f;
@@ -134,6 +135,8 @@ namespace Minsung.Boss
 
         // 1페이즈 즉사 기믹 색 신호용 크리스탈 렌더러들 (씬 배치, 미연결 시 무시)
         public SpriteRenderer[] GimmickSignalCrystalRenderers => _gimmickSignalCrystalRenderers;
+
+        public string Phase1LaserMessage => _phase1LaserMessage;
 
         public float TotalHealth => GameDB.Boss.TotalHealth; // Minsung.UI.BossHealthBarUI가 정규화 기준으로 구독
 
@@ -392,6 +395,8 @@ namespace Minsung.Boss
         {
             _patternBanner?.Show(message, _bannerDuration);
         }
+
+        public bool IsBannerShowing => _patternBanner != null && _patternBanner.IsShowing;
 
         // 리와인드/슬로우 배율과 무관하게 실시간으로 누적한다 - "되감아도 시간은 계속 지나간다"
         private void TickBattleTimer()

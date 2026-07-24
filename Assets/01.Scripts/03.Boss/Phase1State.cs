@@ -124,6 +124,16 @@ namespace Minsung.Boss
 
             // 2) 5초 후 실전: 같은 순서로 재발사. 색이 맞지 않는 위치면 보스전 재시작
             yield return _waitRefireDelay;
+            
+            // 실전 돌입 시 토스트 메시지 1회 표시
+            Boss.ShowBanner(Boss.Phase1LaserMessage);
+
+            // 메시지가 닫힐 때까지 대기
+            while (Boss.IsBannerShowing)
+            {
+                yield return null;
+            }
+
             for (int i = 0; i < _sequence.Length; ++i)
             {
                 if (i > 0)
