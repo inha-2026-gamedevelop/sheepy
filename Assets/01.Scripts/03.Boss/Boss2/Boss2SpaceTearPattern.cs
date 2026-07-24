@@ -50,8 +50,10 @@ namespace Minsung.Boss2
         [SerializeField] private float _bossGrowMultiplier = 5f;
         [Tooltip("확대된 보스가 커지는 데 걸리는 시간(초)")]
         [SerializeField] private float _bossGrowTime = 0.6f;
-        [Tooltip("'잡아먹힌다' 문구 표시 후 먹히는 판정(돌진)까지의 대기 시간(초) - 플레이어가 Ctrl로 반응할 시간")]
+        [Tooltip("'잡아먹힌다' 문구를 화면에 유지하는 시간(초) - 이 문구가 완전히 닫힌 뒤 다시 _killDelayAfterSwallowBanner 후에 즉사 판정")]
         [SerializeField] private float _swallowDelay = 1.5f;
+        [Tooltip("'잡아먹힌다' 문구가 닫히고 나서 먹히는 판정(즉사)까지의 대기 시간(초) - 이 사이 Ctrl로 회피")]
+        [SerializeField] private float _killDelayAfterSwallowBanner = 1f;
 
         private GameObject _hitbox;   // 삼키기 즉사 판정(보스 몸통에 붙여 스윕)
         private RewindManager.RewindLockHandle? _rewindLock; // 시퀀스 동안 임시 리와인드 잠금
@@ -153,12 +155,20 @@ namespace Minsung.Boss2
             // 공간을 찢은 뒤 보스가 5배로 커진다(잡아먹기 예고)
             yield return CoEnlargeBoss();
 
-            // 삼키기 - '잡아먹힌다' 문구를 띄우고 _swallowDelay(1.5초) 뒤에 먹히는 판정(돌진)을 한다. 그 사이 Ctrl로 반응
+            // 삼키기 - '잡아먹힌다' 문구를 띄우고, 문구가 완전히 닫힌 뒤 다시 _killDelayAfterSwallowBanner(1초) 후에 먹히는 판정(즉사)을 한다
             if (_banner != null)
             {
                 _banner.Show(_swallowWarningText, _swallowDelay);
+
+                // 문구가 페이드아웃까지 끝나 완전히 닫힐 때까지 대기
+                while (_banner.IsShowing)
+                {
+                    yield return null;
+                }
             }
-            yield return new WaitForSeconds(_swallowDelay);
+
+            // 문구가 닫히고 나서 즉사 판정까지의 반응 시간 - 이 사이 Ctrl로 회피
+            yield return new WaitForSeconds(_killDelayAfterSwallowBanner);
 
             EnsureHitbox();
             if (_hitbox != null)

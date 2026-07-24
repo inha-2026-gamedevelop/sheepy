@@ -92,6 +92,8 @@ namespace Minsung.Visual
         private RectTransform  _windowRect;
         private readonly List<Graphic> _titleBarGraphics = new List<Graphic>(); // 타이틀 바 구성 요소 - 창과 함께 페이드된다
         private readonly List<float>   _titleBarBaseAlphas = new List<float>(); // 요소별 원래 알파(페이드 기준값)
+        private RectTransform  _titleBarRoot;  // 절단 시 아래 조각으로 옮겨질 원본 타이틀 바
+        private bool           _titleBarSplit; // 타이틀 바 절단을 한 번만 수행하기 위한 가드
         private ScreenTearShard _playerFragment;
         private ScreenTearShard _bossFragment;
         private ScreenTearGlassBurst _dropBurst; // 산산조각 후 바닥에 쌓여 남는 파편 - 창이 닫힐 때 함께 정리
@@ -356,7 +358,8 @@ namespace Minsung.Visual
         // 카메라/RenderTexture/가짜 창/조각을 만들고, 창 바깥을 투명(또는 폴백 배경)으로 전환한다
         private void Build()
         {
-            _split = false;
+            _split         = false;
+            _titleBarSplit = false;
             _playerFragmentOffset = Vector2.zero;
             _bossFragmentOffset   = Vector2.zero;
 
@@ -639,7 +642,7 @@ namespace Minsung.Visual
             {
                 return;
             }
-            CreateTitleBar(_windowRect);
+            _titleBarRoot = CreateTitleBar(_windowRect, true);
             SetTitleBarAlpha(0f); // 창과 함께 페이드인하도록 처음엔 숨긴다(타이틀 바 base 알파 기록 후 0으로)
         }
 
@@ -730,8 +733,11 @@ namespace Minsung.Visual
         }
 
         // OS 창처럼 보이게 하는 상단 타이틀 바 - 게임 화면 위쪽 안쪽에 얹혀 화면과 함께 축소되고 함께 잘린다
-        private void CreateTitleBar(RectTransform parent)
+        private RectTransform CreateTitleBar(RectTransform parent, bool registerForFade)
         {
+            // 원본은 _titleBarGraphics에 담아 창과 함께 페이드하고, 복제본(절단 후)은 별도 리스트로 받아 페이드 대상에서 뺀다
+            List<Graphic> graphics = registerForFade ? _titleBarGraphics : new List<Graphic>();
+
             GameObject barGo = new GameObject("TitleBar", typeof(RectTransform));
             ApplyUiLayer(barGo);
             RectTransform bar = barGo.GetComponent<RectTransform>();
@@ -746,7 +752,7 @@ namespace Minsung.Visual
             Image background = barGo.AddComponent<Image>();
             background.color = _titleBarColor;
             background.raycastTarget = false;
-            _titleBarGraphics.Add(background);
+            graphics.Add(background);
 
             float inset    = _titleBarHeight * 0.28f;
             float iconSize = _titleBarHeight * 0.5f;
@@ -760,7 +766,7 @@ namespace Minsung.Visual
             iconImage.preserveAspect = true;
             iconImage.color          = (_windowIcon != null) ? Color.white : _titleIconColor;
             iconImage.raycastTarget  = false;
-            _titleBarGraphics.Add(iconImage);
+            graphics.Add(iconImage);
 
             // 창 제목
             RectTransform title = CreateBarChild(bar, "TitleText", new Vector2(0f, 0f), new Vector2(1f, 1f));
@@ -778,21 +784,26 @@ namespace Minsung.Visual
             {
                 text.font = _titleFont;
             }
-            _titleBarGraphics.Add(text);
+            graphics.Add(text);
 
             // 최소화 / 최대화 / 닫기 - 실제 동작은 없고 형태만 흉내낸다
             float slot = _titleBarHeight;
-            CreateBarGlyph(bar, "Minimize", slot * 2.5f, new Vector2(_titleBarHeight * 0.32f, 1.5f), 0f);
-            CreateBarGlyph(bar, "Maximize", slot * 1.5f, new Vector2(_titleBarHeight * 0.3f, _titleBarHeight * 0.3f), 0f);
-            CreateBarGlyph(bar, "Close_0", slot * 0.5f, new Vector2(_titleBarHeight * 0.34f, 1.5f), 45f);
-            CreateBarGlyph(bar, "Close_1", slot * 0.5f, new Vector2(_titleBarHeight * 0.34f, 1.5f), -45f);
+            CreateBarGlyph(bar, "Minimize", slot * 2.5f, new Vector2(_titleBarHeight * 0.32f, 1.5f), 0f, graphics);
+            CreateBarGlyph(bar, "Maximize", slot * 1.5f, new Vector2(_titleBarHeight * 0.3f, _titleBarHeight * 0.3f), 0f, graphics);
+            CreateBarGlyph(bar, "Close_0", slot * 0.5f, new Vector2(_titleBarHeight * 0.34f, 1.5f), 45f, graphics);
+            CreateBarGlyph(bar, "Close_1", slot * 0.5f, new Vector2(_titleBarHeight * 0.34f, 1.5f), -45f, graphics);
 
-            // 페이드 기준이 될 원래 알파를 한 번만 기록해 둔다
-            _titleBarBaseAlphas.Clear();
-            for (int i = 0; i < _titleBarGraphics.Count; ++i)
+            // 페이드 기준이 될 원래 알파를 한 번만 기록해 둔다(원본만 - 복제본은 절단 후라 항상 완전 표시)
+            if (registerForFade)
             {
-                _titleBarBaseAlphas.Add(_titleBarGraphics[i].color.a);
+                _titleBarBaseAlphas.Clear();
+                for (int i = 0; i < graphics.Count; ++i)
+                {
+                    _titleBarBaseAlphas.Add(graphics[i].color.a);
+                }
             }
+
+            return bar;
         }
 
         private RectTransform CreateBarChild(RectTransform parent, string childName, Vector2 anchorMin, Vector2 anchorMax)
@@ -809,7 +820,7 @@ namespace Minsung.Visual
         }
 
         // 타이틀 바 우측 버튼 글리프 하나 - rightOffset만큼 오른쪽 끝에서 떨어뜨리고 필요하면 회전시킨다(닫기 X)
-        private void CreateBarGlyph(RectTransform bar, string glyphName, float rightOffset, Vector2 size, float rotationDeg)
+        private void CreateBarGlyph(RectTransform bar, string glyphName, float rightOffset, Vector2 size, float rotationDeg, List<Graphic> sink)
         {
             RectTransform rt = CreateBarChild(bar, glyphName, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             rt.sizeDelta        = size;
@@ -819,7 +830,69 @@ namespace Minsung.Visual
             Image image = rt.gameObject.AddComponent<Image>();
             image.color = _titleTextColor;
             image.raycastTarget = false;
-            _titleBarGraphics.Add(image);
+            sink.Add(image);
+        }
+
+        // 창이 갈라지는 순간, 창 위에 얹힌 타이틀 바(메뉴바)도 게임 화면과 같은 절단선으로 둘로 나눈다
+        // 위 조각과 같은 쪽은 복제본으로 함께 떨어지고, 아래 조각과 같은 쪽은 원본이 그대로 남는다 - 각 조각의 자식이라 이동/회전을 따라간다
+        private void SplitTitleBar(Vector2 cutPoint, Vector2 lineDir, bool upperIsPositiveSide)
+        {
+            if (_titleBarSplit || (_titleBarRoot == null) || (_playerFragment == null) || (_bossFragment == null))
+            {
+                return;
+            }
+
+            // 타이틀 바 영역(창 위변 바깥의 얇은 띠)을 창 로컬 좌표 다각형으로 만들어 절단선으로 나눈다
+            Rect rect = _windowRect.rect;
+            List<Vector2> stripPoly = new List<Vector2>
+            {
+                new Vector2(rect.xMin, rect.yMax),
+                new Vector2(rect.xMax, rect.yMax),
+                new Vector2(rect.xMax, rect.yMax + _titleBarHeight),
+                new Vector2(rect.xMin, rect.yMax + _titleBarHeight),
+            };
+            List<List<Vector2>> source = new List<List<Vector2>> { stripPoly };
+            List<List<Vector2>> split  = ConvexPolygonSplitter.SplitByLine(source, cutPoint, lineDir);
+            if (split.Count != 2)
+            {
+                return; // 절단선이 타이틀 바를 가로지르지 않으면 나누지 않는다
+            }
+            _titleBarSplit = true;
+
+            // SplitByLine은 +법선 쪽을 먼저 담는다 - 창 위 조각과 같은 쪽을 위쪽 타이틀 조각으로 고른다
+            int upperIndex = upperIsPositiveSide ? 0 : 1;
+            List<Vector2> upperPoly = split[upperIndex];
+            List<Vector2> lowerPoly = split[1 - upperIndex];
+
+            // 아래 조각(플레이어 쪽): 원본 타이틀 바를 그대로 옮겨 마스크로 자른다
+            RectTransform lowerClip = CreateTitleClip("TitleBarClipLower", _playerFragment.rectTransform, lowerPoly);
+            _titleBarRoot.SetParent(lowerClip, false);
+
+            // 위 조각(보스 쪽): 타이틀 바 복제본을 붙여 조각과 함께 떨어지고 부서지게 한다
+            RectTransform upperClip = CreateTitleClip("TitleBarClipUpper", _bossFragment.rectTransform, upperPoly);
+            CreateTitleBar(upperClip, false);
+        }
+
+        // 타이틀 바 조각용 스텐실 마스크 - 지정 다각형 모양(ScreenTearShard)으로 자식(타이틀 바)을 그 모양대로 잘라낸다
+        private RectTransform CreateTitleClip(string clipName, RectTransform fragment, List<Vector2> polygonLocal)
+        {
+            GameObject go = new GameObject(clipName, typeof(RectTransform));
+            ApplyUiLayer(go);
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.SetParent(fragment, false);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            ScreenTearShard maskShape = go.AddComponent<ScreenTearShard>();
+            maskShape.raycastTarget = false;
+            maskShape.Setup(null, polygonLocal); // source 없음 - 흰색 다각형이 스텐실 마스크 모양이 된다
+
+            Mask mask = go.AddComponent<Mask>();
+            mask.showMaskGraphic = false; // 마스크 도형 자체는 보이지 않게 하고 모양만 클리핑에 쓴다
+
+            return rt;
         }
 
         // HUD를 조각별로 하나씩 얹는다 - 조각의 자식이므로 절단 모양 그대로 잘리고, 이동·회전도 함께 따라간다
@@ -972,6 +1045,9 @@ namespace Minsung.Visual
             // HUD도 같은 폴리곤으로 잘라 각 조각에 실어 보낸다
             _hudLower?.Setup(_hudRt, _playerPoly);
             _hudUpper?.Setup(_hudRt, _bossPoly);
+
+            // 창 위에 얹힌 타이틀 바(메뉴바)도 같은 절단선으로 나눠 각 조각에 붙인다(위 조각과 함께 떨어지고 아래 조각은 남는다)
+            SplitTitleBar(cutPoint, lineDir, upperIndex == 0);
         }
 
         // 현재 창 rect를 폴리곤으로 만든다(절단선 구간 계산과 조각 분할이 같은 기준을 쓰도록)
@@ -1205,6 +1281,8 @@ namespace Minsung.Visual
 
             _titleBarGraphics.Clear();
             _titleBarBaseAlphas.Clear();
+            _titleBarRoot       = null;
+            _titleBarSplit      = false;
             _hudLower           = null;
             _hudUpper           = null;
             _playerFragment     = null;
