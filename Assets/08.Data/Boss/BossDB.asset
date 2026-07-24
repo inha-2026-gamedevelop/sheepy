@@ -34,7 +34,7 @@ MonoBehaviour:
   _dodgeTriggerRange: 1.5
   _dodgeBackDistance: 3
   _dodgeDuration: 0.3
-  _cloneHealth: 1
+  _cloneHealth: 1300
   _cloneCount: 2
   _cloneAttackRange: 0.7
   _cloneAttackCooldown: 1.5
