@@ -25,9 +25,10 @@ namespace Minsung.Visual
             public float   AngularVelocityDeg;
             public float   Size;
             public float   Life;       // 0~1, 1에서 시작해 0으로
-            public float   LifeSpeed;  // 초당 감소량
+            public float   LifeSpeed;  // 초당 감소량 (0 = 영구, 페이드 안 함)
             public bool    IsShard;    // true=유리 조각, false=흰 스파클
             public int     ShapeIndex; // 유리 조각 모양 템플릿 인덱스
+            public bool    Settled;    // 바닥에 안착해 멈춤(쌓임 모드)
         }
 
         /****************************************
@@ -36,6 +37,11 @@ namespace Minsung.Visual
 
         private readonly List<Particle> _particles = new List<Particle>();
         private List<Vector2[]> _shapes; // 다양한 유리 조각 모양(단위 크기 볼록다각형) - 첫 Emit에서 1회 생성
+
+        // 쌓임 모드 - 파편이 중력으로 떨어져 바닥(_floorY)에 안착하고 페이드 없이 남는다
+        private bool  _settleMode;
+        private float _floorY;
+        private float _settleGravity = 1400f;
 
         // 가장자리는 밝게(빛 반사), 가운데는 거의 투명(뒤가 비침) - 유리 느낌
         private Color _shardEdgeColor = new Color(0.9f, 0.97f, 1f, 0.85f);
@@ -66,11 +72,43 @@ namespace Minsung.Visual
 
             for (int i = 0; i < shardCount; ++i)
             {
-                SpawnParticle(lineStart, lineEnd, dir, perp, speedMin, speedMax, lifeMin, lifeMax, isShard: true);
+                SpawnParticle(lineStart, lineEnd, dir, perp, speedMin, speedMax, lifeMin, lifeMax, isShard: true, persistent: false);
             }
             for (int i = 0; i < sparkleCount; ++i)
             {
-                SpawnParticle(lineStart, lineEnd, dir, perp, speedMin, speedMax, lifeMin, lifeMax, isShard: false);
+                SpawnParticle(lineStart, lineEnd, dir, perp, speedMin, speedMax, lifeMin, lifeMax, isShard: false, persistent: false);
+            }
+            SetVerticesDirty();
+        }
+
+        /// <summary>
+        /// 산산조각 + 쌓임 - 선을 따라 유리 조각을 흩뿌리되, 중력으로 floorY(작업표시줄 윗변)까지 떨어져 안착하고 페이드 없이 남는다.
+        /// 스파클은 짧게 반짝이고 사라진다. 정리는 호출부가 이 오브젝트를 파괴해서 한다(자동 소멸 안 함).
+        /// </summary>
+        public void EmitShatterAndSettle(Vector2 lineStart, Vector2 lineEnd, int shardCount, int sparkleCount,
+            float speedMin, float speedMax, float floorY, float settleGravity)
+        {
+            Vector2 dir = (lineEnd - lineStart);
+            float len = dir.magnitude;
+            if (len < 0.001f)
+            {
+                return;
+            }
+            dir /= len;
+            Vector2 perp = new Vector2(-dir.y, dir.x);
+
+            EnsureShapes();
+            _settleMode   = true;
+            _floorY       = floorY;
+            _settleGravity = Mathf.Max(1f, settleGravity);
+
+            for (int i = 0; i < shardCount; ++i)
+            {
+                SpawnParticle(lineStart, lineEnd, dir, perp, speedMin, speedMax, 1f, 1f, isShard: true, persistent: true);
+            }
+            for (int i = 0; i < sparkleCount; ++i)
+            {
+                SpawnParticle(lineStart, lineEnd, dir, perp, speedMin, speedMax, 0.4f, 0.9f, isShard: false, persistent: false);
             }
             SetVerticesDirty();
         }
@@ -106,12 +144,13 @@ namespace Minsung.Visual
         }
 
         private void SpawnParticle(Vector2 lineStart, Vector2 lineEnd, Vector2 dir, Vector2 perp,
-            float speedMin, float speedMax, float lifeMin, float lifeMax, bool isShard)
+            float speedMin, float speedMax, float lifeMin, float lifeMax, bool isShard, bool persistent)
         {
             Vector2 originOnLine = Vector2.Lerp(lineStart, lineEnd, Random.value);
 
             // 절단면 양쪽으로 방사형으로 터진다 - 수직(perp) 기준 ±spread 각도로 퍼뜨려 유리가 튀어나가는 느낌
-            float sideSign = (Random.value < 0.5f) ? -1f : 1f;
+            // 쌓임 모드에서는 위로 튀어올랐다 떨어지도록 위쪽 성분을 살짝 준다
+            float sideSign = _settleMode ? 1f : ((Random.value < 0.5f) ? -1f : 1f);
             float spreadDeg = Random.Range(-38f, 38f);
             Vector2 outDir = Rotate(perp * sideSign, spreadDeg);
             Vector2 vel = outDir * Random.Range(speedMin, speedMax);
@@ -125,9 +164,10 @@ namespace Minsung.Visual
                 AngularVelocityDeg = Random.Range(-260f, 260f),
                 Size               = isShard ? Random.Range(14f, 42f) : Random.Range(3f, 7f),
                 Life               = 1f,
-                LifeSpeed          = 1f / Mathf.Max(0.05f, life),
+                LifeSpeed          = persistent ? 0f : (1f / Mathf.Max(0.05f, life)),
                 IsShard            = isShard,
                 ShapeIndex         = isShard ? Random.Range(0, _shapes.Count) : 0,
+                Settled            = false,
             });
         }
 
@@ -148,6 +188,16 @@ namespace Minsung.Visual
             }
 
             float dt = Time.unscaledDeltaTime;
+            bool changed = _settleMode ? UpdateSettle(dt) : UpdateBurst(dt);
+            if (changed)
+            {
+                SetVerticesDirty(); // 전부 안착해 정지하면 다시 그리지 않는다
+            }
+        }
+
+        // 방사형 버스트 - 터진 뒤 감속하며 페이드아웃(균열선 순간 연출)
+        private bool UpdateBurst(float dt)
+        {
             const float gravity = -70f;  // px/s^2 - 아주 약하게(방사형으로 터진 뒤 살짝 가라앉는 정도)
             const float drag    = 2.4f;  // 공기저항 - 터진 파편이 점점 감속해 자연스럽게 멎는다
             for (int i = _particles.Count - 1; i >= 0; --i)
@@ -168,7 +218,58 @@ namespace Minsung.Visual
                     _particles[i] = p;
                 }
             }
-            SetVerticesDirty();
+            return true;
+        }
+
+        // 쌓임 모드 - 유리 조각은 중력으로 떨어져 바닥에 안착(정지, 페이드 없음), 스파클만 반짝이다 사라진다
+        private bool UpdateSettle(float dt)
+        {
+            const float drag = 1.5f;
+            bool changed = false;
+            for (int i = _particles.Count - 1; i >= 0; --i)
+            {
+                Particle p = _particles[i];
+                if (p.Settled)
+                {
+                    continue; // 이미 바닥에 멈춘 조각은 그대로 남는다
+                }
+                changed = true;
+
+                if (p.IsShard)
+                {
+                    p.Velocity.x -= p.Velocity.x * Mathf.Min(1f, drag * dt);
+                    p.Velocity.y -= _settleGravity * dt;
+                    p.Position   += p.Velocity * dt;
+                    p.RotationDeg += p.AngularVelocityDeg * dt;
+
+                    if (p.Position.y <= _floorY)
+                    {
+                        p.Position.y        = _floorY;
+                        p.Velocity          = Vector2.zero;
+                        p.AngularVelocityDeg = 0f;
+                        p.Settled            = true; // 바닥에 안착 - 이후 정지한 채 남는다
+                    }
+                    _particles[i] = p;
+                }
+                else // 스파클은 짧게 반짝이고 사라진다
+                {
+                    p.Velocity   -= p.Velocity * Mathf.Min(1f, drag * dt);
+                    p.Velocity.y -= _settleGravity * 0.3f * dt;
+                    p.Position   += p.Velocity * dt;
+                    p.RotationDeg += p.AngularVelocityDeg * dt;
+                    p.Life       -= p.LifeSpeed * dt;
+
+                    if (p.Life <= 0f)
+                    {
+                        _particles.RemoveAt(i);
+                    }
+                    else
+                    {
+                        _particles[i] = p;
+                    }
+                }
+            }
+            return changed;
         }
 
         protected override void OnPopulateMesh(VertexHelper vh)

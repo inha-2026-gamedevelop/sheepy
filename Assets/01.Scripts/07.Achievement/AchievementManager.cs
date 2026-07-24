@@ -21,6 +21,9 @@ namespace Minsung.Achievement
         private const string COUNTER_KEY_PREFIX = "Achievements_Counter_"; // 누적 카운트 업적(사망 100회 등) 저장용
         private const string UNIQUE_KEY_PREFIX  = "Achievements_Unique_";  // 고유 항목 집합 업적(라디오 5개 등) 저장용
 
+        private const string COUNTER_KEYS_REGISTRY = "Achievements_CounterKeys";
+        private const string UNIQUE_KEYS_REGISTRY  = "Achievements_UniqueGroupKeys";
+
         // 씬에 직접 배치할 때만 인스펙터로 지정. 비어 있으면 Resources에서 자동 로드.
         [SerializeField] private AchievementDatabase _database;
 
@@ -120,6 +123,7 @@ namespace Minsung.Achievement
             string prefKey = COUNTER_KEY_PREFIX + counterKey;
             int count = PlayerPrefs.GetInt(prefKey, 0) + 1;
             PlayerPrefs.SetInt(prefKey, count);
+            RegisterKey(COUNTER_KEYS_REGISTRY, counterKey);
             PlayerPrefs.Save();
             return count;
         }
@@ -148,6 +152,8 @@ namespace Minsung.Achievement
                 ? new UniqueSaveData { Ids = new List<string>() }
                 : JsonUtility.FromJson<UniqueSaveData>(json);
 
+            RegisterKey(UNIQUE_KEYS_REGISTRY, groupKey);
+
             if (!save.Ids.Contains(itemId))
             {
                 save.Ids.Add(itemId);
@@ -161,11 +167,28 @@ namespace Minsung.Achievement
             }
         }
 
-        /// <summary> 해제된 업적 기록을 전부 제거 (설정 - 데이터 초기화). 로컬만 지운다 - 서버 삭제는 BackendMirror.MirrorClearAchievements가 담당. </summary>
+        /// <summary>
+        /// 해제된 업적 기록을 전부 제거 (설정 - 데이터 초기화). 해제 목록뿐 아니라 누적 카운터(사망/되감기/반사 등)와
+        /// 고유 항목 집합(라디오 등) 진행 상태까지 함께 지워야 다음 관련 행동 1회만으로 즉시 재해금되는 것을 막는다.
+        /// 로컬만 지운다 - 서버 삭제는 BackendMirror.MirrorClearAchievements가 담당.
+        /// </summary>
         public void ClearAll()
         {
             _unlocked.Clear();
             PlayerPrefs.DeleteKey(SAVE_KEY);
+
+            foreach (string counterKey in LoadKeySet(COUNTER_KEYS_REGISTRY))
+            {
+                PlayerPrefs.DeleteKey(COUNTER_KEY_PREFIX + counterKey);
+            }
+            PlayerPrefs.DeleteKey(COUNTER_KEYS_REGISTRY);
+
+            foreach (string groupKey in LoadKeySet(UNIQUE_KEYS_REGISTRY))
+            {
+                PlayerPrefs.DeleteKey(UNIQUE_KEY_PREFIX + groupKey);
+            }
+            PlayerPrefs.DeleteKey(UNIQUE_KEYS_REGISTRY);
+
             PlayerPrefs.Save();
         }
 
@@ -205,6 +228,31 @@ namespace Minsung.Achievement
             {
                 _unlocked.UnionWith(save.UnlockedIds);
             }
+        }
+
+        // registryKey(예: COUNTER_KEYS_REGISTRY)에 entryName을 등록 - ClearAll이 지워야 할 실제 진행 상태 키 목록을 추적한다.
+        private void RegisterKey(string registryKey, string entryName)
+        {
+            HashSet<string> keys = LoadKeySet(registryKey);
+            if (keys.Add(entryName))
+            {
+                UniqueSaveData save = new UniqueSaveData { Ids = new List<string>(keys) };
+                PlayerPrefs.SetString(registryKey, JsonUtility.ToJson(save));
+                PlayerPrefs.Save();
+            }
+        }
+
+        // registryKey에 등록된 키 이름 집합을 조회. 기록이 없으면 빈 집합.
+        private HashSet<string> LoadKeySet(string registryKey)
+        {
+            string json = PlayerPrefs.GetString(registryKey, "");
+            if (string.IsNullOrEmpty(json))
+            {
+                return new HashSet<string>();
+            }
+
+            UniqueSaveData save = JsonUtility.FromJson<UniqueSaveData>(json);
+            return (save?.Ids != null) ? new HashSet<string>(save.Ids) : new HashSet<string>();
         }
     }
 }

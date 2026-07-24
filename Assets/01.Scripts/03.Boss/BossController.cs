@@ -19,7 +19,7 @@ using Minsung.Visual;
 namespace Minsung.Boss
 {
     // Azathoth 보스. 총 피통 64,000을 4페이즈가 16,000씩 나눠 갖는 단일 피통 방식으로 동작한다
-    public class BossController : MonoBehaviour, IRewindable, IDamageable
+    public class BossController : MonoBehaviour, IRewindable, IDamageable, IBossHittable
     {
         private static readonly int PARAM_ROAR       = Animator.StringToHash(Constants.Combat.BOSS_ANIM_ROAR);
         private static readonly int PARAM_DEATH      = Animator.StringToHash(Constants.Combat.BOSS_ANIM_DEATH);
@@ -53,6 +53,7 @@ namespace Minsung.Boss
         [SerializeField] private BossBannerUI _patternBanner;        // 미연결 시 배너 무시
         [SerializeField] private float _bannerDuration = 2.5f;       // 문구 유지 시간(초, 페이드 제외)
         [SerializeField, TextArea] private string _phase1GimmickMessage = "경고: 전장에 즉사 패턴이 전개됩니다.";
+        [SerializeField, TextArea] private string _phase1LaserMessage = "크리스탈과 동일한 색상의 안전구역으로 대피하세요!";
 
         [Header("아레나 경계 (낙뢰/레이저/안전구역 배치 기준)")]
         [SerializeField] private float _arenaMinX = -10f;
@@ -65,6 +66,12 @@ namespace Minsung.Boss
         [SerializeField] private Vector2 _gimmickSectorCenter = new Vector2(-3.33f, 3.33f);
         [SerializeField] private Vector2 _gimmickSectorRight  = new Vector2(3.33f, 10f);
 
+        // 전장 레이저 스윕 대신 이 크리스탈들이 해당 색으로 빛난다.
+        // 크리스탈이 베이스 몸체(Crystal_16907, 불투명)와 빛 오라 레이어(crystal1_on_16911)로 겹쳐 있어
+        // 오라만 틴트하면 몸체에 가려 거의 안 보인다 - 두 렌더러를 함께 틴트해야 한다
+        [Header("1페이즈 즉사 기믹 - 색 신호용 크리스탈 (겹쳐진 렌더러 전부)")]
+        [SerializeField] private SpriteRenderer[] _gimmickSignalCrystalRenderers;
+
         [Header("페이즈 진행 범위 - 이 씬이 담당하는 구간만(총 피통은 GameDB.Boss.TotalHealth, 다른 구간은 별도 씬/오브젝트+DB에서 독립 설정)")]
         [SerializeField] private int _finalPhaseIndex = 3; // 이 인덱스(0=1페이즈)까지 진행 후 아래 종료 방식 실행
 
@@ -73,6 +80,9 @@ namespace Minsung.Boss
         [SerializeField] private BossOutroVideoUI _outroVideo;      // _transitionToNextScene일 때 재생할 풀스크린 영상
         [SerializeField] private BossOutroVideoUI _introVideo;      // 보스방 입장 후 전투 시작 전에 재생할 풀스크린 영상
         [SerializeField] private string _nextSceneName = Constants.Scene.MAP_3;
+
+        [SerializeField] private GameObject _transitionDeathAnim;   // _transitionToNextScene 전용 사망 연출(Circle+Light Animator 하위 포함, 씬 배치, 비활성 시작)
+                                                                     // CoPhaseEndGimmick의 페이드아웃보다 먼저 재생되어야 해서 _deathLightFx/_deathCircleFx(2->3페이즈 전환용)와 별도로 둔다
 
         private BossState[] _states;       // 페이즈별 상태 객체 (인덱스 = 페이즈)
         private int _phaseIndex;           // 현재 페이즈 인덱스 (0부터)
@@ -123,6 +133,11 @@ namespace Minsung.Boss
         // 1페이즈 즉사 기믹 색 배정용 지형 3섹터 (인덱스 순서 고정 - 좌측 구덩이/중앙 단상/우측 구덩이)
         public Vector2[] GimmickSectors => new[] { _gimmickSectorLeft, _gimmickSectorCenter, _gimmickSectorRight };
 
+        // 1페이즈 즉사 기믹 색 신호용 크리스탈 렌더러들 (씬 배치, 미연결 시 무시)
+        public SpriteRenderer[] GimmickSignalCrystalRenderers => _gimmickSignalCrystalRenderers;
+
+        public string Phase1LaserMessage => _phase1LaserMessage;
+
         public float TotalHealth => GameDB.Boss.TotalHealth; // Minsung.UI.BossHealthBarUI가 정규화 기준으로 구독
 
         // 이 씬이 담당하는 페이즈 수(=_finalPhaseIndex+1)로 총 피통을 균등 분할한 페이즈 1개 분량 - 페이즈 경계 노치 표시에도 쓰인다
@@ -137,6 +152,8 @@ namespace Minsung.Boss
         public event Action OnBattleStarted;
         public event Action<BossEmotion> OnEmotionChanged;   // 감정 아이콘/연출 UI 연동
         public event Action<float, float> OnHealthChanged;   // (현재, 총) 보스 HP 바 연동 - Minsung.UI.BossHealthBarUI가 구독
+        public event Action<float>        OnDamaged;         // 실제 적용된 피해량 - 타격감 연출(히트스톱/스파크/데미지 넘버/HP바)용
+        public event Action<Vector3, int> OnDamageReflected; // 감정 반사로 공격자(플레이어)가 대신 피해를 입음 (플레이어 위치, 반칸량)
 
         /****************************************
         *              Unity Event
@@ -379,6 +396,8 @@ namespace Minsung.Boss
             _patternBanner?.Show(message, _bannerDuration);
         }
 
+        public bool IsBannerShowing => _patternBanner != null && _patternBanner.IsShowing;
+
         // 리와인드/슬로우 배율과 무관하게 실시간으로 누적한다 - "되감아도 시간은 계속 지나간다"
         private void TickBattleTimer()
         {
@@ -443,8 +462,15 @@ namespace Minsung.Boss
                 return false;
             }
 
+            float previous = _currentHealth;
             _currentHealth = Mathf.Max(PhaseFloorHealth, _currentHealth - dmg);
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
+
+            float applied = previous - _currentHealth; // 페이즈 하한 클램프 반영한 실제 피해량
+            if (applied > 0f)
+            {
+                OnDamaged?.Invoke(applied);
+            }
 
             // 페이즈별 자체 트리거(예: 1페이즈 분신 전멸)를 쓰는 경우 피통 하한 도달만으로는 기믹을 시작하지 않는다
             if ((_currentHealth <= PhaseFloorHealth) && (_states[_phaseIndex].UsesHealthFloorTrigger))
@@ -465,6 +491,11 @@ namespace Minsung.Boss
             if (reflected)
             {
                 AchievementTrigger.AttackReflected();
+                // 반사 - 공격자(플레이어)가 대신 피해를 입으므로 플레이어 위치에 피해량을 표시하도록 알린다
+                if (attacker != null)
+                {
+                    OnDamageReflected?.Invoke(attacker.transform.position, GameDB.Boss.ReflectHalves);
+                }
             }
             return reflected;
         }
@@ -480,8 +511,7 @@ namespace Minsung.Boss
             StartCoroutine(CoPhaseEnd());
         }
 
-#if UNITY_EDITOR
-        /// <summary> QA 전용 - 기믹/전환 연출 없이 지정 페이즈로 즉시 이동 (BossPhaseQaDebug 전용, 빌드 미포함) </summary>
+        /// <summary> QA 전용 - 기믹/전환 연출 없이 지정 페이즈로 즉시 이동 (BossPhaseQaDebug 전용) </summary>
         public void QaJumpToPhase(int targetPhaseIndex)
         {
             if (_transitioning || (targetPhaseIndex == _phaseIndex)
@@ -512,7 +542,7 @@ namespace Minsung.Boss
             OnPhaseChanged?.Invoke(_phaseIndex);
         }
 
-        // QA 전용 - 전투 진행 없이 사망 연출(DeathBody+DeathLightFx)만 즉시 재생 (BossPhaseQaDebug 전용, 빌드 미포함)
+        // QA 전용 - 전투 진행 없이 사망 연출(DeathBody+DeathLightFx)만 즉시 재생 (BossPhaseQaDebug 전용)
         // 이미 DeathBody 상태인 채로 재호출하면 SetTrigger만으로는 같은 상태를 재진입하지 않아 애니메이션이 다시 재생되지 않는다 - Play로 강제 재시작
         public void QaForceDeath()
         {
@@ -535,7 +565,6 @@ namespace Minsung.Boss
             }
             _deathCircleFxCoroutine = StartCoroutine(CoActivateDeathCircleFx());
         }
-#endif
 
         // 페이즈 종료: 피통 동결 -> 종료 기믹(즉사 레이저/컷신 등) -> 다음 페이즈
         // 기믹 중에는 리와인드를 잠가 동결된 피통/기믹 진행이 되감기와 엉키지 않게 한다
@@ -548,12 +577,26 @@ namespace Minsung.Boss
             {
                 _phaseEndRewindLock = RewindManager.Instance.AcquireRewindLock(this);
             }
-            PlayAnimTrigger(PARAM_ROAR); // 기믹 시전 시그널
+            // 이 씬을 마감하고 다음 씬으로 전환하는 마지막 페이즈인지(Map2->Map3 등) - 이 경우 곧바로 Death를 트리거하므로
+            // Roar를 같은 프레임에 함께 걸면 아직 소진되지 않은 Roar 트리거가 다음 프레임에 AnyState로 다시 끼어들어
+            // DeathBody에서 Roar로 튕겨나가 버린다(실측 확인) - 따라서 이 경로에서는 Roar 시그널을 생략한다
+            bool isSceneTransitionEnding = (_phaseIndex >= _finalPhaseIndex) && _transitionToNextScene;
+
+            if (!isSceneTransitionEnding)
+            {
+                PlayAnimTrigger(PARAM_ROAR); // 기믹 시전 시그널
+            }
 
             // 1페이즈 즉사 기믹 진입 시 중앙 경고 배너 (다른 페이즈 기믹은 각자 상태에서 ShowBanner 호출)
             if (_phaseIndex == 0)
             {
                 ShowBanner(_phase1GimmickMessage);
+            }
+
+            // CoPhaseEndGimmick가 화면을 페이드아웃하기 전에 보스 사망 연출(DeathBody+DeathLightFx+DeathCircleFx)을 먼저 재생해 보여준다
+            if (isSceneTransitionEnding)
+            {
+                yield return CoPlayTransitionDeathSequence();
             }
 
             yield return _states[_phaseIndex].CoPhaseEndGimmick();
@@ -639,6 +682,40 @@ namespace Minsung.Boss
         {
             yield return new WaitForSeconds(GameDB.Boss.DeathCircleDelay);
             _deathCircleFx?.PlaySequence(GameDB.Boss.DeathCircleLaunchDirection);
+        }
+
+        // _transitionToNextScene 전용 - DeathBody 트리거 + DeathLightFx/DeathCircleFx를 원래 페이즈2->3 전환과 동일한
+        // 타이밍(GameDB.Boss)으로 재생하고, CoActivateDeathLightFx/CoActivateDeathCircleFx(fire-and-forget)와 달리
+        // Circle의 사출->부유->귀환까지 전부 끝날 때까지 기다린다 - 화면 페이드아웃은 이 뒤에 와야 하므로
+        private IEnumerator CoPlayTransitionDeathSequence()
+        {
+            if (_transitionDeathAnim != null)
+            {
+                _transitionDeathAnim.SetActive(true); // DeathAnim(Circle+Light) 컨테이너 - 자식 활성화 전에 먼저 켜야 한다
+            }
+
+            PlayAnimTrigger(PARAM_DEATH);
+
+            yield return new WaitForSeconds(GameDB.Boss.DeathLightDelay);
+            _deathLightFx?.SetActive(true);
+
+            yield return new WaitForSeconds(GameDB.Boss.DeathCircleDelay - GameDB.Boss.DeathLightDelay);
+            _deathCircleFx?.PlaySequence(GetFacingAwareDeathCircleLaunchDirection());
+
+            while ((_deathCircleFx != null) && _deathCircleFx.IsPlaying)
+            {
+                yield return null;
+            }
+        }
+
+        // 보스가 보는 방향에 맞춰 DeathCircle 사출 방향의 좌우 부호를 뒤집는다
+        // (오른쪽을 보면 1사분면으로, 왼쪽을 보면 2사분면으로 - transform.localScale.x는 FaceTo가 뒤집는 본체 스케일)
+        private Vector2 GetFacingAwareDeathCircleLaunchDirection()
+        {
+            Vector2 direction  = GameDB.Boss.DeathCircleLaunchDirection;
+            float   facingSign = -Mathf.Sign(transform.localScale.x); // BOSS_ART_FACING_SIGN(-1) 컨벤션: localScale.x<0 = 오른쪽을 봄
+            direction.x = Mathf.Abs(direction.x) * facingSign;
+            return direction;
         }
 
         /****************************************

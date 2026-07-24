@@ -165,6 +165,11 @@ namespace Minsung.Achievement
             AchievementManager.Instance?.Unlock(AchievementIds.HIDDEN_AREA_FOUND);
         }
 
+        public static void EasyAreaFound()
+        {
+            AchievementManager.Instance?.Unlock(AchievementIds.EASY_AREA_FOUND);
+        }
+
         /// <summary> 처음으로 낙하(리타이어존 진입) - "이걸 떨어져?". </summary>
         public static void PlayerFellIntoRetireZone()
         {
@@ -187,6 +192,12 @@ namespace Minsung.Achievement
         public static void AttackReflected()
         {
             AchievementManager.Instance?.IncrementProgress(COUNTER_REFLECT, REFLECT_TARGET, AchievementIds.REFLECT_100);
+        }
+
+        /// <summary> 엔딩 크레딧 시청 - "아름다운 이별". </summary>
+        public static void EndingCreditsWatched()
+        {
+            AchievementManager.Instance?.Unlock(AchievementIds.ENDING_CREDITS);
         }
     }
 }

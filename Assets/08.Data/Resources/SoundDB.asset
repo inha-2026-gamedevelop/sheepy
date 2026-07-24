@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: SoundDB
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Sound.SoundData
   _bgmDatas:
-  - _clips: []
+  - _clips:
+    - {fileID: 8300000, guid: 66ea4d05f95275e48b7da001eb84cb24, type: 3}
   - _clips:
     - {fileID: 8300000, guid: 163b3f2a4907fa648a6741d0f61669aa, type: 3}
     - {fileID: 8300000, guid: 6bc229f6c04c5f143bf21c4003b6498a, type: 3}
@@ -22,15 +23,19 @@ MonoBehaviour:
   - _clips:
     - {fileID: 8300000, guid: 5ceaef15bbced6e4f9bd623cb8e3f6a3, type: 3}
     - {fileID: 8300000, guid: b7807fbed8b3be3429f02355330da3d1, type: 3}
+    - {fileID: 8300000, guid: 346d2d4a7c2077e4d90a09b8bcea1717, type: 3}
+    - {fileID: 8300000, guid: 1a6cd7936adbcc442b55bd1266541918, type: 3}
+    - {fileID: 8300000, guid: a9e2eea8b93622744bd0f95a92d3f675, type: 3}
+    - {fileID: 8300000, guid: b0b79893ed2aea74aae27bc0539fb532, type: 3}
   - _clips:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-  - _clips: []
-  - _clips: []
+    - {fileID: 8300000, guid: bc5e76434f8b0fa46a4d5c5cc8c11668, type: 3}
+  - _clips:
+    - {fileID: 8300000, guid: a0a02a11ef7886a4d9728ae7f73531ac, type: 3}
+  - _clips:
+    - {fileID: 8300000, guid: c66093bdba967554095b4c5bd940193c, type: 3}
+    - {fileID: 8300000, guid: b4b8466d1d3c7a94fa1cc9e258688b94, type: 3}
+    - {fileID: 8300000, guid: 1bee8fc202635a0408385ce4a11dfd42, type: 3}
+    - {fileID: 8300000, guid: 4f596318b91aa5b48a47ce5c68ef3557, type: 3}
   - _clips:
     - {fileID: 8300000, guid: d557133e2caf8d54998ee8718e41ea54, type: 3}
     - {fileID: 8300000, guid: aca7943f9c6b7e04d96a82459c241690, type: 3}
@@ -49,6 +54,12 @@ MonoBehaviour:
     - {fileID: 8300000, guid: a5492befe21287f4191831c1dfd050a6, type: 3}
     - {fileID: 8300000, guid: 6377c4709700fc44982ca36051636a01, type: 3}
     - {fileID: 8300000, guid: c1ee8da8d4a25444a8927a36c2926a8e, type: 3}
+  - _clips:
+    - {fileID: 8300000, guid: 471c63ee813320046bd3cc302032e0bc, type: 3}
+    - {fileID: 8300000, guid: 4fd91ad74d6b38642abcbb5fd85c5269, type: 3}
+    - {fileID: 8300000, guid: 09c0c85d259e3974b9fe10a9829347dc, type: 3}
+    - {fileID: 8300000, guid: 8e50c01e182bed24895fe5e81989c936, type: 3}
+    - {fileID: 8300000, guid: 0cd86418795119b4496685238b373cc7, type: 3}
   _sfxDatas:
   - _sfxName: Player
     _clips:

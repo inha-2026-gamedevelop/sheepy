@@ -1,4 +1,5 @@
 // System
+using System;
 using System.Collections;
 
 // Unity
@@ -77,11 +78,27 @@ namespace Minsung.UI
                 sceneName = data.SceneName;
             }
 
+            // 과거 저장 데이터가 로딩/메뉴 씬을 가리키면 로딩씬이 자기 자신을
+            // 다시 여는 루프가 생길 수 있으므로, 이어하기 대상은 게임 씬만 허용한다.
+            if (!IsGameplayScene(sceneName))
+            {
+                Debug.LogWarning($"[MainMenu] Invalid continue scene '{sceneName}'. Falling back to {Constants.Scene.MAP_1}.");
+                sceneName = Constants.Scene.MAP_1;
+            }
+
             // 이어하기: 진입한 씬에서 플레이어를 저장된 위치로 1회 복원하도록 요청
             GameManager.Instance?.RequestContinueRestore();
 
             RectTransform origin = (_continueButton != null) ? _continueButton.GetComponent<RectTransform>() : null;
             PlayBurstThenLoad(origin, sceneName);
+        }
+
+        private static bool IsGameplayScene(string sceneName)
+        {
+            return string.Equals(sceneName, Constants.Scene.MAP_1, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(sceneName, Constants.Scene.MAP_2, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(sceneName, Constants.Scene.MAP_3, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(sceneName, Constants.Scene.BOSS, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary> 설정 패널 토글 </summary>

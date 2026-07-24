@@ -101,6 +101,8 @@ namespace Minsung.Boss2
         [SerializeField] private Color _laserWarningColor = new Color(1f, 0.05f, 0.05f, 0.6f);
         [SerializeField] private Color _laserColor        = new Color(0.95f, 0f, 0.02f);
 
+        [SerializeField] private Material _laserMaterial; // 에너지빔 쉐이더 머테리얼 (Assets/12.Materials/Phase3LaserBeamMat) - 인스펙터에 직접 드래그해서 연결
+
         [SerializeField] private float   _laserFlowParticleSize = 0.12f;
         [SerializeField] private float   _laserFlowSpeed        = 14f;
         [SerializeField] private float   _laserFlowRate         = 80f;
@@ -176,6 +178,21 @@ namespace Minsung.Boss2
         [SerializeField] private float _phase4IntroScreamDuration = 3f;   // Scream 정/역 순환(입 벌림/다물기) 유지 시간(초)
         [SerializeField] private float _phase4IntroCameraSize     = 4f;   // 연출 동안 포커스 카메라 Orthographic Size
         [SerializeField] private float _phase4IntroCameraBlend    = 0.6f; // 카메라 포커스 진입/복귀 블렌드 시간(초)
+
+        [Header("4페이즈 사망 연출")]
+        [SerializeField] private int   _deathAuraBurstCount = 40;   // 오라 사방 분출 파티클 개수
+        [SerializeField] private float _deathAuraBurstSpeed = 5f;   // 오라 분출 속도(유닛/초)
+        [SerializeField] private float _deathShakeForce     = 1.2f; // 카메라 흔들림 세기(Cinemachine Impulse Force)
+        [SerializeField] private float _deathShakeDuration  = 0.6f; // 카메라 흔들림 지속시간(초)
+        [SerializeField] private float _deathFlashDuration  = 0.15f;// 본체 섬광(흰색) 지속시간(초)
+        [SerializeField] private float _deathFadeDuration   = 1.2f; // 섬광 이후 본체가 서서히 사라지는 시간(초)
+        [SerializeField] private float _deathCameraZoomSize = 6f;   // 연출 동안 보스를 비추는 포커스 카메라 Orthographic Size(줌아웃)
+        [SerializeField] private float _deathCameraBlend    = 0.5f; // 카메라 포커스 진입/복귀 블렌드 시간(초)
+
+        [Header("엔딩 포탈")]
+        [SerializeField] private float _endingHoldDuration = 5f;  // 포탈 상호작용(E키 홀드) 완료까지 걸리는 시간(초)
+        [SerializeField] private float _endingZoomEndSize  = 1.5f;// 홀드 완료 시점의 카메라 Orthographic Size(줌인 최종값) - 홀드 시작 시점 크기에서 이 값까지 진행도에 비례해 줄어든다
+        [SerializeField] private float _endingFadeDuration = 1.5f;// 홀드 완료 후 암전 시간(초)
 
         /****************************************
         *              Properties
@@ -259,6 +276,7 @@ namespace Minsung.Boss2
         public int   LaserDamageHalves     => _laserDamageHalves;
         public Color LaserWarningColor     => _laserWarningColor;
         public Color LaserColor            => _laserColor;
+        public Material LaserMaterial      => _laserMaterial;
 
         public float   LaserFlowParticleSize => _laserFlowParticleSize;
         public float   LaserFlowSpeed        => _laserFlowSpeed;
@@ -306,5 +324,18 @@ namespace Minsung.Boss2
         public float Phase4IntroScreamDuration => _phase4IntroScreamDuration;
         public float Phase4IntroCameraSize     => _phase4IntroCameraSize;
         public float Phase4IntroCameraBlend    => _phase4IntroCameraBlend;
+
+        public int   DeathAuraBurstCount => _deathAuraBurstCount;
+        public float DeathAuraBurstSpeed => _deathAuraBurstSpeed;
+        public float DeathShakeForce     => _deathShakeForce;
+        public float DeathShakeDuration  => _deathShakeDuration;
+        public float DeathFlashDuration  => _deathFlashDuration;
+        public float DeathFadeDuration   => _deathFadeDuration;
+        public float DeathCameraZoomSize => _deathCameraZoomSize;
+        public float DeathCameraBlend    => _deathCameraBlend;
+
+        public float EndingHoldDuration => _endingHoldDuration;
+        public float EndingZoomEndSize  => _endingZoomEndSize;
+        public float EndingFadeDuration => _endingFadeDuration;
     }
 }

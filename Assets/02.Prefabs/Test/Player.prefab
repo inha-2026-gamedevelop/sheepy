@@ -280,9 +280,11 @@ GameObject:
   - component: {fileID: 7111996726030078861}
   - component: {fileID: 7265190680715490144}
   - component: {fileID: 7076350170267727316}
+  - component: {fileID: 6079718981737546545}
+  - component: {fileID: 6450926906580958010}
   m_Layer: 3
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -444,7 +446,7 @@ MonoBehaviour:
   _sortingOrderOffset: -2
   _pulse: 1
   _pulseSpeed: 1.2
-  _pulseAmplitude: 0.08
+  _pulseAmplitude: 0.4
 --- !u!114 &4847524576369976158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -631,3 +633,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1e2d4bab79d7fb4d9ceedc573f2a013, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerSaveOnExit
+--- !u!114 &6079718981737546545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7871254499066966236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2c4ca739c2e8a342a1c264854e353d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerHitFeedback
+  _useCameraShake: 1
+  _useVignetteFlash: 1
+  _useHitStop: 1
+  _impulseSource: {fileID: 0}
+--- !u!114 &6450926906580958010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7871254499066966236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efca24a95a4976e409cad5f879496d17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerSoundController
+  _jumpSfx:
+    _enabled: 1
+    _sfx: 0
+    _pitch: 1
+  _landSfx:
+    _enabled: 1
+    _sfx: 1
+    _pitch: 1
+  _attackSfx:
+    _enabled: 1
+    _sfx: 2
+    _pitch: 1
+  _chargeAttackSfx:
+    _enabled: 1
+    _sfx: 3
+    _pitch: 1
+  _hitSfx:
+    _enabled: 1
+    _sfx: 4
+    _pitch: 1
+  _deathSfx:
+    _enabled: 1
+    _sfx: 5
+    _pitch: 1

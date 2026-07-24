@@ -21,6 +21,9 @@ namespace Minsung.UI
         private CanvasGroup _canvasGroup;
         private Coroutine   _co;
 
+        /// <summary> 배너가 표시(페이드 인/유지/페이드 아웃) 중인가 - 문구가 완전히 닫힐 때까지 대기하는 데 쓴다 </summary>
+        public bool IsShowing => _co != null;
+
         /****************************************
         *              Unity Event
         ****************************************/

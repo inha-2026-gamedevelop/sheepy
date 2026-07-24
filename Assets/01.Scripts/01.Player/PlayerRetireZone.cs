@@ -1,5 +1,9 @@
 // Unity
 using UnityEngine;
+using UnityEngine.Serialization;
+
+using Minsung.Achievement;
+using Minsung.Player;
 
 // 떨어지면 플레이어를 특정 구역으로 이동시키는 구역
 public class PlayerRetireZone : MonoBehaviour
@@ -8,27 +12,28 @@ public class PlayerRetireZone : MonoBehaviour
     *                Fields
     ****************************************/
     [Header("이동시킬 목적지 위치 (Transform)")]
-    public Transform spawnPoint;
+    [FormerlySerializedAs("spawnPoint")]
+    [SerializeField] private Transform _spawnPoint;
 
     /****************************************
     *              Unity Event
     ****************************************/
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // 충돌한 오브젝트의 레이어가 3번(Player)인지 확인
-        if (collision.gameObject.layer == 3)
+        if (!collision.TryGetComponent(out PlayerController playerController))
         {
-            Minsung.Achievement.AchievementTrigger.PlayerFellIntoRetireZone(); // "이걸 떨어져?" - 처음으로 낙하
-
-            // 플레이어의 위치를 지정된 스폰 포인트 위치로 이동
-            collision.transform.position = spawnPoint.position;
-
-            // 물리 효과(속도) 초기화 (추락하던 가속도 삭제)
-            Rigidbody2D rb = collision.GetComponent<Rigidbody2D>();
-            if (rb != null)
-            {
-                rb.linearVelocity = Vector2.zero;
-            }
+            return;
         }
+
+        AchievementTrigger.PlayerFellIntoRetireZone(); // "이걸 떨어져?" - 처음으로 낙하
+
+        // 리타이어 존 추락은 하트 반 칸 피해
+        if (collision.TryGetComponent(out PlayerHealth playerHealth))
+        {
+            playerHealth.TakeDamageHalves(1);
+        }
+
+        // 빛 분해 연출 + 페이드 후 스폰 지점으로 이동 (PlayerController가 시퀀스 전담)
+        playerController.PlayRetireRespawn(_spawnPoint);
     }
 }

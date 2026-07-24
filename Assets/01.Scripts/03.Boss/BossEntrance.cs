@@ -2,6 +2,7 @@
 using UnityEngine;
 
 using Minsung.Player;
+using Minsung.TimeSystem;
 
 namespace Minsung.Boss
 {
@@ -34,17 +35,30 @@ namespace Minsung.Boss
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (_used || !other.TryGetComponent(out PlayerController _))
+            if (_used || !other.TryGetComponent(out PlayerController player))
             {
                 return;
             }
 
-            PlayerController player = other.GetComponent<PlayerController>();
+            // 되감기로 궤적을 역재생하다 트리거를 스치는 경우는 입장이 아니다 - 입장 연출이 플레이어 조작을
+            // 잠근 채로 되감기와 겹치면 연출이 끝나도 조작이 풀리지 않는다. _used는 소비하지 않고 넘긴다
+            if ((RewindManager.Instance != null) && RewindManager.Instance.IsRewinding)
+            {
+                return;
+            }
+
             _boss?.BeginBossIntro(() =>
             {
                 if (_playerSpawn != null)
                 {
+                    Vector2 prevPos = player.transform.position;
                     player.SetPose(_playerSpawn.position, Vector2.zero, false);
+                    Unity.Cinemachine.CinemachineCore.OnTargetObjectWarped(player.transform, (Vector2)_playerSpawn.position - prevPos);
+
+                    if (player.TryGetComponent(out PlayerRewind rewind))
+                    {
+                        rewind.LockRewindAfterTeleport(15f); // 10초간 잠금
+                    }
                 }
             });
             _used = _oneShot;

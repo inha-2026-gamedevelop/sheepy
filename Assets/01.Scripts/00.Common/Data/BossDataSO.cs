@@ -30,8 +30,8 @@ namespace Minsung.Common.Data
         [SerializeField] private float _attackCooldown   = 1.5f;  // 본체 Combat 재사용 대기시간(초)
         [SerializeField] private float _castCooldown     = 1.5f;  // 본체 Casting 애니메이션 재사용 대기시간(초)
         [SerializeField] private float _attackActiveTime = 0.25f; // 공격 판정 유지 시간(초) - 애니메이션 이벤트 연결 전 임시
-        [SerializeField] private Vector2 _combatHitboxSize   = new Vector2(1.738f, 0.959f); // Combat 9프레임 모션 전체 범위
-        [SerializeField] private Vector2 _combatHitboxCenter = new Vector2(-0.082f, 0.16f); // 보스 루트 기준 모션 중심
+        [SerializeField] private Vector2 _combatHitboxSize   = new Vector2(3.5f, 1.5f); // Combat 모션의 거대한 검기 이펙트에 맞춘 범위
+        [SerializeField] private Vector2 _combatHitboxCenter = new Vector2(1.5f, 0.16f); // 보스 앞쪽으로 치우친 모션 중심
 
         [Header("근접 유닛 공통 - 점프/회피 (본체·분신 공용, 개별 스탯 아님)")]
         [SerializeField] private float _jumpCooldown       = 4f;   // 최소 재사용 대기시간(초) TODO: 밸런싱
@@ -145,6 +145,8 @@ namespace Minsung.Common.Data
 
         [SerializeField] private Color _phase3LaserWarningColor = new Color(1f, 0.05f, 0.05f, 0.6f); // 경고 깜빡임 실선 색 - 더 빨갛게
         [SerializeField] private Color _phase3LaserColor        = new Color(0.95f, 0f, 0.02f);       // 레이저 발사색 - 더 빨갛게
+
+        [SerializeField] private Material _phase3LaserMaterial; // 에너지빔 쉐이더 머테리얼 (Assets/12.Materials/Phase3LaserBeamMat) - 인스펙터에 직접 드래그해서 연결
 
         [SerializeField] private float   _phase3LaserFlowParticleSize = 0.12f; // 진행방향으로 흐르는 파티클 크기
         [SerializeField] private float   _phase3LaserFlowSpeed        = 14f;   // 파티클 흐름 속도(로컬 X, 유닛/초)
@@ -266,6 +268,7 @@ namespace Minsung.Common.Data
         public float Phase3LaserMaxHeight        => _phase3LaserMaxHeight;
         public Color Phase3LaserWarningColor     => _phase3LaserWarningColor;
         public Color Phase3LaserColor            => _phase3LaserColor;
+        public Material Phase3LaserMaterial      => _phase3LaserMaterial;
 
         public float   Phase3LaserFlowParticleSize => _phase3LaserFlowParticleSize;
         public float   Phase3LaserFlowSpeed        => _phase3LaserFlowSpeed;

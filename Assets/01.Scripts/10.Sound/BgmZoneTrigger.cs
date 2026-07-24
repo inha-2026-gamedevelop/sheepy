@@ -16,8 +16,14 @@ namespace Minsung.Sound
         [SerializeField] private bool  _isLoop    = true;
         [SerializeField] private float _pitch     = 1f;
 
-        private EBgm _previousBgm;
-        private bool _hasPreviousBgm;
+        private EBgm       _previousBgm;
+        private bool       _hasPreviousBgm;
+        private Collider2D _collider;
+
+        private void Awake()
+        {
+            _collider = GetComponent<Collider2D>();
+        }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
@@ -37,6 +43,22 @@ namespace Minsung.Sound
 
             _previousBgm    = currentBgm;
             _hasPreviousBgm = true;
+            SoundManager.Instance.PlayBGM(_bgm, _clipIndex, _isLoop, _pitch);
+        }
+
+        /// <summary> 이 존의 콜라이더 표면까지 거리 - 저장 위치 복원 시 가장 가까운 존을 찾는 용도 </summary>
+        public float DistanceTo(Vector3 position)
+        {
+            return (_collider != null) ? Vector2.Distance(_collider.ClosestPoint(position), position) : Vector2.Distance(transform.position, position);
+        }
+
+        /// <summary> 저장 위치 복원 등, 충돌 없이 이 존의 BGM을 즉시 적용한다 (진입/재진입 토글 판정 없이 그대로 재생). </summary>
+        public void ApplyImmediately()
+        {
+            if (SoundManager.Instance == null)
+            {
+                return;
+            }
             SoundManager.Instance.PlayBGM(_bgm, _clipIndex, _isLoop, _pitch);
         }
     }

@@ -34,6 +34,8 @@ namespace Minsung.Boss2
                 _icon = GetComponent<Image>();
             }
 
+            EnsureTooltip();
+
             SetVisible(false);
             SetCooldownVisible(false);
         }
@@ -99,11 +101,11 @@ namespace Minsung.Boss2
 
             float duration  = _playerHealth.DodgeInvincibleCooldownDuration;
             float remaining = _playerHealth.DodgeInvincibleCooldownRemaining;
-            float elapsedRatio = (duration > 0f) ? Mathf.Clamp01(1f - (remaining / duration)) : 1f;
+            float remainingRatio = (duration > 0f) ? Mathf.Clamp01(remaining / duration) : 0f;
 
             if (_cooldownFill != null)
             {
-                _cooldownFill.fillAmount = elapsedRatio;
+                _cooldownFill.fillAmount = remainingRatio;
             }
             if (_cooldownText != null)
             {
@@ -128,6 +130,14 @@ namespace Minsung.Boss2
             if (_cooldownText != null)
             {
                 _cooldownText.enabled = visible;
+            }
+        }
+
+        private void EnsureTooltip()
+        {
+            if (!TryGetComponent(out Minsung.UI.Boss2InvincibilityIconTooltip _))
+            {
+                gameObject.AddComponent<Minsung.UI.Boss2InvincibilityIconTooltip>();
             }
         }
     }

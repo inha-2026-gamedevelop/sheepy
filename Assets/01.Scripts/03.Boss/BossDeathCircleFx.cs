@@ -17,6 +17,9 @@ namespace Minsung.Boss
 
         private Coroutine _sequenceCoroutine;
 
+        // 사출->부유->귀환 시퀀스 진행 중인지 - 호출자가 완료를 기다려야 할 때 폴링용(BossController.CoPlayTransitionDeathSequence)
+        public bool IsPlaying => _sequenceCoroutine != null;
+
         // 사출 방향을 받아 전체 연출 시퀀스를 처음부터 재생 (중복 호출 시 이전 진행 취소 후 재시작)
         public void PlaySequence(Vector2 launchDirection)
         {

@@ -74,11 +74,9 @@ ExportedObj/
 # Unity3D generated file on crash reports
 sysinfo.txt
 
-# Claude
+# Claude - 개인 로컬 설정/문서, skills만 팀 공유
 .claude/*
 !.claude/skills/
-# 팀 공유 문서는 claude/*.md 로 커밋합니다. 단, 개인용 로컬 설정은 공유하지 않음
-claude/settings.local.json
 
 # Mono auto generated files
 mono_crash.*

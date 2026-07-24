@@ -76,6 +76,7 @@ namespace Minsung.Boss
         private WaitForSeconds _waitDodgeDuration;
         private WaitForSeconds _waitActionStartOffset;
         private string _objectId;
+        private bool _isAttackAnimationFinished;
 
         // 파생 클래스가 결정하는 수치 (Constants.Combat의 개체별 상수를 돌려준다)
         protected abstract float MoveSpeed        { get; }
@@ -134,6 +135,7 @@ namespace Minsung.Boss
             _rb  = GetComponent<Rigidbody2D>();
             _col = GetComponent<Collider2D>();
             _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            _rb.sleepMode   = RigidbodySleepMode2D.NeverSleep;
             _verticalAvoidHorizontalRange = GameDB.Boss.CloneCrowdAvoidHorizontalRange;
             _verticalAvoidHeight          = GameDB.Boss.CloneCrowdAvoidVerticalRange;
             _stuckEscapeDelay             = GameDB.Boss.StuckEscapeDelay;
@@ -155,6 +157,7 @@ namespace Minsung.Boss
                     // 콜라이더 타입이 바뀌는 등의 이유로 캐싱에 실패하면 Combat 모션 범위 자동 보정이 무효화된다.
                     Debug.LogWarning("AttackHitbox에 BoxCollider2D가 없어 Combat 모션 범위를 적용할 수 없다", this);
                 }
+                _attackHitbox.gameObject.SetActive(false);
             }
         }
 
@@ -249,8 +252,10 @@ namespace Minsung.Boss
                 return;
             }
 
-            bool isPlayerAboveBoss = playerBounds.min.y >= bossBounds.max.y;
-            if (isPlayerAboveBoss)
+            // 물리 엔진의 1프레임 낙하 관통을 고려하여, 발끝이 머리 부근에 닿았고 
+            // 실제로 콜라이더가 겹친(Intersects) 상태라면 위에서 올라탄 것으로 간주하고 통과시킨다.
+            bool isPlayerAboveBoss = playerBounds.min.y >= bossBounds.max.y - 0.5f;
+            if (isPlayerAboveBoss && bossBounds.Intersects(playerBounds))
             {
                 SetPlayerBodyCollisionIgnored(true);
             }
@@ -274,21 +279,12 @@ namespace Minsung.Boss
 
         private void ConfigureCombatHitbox()
         {
-            if (_attackHitboxCollider == null)
+            if (_attackHitboxCollider != null)
             {
-                return;
+                _attackHitboxCollider.size = GameDB.Boss.CombatHitboxSize;
+                _attackHitboxCollider.offset = GameDB.Boss.CombatHitboxCenter;
             }
-
-            ApplyCombatMotionToHitboxCollider(_attackHitboxCollider);
         }
-
-        private void ApplyCombatMotionToHitboxCollider(BoxCollider2D hitboxCollider)
-        {
-            hitboxCollider.size = GameDB.Boss.CombatHitboxSize;
-            hitboxCollider.offset = GameDB.Boss.CombatHitboxCenter
-                                    - (Vector2)hitboxCollider.transform.localPosition;
-        }
-
 
         /// <summary> 공격/도약/회피 루프 전부 정지 + 켜져 있던 히트박스 정리. 사망/퇴장/되감기에서 호출한다 </summary>
         protected void StopCombatLoops()
@@ -580,7 +576,7 @@ namespace Minsung.Boss
             transform.localScale = s;
         }
 
-        // 근거리 공격 루프: 쿨다운마다 사거리 안이면 공격 모션 + 판정을 짧게 켠다
+        // 근거리 공격 루프: 쿨다운마다 사거리 안이면 공격 모션 재생 및 이벤트 대기
         private IEnumerator CoAttackLoop()
         {
             if (_waitActionStartOffset != null)
@@ -605,16 +601,50 @@ namespace Minsung.Boss
                     continue;
                 }
 
+                _isAttackAnimationFinished = false;
                 PlayAnimTrigger(PARAM_ATTACK);
 
+                // 애니메이션 이벤트(FinishAttackAction)가 호출될 때까지 대기 (무한 루프 방지용 2초 타임아웃)
+                float timeout = 2.0f;
+                while (!_isAttackAnimationFinished && timeout > 0f)
+                {
+                    timeout -= Time.deltaTime;
+                    yield return null;
+                }
+                
+                // 혹시라도 이벤트가 안 불려서 타임아웃 났을 경우를 대비해 판정 끄기
                 if (_attackHitbox != null)
                 {
-                    _attackHitbox.gameObject.SetActive(true);
-                    yield return _waitAttackActive;
                     _attackHitbox.gameObject.SetActive(false);
                 }
+
                 ExitAction(BossMeleeActionState.Attack);
             }
+        }
+
+        /****************************************
+        *            Animation Events
+        ****************************************/
+
+        public void EnableAttackHitbox()
+        {
+            if (_attackHitbox != null)
+            {
+                _attackHitbox.gameObject.SetActive(true);
+            }
+        }
+
+        public void DisableAttackHitbox()
+        {
+            if (_attackHitbox != null)
+            {
+                _attackHitbox.gameObject.SetActive(false);
+            }
+        }
+
+        public void FinishAttackAction()
+        {
+            _isAttackAnimationFinished = true;
         }
 
         // 대상이 범위 밖으로 많이 벗어났을 경우 도약하게 하기 위한 판정

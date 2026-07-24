@@ -1,4 +1,5 @@
 // System
+using System;
 using System.Collections.Generic;
 
 // Unity
@@ -23,6 +24,12 @@ namespace Minsung.TimeSystem
 
         private readonly Stack<CloneController> _free   = new Stack<CloneController>();
         private readonly List<CloneController>  _active = new List<CloneController>();
+
+        /// <summary> 현재 활성화된 분신 수 </summary>
+        public int ActiveCount => _active.Count;
+
+        /// <summary> 활성 분신 수가 바뀔 때마다 호출 </summary>
+        public event Action<int> OnActiveCountChanged;
 
         /****************************************
         *              Unity Event
@@ -67,6 +74,7 @@ namespace Minsung.TimeSystem
             {
                 AchievementTrigger.CloneSquadFull();
             }
+            OnActiveCountChanged?.Invoke(_active.Count);
         }
 
         /// <summary> 분신 하나를 풀로 반환 </summary>
@@ -77,6 +85,7 @@ namespace Minsung.TimeSystem
                 clone.OnReturnedToPool(); // 타임라인 참여 해제 + 기록 정리
                 clone.gameObject.SetActive(false);
                 _free.Push(clone);
+                OnActiveCountChanged?.Invoke(_active.Count);
             }
         }
 

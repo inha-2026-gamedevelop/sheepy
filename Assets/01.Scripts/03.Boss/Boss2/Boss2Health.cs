@@ -8,12 +8,13 @@ using Minsung.Common;
 using Minsung.Player;
 using Minsung.TimeSystem;
 using Minsung.CameraSystem;
+using Minsung.Boss;
 
 namespace Minsung.Boss2
 {
     // 부유 보스(Boss2) 체력
     // TODO: 피격 리액션/사망 연출 미구현
-    public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
+    public class Boss2Health : MonoBehaviour, IDamageable, IRewindable, IBossHittable
     {
         /****************************************
         *                Fields
@@ -77,6 +78,8 @@ namespace Minsung.Boss2
         public bool IsSpaceTearActive => _spaceTearActive;
 
         public event Action<float, float> OnHealthChanged; // (현재, 최대)
+        public event Action<float>        OnDamaged;         // 실제 적용된 피해량 - 타격감 연출(히트스톱/스파크/데미지 넘버/HP바)용
+        public event Action<Vector3, int> OnDamageReflected; // 감정 반사로 공격자(플레이어)가 대신 피해를 입음 (플레이어 위치, 반칸량)
         public event Action<int>          OnPhaseChanged;   // 새 페이즈 인덱스
         public event Action               OnDefeated;
         public event Action               OnSpaceTearTriggered; // 4페이즈 체력 임계 첫 통과 - 공간찢기 시퀀스 시작 트리거
@@ -119,13 +122,20 @@ namespace Minsung.Boss2
             }
             if ((_emotionController != null) && _emotionController.ReflectIfNeeded(source, attacker))
             {
+                // 반사 - 공격자(플레이어)가 대신 피해를 입으므로 플레이어 위치에 피해량을 표시하도록 알린다
+                if ((attacker != null) && (_dataSo != null))
+                {
+                    OnDamageReflected?.Invoke(attacker.transform.position, _dataSo.ReflectHalves);
+                }
                 return false;
             }
 
             float projected = Mathf.Max(PhaseFloorHealth, _currentHealth - dmg);
 
             // 4페이즈에서 체력 임계(기본 10%)를 처음 통과하는 순간 - 정확히 임계로 클램프하고 동결 + 공간찢기 발동(1회)
-            if ((!_spaceTearTriggered) && IsFinalPhase && (_dataSo != null))
+            // OnSpaceTearTriggered에 리스너가 없으면(Boss2SpaceTearPattern 비활성화 등) 동결만 걸고 아무도 안 풀어줘 보스가 영구 무적이 되므로,
+            // 리스너가 없을 땐 애초에 발동을 건너뛰고 평소처럼 데미지를 통과시킨다
+            if ((!_spaceTearTriggered) && IsFinalPhase && (_dataSo != null) && (OnSpaceTearTriggered != null))
             {
                 float threshold = MaxHealth * _dataSo.SpaceTearHealthPercent;
                 if ((_currentHealth > threshold) && (projected <= threshold))
@@ -139,8 +149,13 @@ namespace Minsung.Boss2
                 }
             }
 
+            float applied = _currentHealth - projected; // 실제로 깎인 양(페이즈 하한 클램프 반영)
             _currentHealth = projected;
             OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
+            if (applied > 0f)
+            {
+                OnDamaged?.Invoke(applied);
+            }
 
             if ((_currentHealth <= PhaseFloorHealth) && !IsFinalPhase)
             {
@@ -186,6 +201,55 @@ namespace Minsung.Boss2
             _currentHealth = PhaseCeilHealth;
             OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary> DevelopmentBuildTools용: 보스 2 전투 시작 체력과 페이즈로 되돌린다. </summary>
+        public void QaResetToBattleStart()
+        {
+            QaSetHealth(MaxHealth, 0);
+        }
+
+        /// <summary> DevelopmentBuildTools용: 보스 2의 50% 체력(최종 페이즈 전환) 상태로 이동한다. </summary>
+        public void QaSetToHalfHealth()
+        {
+            QaSetHealth(MaxHealth * 0.5f, 1);
+        }
+
+        /// <summary> DevelopmentBuildTools용: 다음 공격으로 공간 찢기가 발동할 체력으로 이동한다. </summary>
+        public void QaSetToSpaceTearReadyHealth()
+        {
+            if ((_dataSo == null) || (MaxHealth <= 0f))
+            {
+                return;
+            }
+
+            float thresholdHealth = MaxHealth * _dataSo.SpaceTearHealthPercent;
+            float readyHealth = Mathf.Min(MaxHealth, thresholdHealth + 0.01f);
+            QaSetHealth(readyHealth, _dataSo.PhaseCount - 1);
+        }
+
+        private void QaSetHealth(float health, int phaseIndex)
+        {
+            if ((_dataSo == null) || (MaxHealth <= 0f))
+            {
+                return;
+            }
+
+            int clampedPhaseIndex = Mathf.Clamp(phaseIndex, 0, _dataSo.PhaseCount - 1);
+            bool phaseChanged = _phaseIndex != clampedPhaseIndex;
+
+            _currentHealth = Mathf.Clamp(health, 0f, MaxHealth);
+            _phaseIndex = clampedPhaseIndex;
+            _spaceTearTriggered = false;
+            _spaceTearActive = false;
+
+            OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
+            if (phaseChanged)
+            {
+                OnPhaseChanged?.Invoke(_phaseIndex);
+            }
+        }
+#endif
 
         /****************************************
         *            IRewindable

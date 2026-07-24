@@ -130,12 +130,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Sound.LocalSfxEmitter
   _audioSource: {fileID: 6425083140564721804}
   _interactClip: {fileID: 0}
-  _activateClip: {fileID: 8300000, guid: f0ef5ead5f7bedc40be64a46a27f4ac5, type: 3}
-  _deactivateClip: {fileID: 8300000, guid: 2588e1f61f632dc4f9ac7487c9c043dd, type: 3}
+  _activateClip: {fileID: 8300000, guid: 2f3a98b0a8a5adf4499121706a12c8cb, type: 3}
+  _deactivateClip: {fileID: 8300000, guid: 2414f6e780edf4047b6d8b8bcc8cb7a5, type: 3}
   _attackClip: {fileID: 0}
   _hitClip: {fileID: 0}
   _deathClip: {fileID: 0}
-  _loopClip: {fileID: 8300000, guid: 7b2d24972828ace4a9d31078851ddb0f, type: 3}
+  _loopClip: {fileID: 8300000, guid: 5a006136a5a2ff0479df0d681b84831c, type: 3}
   _volumeScale: 1
 --- !u!1 &6425083140564721810
 GameObject:

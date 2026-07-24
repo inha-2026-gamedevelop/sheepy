@@ -68,6 +68,7 @@ namespace Minsung.Player
             _jumpForce       = playerSo.JumpForce;
             _rb.gravityScale = playerSo.GravityScale;
             _rb.constraints  = RigidbodyConstraints2D.FreezeRotation; // 캐릭터가 넘어지지 않게 회전 고정
+            _rb.sleepMode    = RigidbodySleepMode2D.NeverSleep;
         }
 
         public void Init(PlayerController coordinator, PlayerAnimator animator)
@@ -263,6 +264,7 @@ namespace Minsung.Player
         // 되감기 재생 시 한 틱의 포즈를 강제로 세팅 (ICommandActor.SetPose 경로).
         public void SetPose(Vector2 position, Vector2 velocity, bool grounded)
         {
+            transform.position = position;
             _rb.position = position;
 
             if (_animator != null)
@@ -289,6 +291,19 @@ namespace Minsung.Player
 
         // 되감기 종료: 물리 복구.
         public void OnRewindEnd()
+        {
+            UnfreezePhysics();
+        }
+
+        /// <summary> 물리 정지(Kinematic) - 사망/RetireZone 복귀 등 위치가 그 자리에 고정돼야 하는 구간에 재사용(카메라가 계속 낙하를 따라가지 않도록). </summary>
+        public void FreezePhysics()
+        {
+            _rb.bodyType = RigidbodyType2D.Kinematic;
+            _rb.linearVelocity = Vector2.zero;
+        }
+
+        /// <summary> 물리 복구. </summary>
+        public void UnfreezePhysics()
         {
             _rb.bodyType = RigidbodyType2D.Dynamic;
             _rb.linearVelocity = Vector2.zero;

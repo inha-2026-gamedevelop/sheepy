@@ -1,3 +1,6 @@
+// System
+using System.Collections;
+
 // Unity
 using UnityEngine;
 
@@ -34,6 +37,10 @@ namespace Minsung.Player
         private bool _isRewinding;
         private int  _rewindPrevIndex; // 직전에 적용한 orderedIndex
 
+        // 리스폰/이어하기 등 순간이동 직후 잠금 - 버퍼에 남은 이동 전 기록으로 끌려가는 것을 막는다
+        private RewindManager.RewindLockHandle _teleportLock;
+        private Coroutine _teleportLockCoroutine;
+
         public bool IsRewinding => _isRewinding;
 
         /****************************************
@@ -69,6 +76,7 @@ namespace Minsung.Player
 
         private void OnDestroy()
         {
+            _teleportLock.Dispose();
             _rewindManager?.Unregister(this);
         }
 
@@ -103,6 +111,39 @@ namespace Minsung.Player
         public void RequestClearClones()
         {
             _clonePool?.ClearAll();
+        }
+
+        /// <summary>
+        /// 리스폰/보스 복귀/이어하기처럼 플레이어를 순간이동시킨 직후 호출한다.
+        /// 커스텀 시간을 넘기지 않으면 기록 길이(GameDB.Time.RecordSeconds)만큼 잠근다.
+        /// </summary>
+        public void LockRewindAfterTeleport(float customLockTime = -1f)
+        {
+            RewindManager manager = _rewindManager != null ? _rewindManager : RewindManager.Instance;
+            if (manager == null)
+            {
+                return;
+            }
+
+            if (_teleportLockCoroutine != null)
+            {
+                StopCoroutine(_teleportLockCoroutine);
+                _teleportLockCoroutine = null;
+            }
+            _teleportLock.Dispose();
+
+            _teleportLock          = manager.AcquireRewindLock(this);
+            
+            float lockTime = customLockTime > 0f ? customLockTime : GameDB.Time.RecordSeconds;
+            _teleportLockCoroutine = StartCoroutine(CoReleaseTeleportLock(lockTime));
+        }
+
+        // 슬로우/일시정지에 영향받지 않도록 실시간 기준으로 센다 (기록은 물리 틱마다 계속 쌓인다)
+        private IEnumerator CoReleaseTeleportLock(float lockTime)
+        {
+            yield return new WaitForSecondsRealtime(lockTime);
+            _teleportLock.Dispose();
+            _teleportLockCoroutine = null;
         }
 
         /****************************************

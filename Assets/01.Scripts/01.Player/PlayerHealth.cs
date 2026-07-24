@@ -33,6 +33,9 @@ namespace Minsung.Player
         private int _maxHalves; // PlayerDB 밸런싱(GameDB.Player) - Awake에서 로드
         private int _currentHalves;
         private bool _isInvincible;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        private static bool _isDevelopmentInvincible;
+#endif
         private WaitForSeconds _waitInvincible;
 
         // 전용 무적키(보스 즉사기 회피) - 피격 후 자동 무적(_isInvincible)과 별도 플래그로 관리
@@ -51,7 +54,11 @@ namespace Minsung.Player
 
         public int MaxHalves => _maxHalves;
         public int CurrentHalves => _currentHalves;
-        public bool IsInvincible => _isInvincible;
+        public bool IsInvincible => _isInvincible
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            || _isDevelopmentInvincible
+#endif
+            ;
         public bool IsDodgeInvincible => _isDodgeInvincible;
         public bool IsDodgeInvincibleReady => !_dodgeInvincibleOnCooldown;
         public float DodgeInvincibleCooldownDuration => _dodgeInvincibleCooldown;
@@ -109,7 +116,7 @@ namespace Minsung.Player
         /// <summary> 반칸 단위 피격. 실제로 피해가 들어갔으면 true - 넉백/경직 등 리액션 게이트로 사용. </summary>
         public bool TakeDamageHalves(int halves)
         {
-            if (_isInvincible || _isDodgeInvincible || _currentHalves <= 0)
+            if (IsInvincible || _isDodgeInvincible || _currentHalves <= 0)
             {
                 return false;
             }
@@ -147,6 +154,12 @@ namespace Minsung.Player
         /// <summary> 즉사. 무적/되감기 가드를 무시한다 - 즉사 기믹 실패 / 보스전 시간 초과 전용. </summary>
         public void Kill()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_isDevelopmentInvincible)
+            {
+                return;
+            }
+#endif
             if (_currentHalves <= 0)
             {
                 return;
@@ -175,6 +188,20 @@ namespace Minsung.Player
             _currentHalves = _maxHalves;
             OnHealthChanged?.Invoke(_currentHalves, _maxHalves);
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary> DevelopmentBuildTools용: 일반 피해와 즉사 처리까지 차단하는 개발용 무적을 설정한다. </summary>
+        public void QaSetDevelopmentInvincible(bool isInvincible)
+        {
+            _isDevelopmentInvincible = isInvincible;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetDevelopmentInvincibility()
+        {
+            _isDevelopmentInvincible = false;
+        }
+#endif
 
         // 피격 후 무적 타이머. 같은 공격에 연속으로 하트가 깎이는 것을 막는다.
         private IEnumerator CoInvincibility()

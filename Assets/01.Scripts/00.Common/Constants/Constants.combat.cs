@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Minsung.Common
 {
     public static partial class Constants
@@ -51,6 +53,7 @@ namespace Minsung.Common
 
             // 보스 계열 스프라이트 원본 아트 응시 방향 (-1 = 왼쪽) - 시트 교체로 기본 방향이 바뀌면 이 값만 수정
             public const float BOSS_ART_FACING_SIGN = -1f;
+
         }
     }
 }

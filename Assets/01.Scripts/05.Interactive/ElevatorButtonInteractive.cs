@@ -90,6 +90,12 @@ namespace Minsung.Interactive
             _isHolding   = true;
             SetProgress(0f);
 
+            if (_progressSlider != null && interactor != null)
+            {
+                _progressSlider.gameObject.SetActive(true);
+                _progressSlider.transform.position = interactor.transform.position + Vector3.up * 0.7f;
+            }
+
             if (interactor.TryGetComponent(out PlayerController playerController))
             {
                 playerController.SetInteracting(true);
@@ -108,12 +114,21 @@ namespace Minsung.Interactive
             _holdElapsed += deltaTime;
             SetProgress(_holdElapsed / _holdDuration);
 
+            if (_progressSlider != null && interactor != null)
+            {
+                _progressSlider.transform.position = interactor.transform.position + Vector3.up * 0.7f;
+            }
+
             if (_holdElapsed < _holdDuration)
             {
                 return false;
             }
 
             _isHolding = false;
+            if (_progressSlider != null)
+            {
+                _progressSlider.gameObject.SetActive(false);
+            }
             bool started = _controller.TryStartJourney();
             if (started)
             {
@@ -134,6 +149,11 @@ namespace Minsung.Interactive
             _isHolding = false;
             _holdElapsed = 0f;
             SetProgress(0f);
+
+            if (_progressSlider != null)
+            {
+                _progressSlider.gameObject.SetActive(false);
+            }
             ReleaseInteractor(interactor);
         }
 

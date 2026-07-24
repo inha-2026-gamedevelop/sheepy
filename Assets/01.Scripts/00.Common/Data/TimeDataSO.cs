@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Minsung.Common.Data
 {
-    // 타임리와인드/분신/슬로우/MP 밸런싱 데이터 DB - 에셋: 08.Data/Time/TimeDB.asset (GameDB.Time으로 접근)
+    // 타임리와인드/분신/슬로우 밸런싱 데이터 DB - 에셋: 08.Data/Time/TimeDB.asset (GameDB.Time으로 접근)
     [CreateAssetMenu(fileName = "TimeDB", menuName = "TheLastRewind/GameDB/TimeDB")]
     public class TimeDataSO : ScriptableObject
     {
@@ -20,6 +20,7 @@ namespace Minsung.Common.Data
         [Header("분신 (체력은 본체와 동일한 하트 방식)")]
         [SerializeField] private int   _maxCloneCount        = 3;
         [SerializeField] private float _cloneAttackFlashTime = 0.1f; // 분신 피격 플래시 지속시간(초)
+        [SerializeField] private float _cloneLifetime        = 60f;  // 분신 유지 시간(현실 시간 초)
 
         [SerializeField] private Color _cloneTintColor = new Color(0.4f, 0.8f, 1f, 0.6f); // 분신 표시 색 (반투명 하늘색)
 
@@ -35,6 +36,7 @@ namespace Minsung.Common.Data
 
         public int   MaxCloneCount        => _maxCloneCount;
         public float CloneAttackFlashTime => _cloneAttackFlashTime;
+        public float CloneLifetime        => _cloneLifetime;
         public Color CloneTintColor       => _cloneTintColor;
 
         public float SlowTimeScale => _slowTimeScale;

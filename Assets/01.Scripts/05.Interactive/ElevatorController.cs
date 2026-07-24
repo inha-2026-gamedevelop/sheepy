@@ -1,13 +1,13 @@
 // System
-using System.Collections.Generic;
-
-// Unity
-using UnityEngine;
-
 using Minsung.Achievement;
 using Minsung.Common;
 using Minsung.Sound;
 using Minsung.TimeSystem;
+using System.Collections.Generic;
+using Unity.Cinemachine;
+// Unity
+using UnityEngine;
+using Unity.Cinemachine;
 
 namespace Minsung.Interactive
 {
@@ -77,6 +77,8 @@ namespace Minsung.Interactive
         public bool CanStart => _isLeverPulled && !_isMoving && !_hasArrived && HasValidRoute();
         public string ObjectId => _objectId;
 
+        private CinemachineImpulseSource impulseSource;
+
         /****************************************
         *              Unity Event
         ****************************************/
@@ -113,6 +115,9 @@ namespace Minsung.Interactive
             ElevatorManager.Instance?.Register(this);
             _rewindBuffer = new RingBuffer<ElevatorTick>(RewindManager.TickCapacity);
             RewindManager.Instance?.Register(this);
+
+            // 화면 흔들림을 위한 컴포넌트를 멤버 변수에 저장
+            impulseSource = GetComponent<CinemachineImpulseSource>();
         }
 
         private void Update()
@@ -199,6 +204,9 @@ namespace Minsung.Interactive
             {
                 return false;
             }
+
+            // 엘리베이터가 움직이기 시작하면 화면을 흔들어준다.
+            TriggerShake();
 
             SetDoorClosed(true);
             _isMoving = true;
@@ -318,6 +326,9 @@ namespace Minsung.Interactive
                 return;
             }
 
+            // 엘리베이터가 도착하면 화면을 흔들어준다.
+            TriggerShake();
+
             SetPlatformPosition(_endPoint.position);
             _isMoving   = false;
             _hasArrived = true;
@@ -380,6 +391,15 @@ namespace Minsung.Interactive
             Gizmos.DrawLine(_startPoint.position, _endPoint.position);
             Gizmos.DrawWireSphere(_startPoint.position, 0.2f);
             Gizmos.DrawWireSphere(_endPoint.position, 0.2f);
+        }
+
+        // 충돌이나 폭발 시 이 메서드를 호출하세요
+        public void TriggerShake()
+        {
+            if (impulseSource != null)
+            {
+                impulseSource.GenerateImpulse();
+            }
         }
     }
 }

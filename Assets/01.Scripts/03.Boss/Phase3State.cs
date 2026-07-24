@@ -75,7 +75,7 @@ namespace Minsung.Boss
             Boss.SetAutoEmotionSuspended(true); // 자동 전환 정지 - 3페이즈는 화남 고정
             Boss.SetEmotion(BossEmotion.Angry); // 3페이즈 고정 - 10초마다 1초 혼란(키반전)
 
-            Material laserMat  = Resources.Load<Material>("Phase3LaserBeamMat");
+            Material laserMat  = GameDB.Boss.Phase3LaserMaterial;
             _laserPool         = new BossHazardPool(LASER_POOL_SIZE, "Phase3_Laser", customMaterial: laserMat,
                                                     attachParticle: true,
                                                     particleSize: GameDB.Boss.Phase3LaserFlowParticleSize,

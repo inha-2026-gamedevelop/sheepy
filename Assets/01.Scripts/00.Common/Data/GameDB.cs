@@ -17,7 +17,6 @@ namespace Minsung.Common.Data
         public static PlayerDataSO Player => Root.PlayerSo;
         public static BossDataSO   Boss   => Root.BossSo;
         public static TimeDataSO   Time   => Root.TimeSo;
-        public static LpDataSO     Lp     => Root.LpSo;
         public static PotionDataSO Potion => Root.PotionSo;
 
         private static GameDatabaseSO Root

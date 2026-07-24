@@ -110,26 +110,16 @@ namespace Minsung.Common
         /// <summary> ScreenFade와 함께 씬을 전환. ScreenFade가 없으면 즉시 전환. </summary>
         public void LoadScene(string sceneName)
         {
-            if (ScreenFade.Instance != null)
-            {
-                ScreenFade.Instance.FadeOutIn(() => SceneManager.LoadScene(sceneName));
-            }
-            else
-            {
-                SceneManager.LoadScene(sceneName);
-            }
+            EnsureScreenFade().FadeOutIn(() => SceneManager.LoadScene(sceneName), Constants.UI.SCENE_FADE_DURATION);
         }
 
         /// <summary> 이미 화면이 가려진 상태에서 호출 - 페이드아웃 없이 즉시 씬 로드 후 새 씬에서 페이드인만 한다. </summary>
         public void LoadSceneFadeInOnly(string sceneName)
         {
-            static void OnLoaded(Scene scene, LoadSceneMode mode)
+            void OnLoaded(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= OnLoaded;
-                if (ScreenFade.Instance != null)
-                {
-                    ScreenFade.Instance.FadeIn();
-                }
+                EnsureScreenFade().FadeIn(Constants.UI.SCENE_FADE_DURATION);
             }
             SceneManager.sceneLoaded += OnLoaded;
             SceneManager.LoadScene(sceneName);
@@ -138,8 +128,25 @@ namespace Minsung.Common
         /// <summary> 로딩씬(Constants.Scene.LOADING)을 경유해 씬 전환 - 무거운 씬 전환에 사용 (프로그레스바는 LoadingController 담당) </summary>
         public void LoadSceneWithLoading(string sceneName)
         {
+            if (string.IsNullOrEmpty(sceneName) ||
+                string.Equals(sceneName, Constants.Scene.LOADING, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(sceneName, Constants.Scene.GAME_LOADING, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(sceneName, "Loading", StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.LogWarning($"[GameManager] Refused to route loading scene to itself (requested '{sceneName}'). Falling back to {Constants.Scene.MAIN_MENU}");
+                sceneName = Constants.Scene.MAIN_MENU;
+            }
             _pendingSceneName = sceneName;
-            SceneManager.LoadScene(Constants.Scene.LOADING);
+            EnsureScreenFade().FadeOutIn(() => SceneManager.LoadScene(Constants.Scene.LOADING), Constants.UI.SCENE_FADE_DURATION);
+        }
+
+        private static ScreenFade EnsureScreenFade()
+        {
+            if (ScreenFade.Instance == null)
+            {
+                new GameObject("ScreenFade").AddComponent<ScreenFade>();
+            }
+            return ScreenFade.Instance;
         }
 
         /// <summary> LoadingController가 로딩씬 진입 시 대상 씬 이름을 1회 소비 </summary>
@@ -245,7 +252,7 @@ namespace Minsung.Common
             // 보스 클리어 여부: 로컬 저장(주) + 서버 미러(백업, 닉네임 없으면 자동 스킵)
             SaveManager.Instance?.SetBossCleared(true);
             BackendMirror.Instance?.MirrorBossCleared();
-            BackendMirror.Instance?.SubmitBossClearScore(_bossElapsedMs); // 랭킹용 클리어 타임 제출
+            BackendMirror.Instance?.SubmitBossClearScore(_bossElapsedMs, _bossEnterAt, _bossEndAt); // 랭킹용 클리어 타임 제출
         }
 
         /// <summary> 진행 중이던 기록을 폐기한다 (보스전 중 사망 - 보스방에서 쫓겨남 / 보스전 재시작). </summary>

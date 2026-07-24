@@ -53,6 +53,10 @@ namespace Minsung.Achievement
         // 구현: AchievementTrigger.PlayerDiedToBoss() (03.Boss/BossController.cs HandlePlayerDeath)
         public const string BOSS_FIRST_DEATH     = "boss_first_death";
 
+        // 초보 탐험가 - 가장 쉬운 구역을 탐색했다
+        // 구현: AchievementTrigger.HiddenAreaFound() (07.Achievement/Triggers/HiddenAreaTrigger.cs OnTriggerEnter2D)
+        public const string EASY_AREA_FOUND = "novice_explorer";
+
         // 진정한 탐험가 - 숨은 공간 발견
         // 구현: AchievementTrigger.HiddenAreaFound() (07.Achievement/Triggers/HiddenAreaTrigger.cs OnTriggerEnter2D)
         public const string HIDDEN_AREA_FOUND    = "hidden_area_found";
@@ -65,8 +69,8 @@ namespace Minsung.Achievement
         // 구현: AchievementTrigger.PlayerFellIntoRetireZone() (01.Player/PlayerRetireZone.cs OnTriggerEnter2D)
         public const string FIRST_FALL           = "first_fall";
 
-        // 아름다운 이별 - 엔딩 크레딧 끝까지 시청
-        // 구현: 없음 (TODO) - 엔딩 크레딧 씬 미구현, id/SO 에셋만 준비됨
+        // 아름다운 이별 - 엔딩 크레딧 시청
+        // 구현: AchievementTrigger.EndingCreditsWatched() (06.UI/OuttroCreditsController.cs CoPlayCredits - DevPeriod 페이지 진입 시점)
         public const string ENDING_CREDITS       = "ending_credits";
 
         // 싱크로나이즈드 올림픽 - 레버 2개 이상 동시 작동

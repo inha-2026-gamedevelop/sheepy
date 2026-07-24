@@ -305,9 +305,10 @@ namespace Minsung.Backend
         /// <summary>
         /// 보스 클리어 타임을 랭킹 서버(scores)에 제출 (보스 격파 확정 시점, MirrorBossCleared와 함께 호출).
         /// score는 SCORE_TIME_BASE - durationMs로 역산해 저장 - 리더보드가 score 내림차순 정렬이므로 빠른 기록이 상위에 오게 한다.
+        /// bossEnterAt/bossEndAt은 GameManager가 확정한 입장/격파 시각(UTC) - scores.boss_enter_at/boss_end_at에 그대로 기록한다.
         /// 고스트 리플레이 기록 기능은 아직 없어 빈 리스트로 제출한다.
         /// </summary>
-        public void SubmitBossClearScore(int durationMs)
+        public void SubmitBossClearScore(int durationMs, DateTime bossEnterAt, DateTime bossEndAt)
         {
             if (!TryGetUser(out string username))
             {
@@ -315,7 +316,7 @@ namespace Minsung.Backend
             }
 
             int score = Mathf.Max(0, SCORE_TIME_BASE - durationMs);
-            _client.SubmitScore(username, score, durationMs, new List<GhostFrame>(), null, LogError);
+            _client.SubmitScore(username, score, durationMs, new List<GhostFrame>(), null, LogError, bossEnterAt, bossEndAt);
         }
 
         /// <summary> 업적 1개 해제를 서버에 미러 (해제 순간). </summary>

@@ -16,6 +16,7 @@ MonoBehaviour:
   _rewindDuration: 1
   _maxCloneCount: 3
   _cloneAttackFlashTime: 0.1
+  _cloneLifetime: 60
   _cloneTintColor: {r: 0.4, g: 0.8, b: 1, a: 0.6}
   _slowTimeScale: 0.4
   _maxMp: 100

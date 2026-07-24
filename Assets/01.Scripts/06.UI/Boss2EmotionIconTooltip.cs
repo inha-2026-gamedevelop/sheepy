@@ -27,6 +27,11 @@ namespace Minsung.UI
             CreateTooltip();
         }
 
+        private void Start()
+        {
+            ResolveEmotionController();
+        }
+
         public void Configure(Boss2EmotionController emotionController)
         {
             _emotionController = emotionController;
@@ -34,7 +39,7 @@ namespace Minsung.UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if ((_emotionController == null) || (_tooltipPanel == null) || (_tooltipText == null))
+            if (!ResolveEmotionController() || (_tooltipPanel == null) || (_tooltipText == null))
             {
                 return;
             }
@@ -58,6 +63,17 @@ namespace Minsung.UI
 
         private void CreateTooltip()
         {
+            // 디자이너가 미리 배치한 EmotionTooltip[OFF](Boss1의 BossEmotionIconTooltip과 동일한 관례)가 있으면 그대로 재사용하고,
+            // 없을 때만 아래처럼 런타임에 즉석으로 만든다
+            TextMeshProUGUI existingText = GetComponentInChildren<TextMeshProUGUI>(true);
+            if (existingText != null)
+            {
+                _tooltipPanel = existingText.transform.parent.gameObject;
+                _tooltipText  = existingText;
+                _tooltipPanel.SetActive(false);
+                return;
+            }
+
             _tooltipPanel = new GameObject("EmotionTooltip[Runtime]", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             _tooltipPanel.transform.SetParent(transform, false);
 
@@ -89,6 +105,22 @@ namespace Minsung.UI
             _tooltipText.raycastTarget = false;
 
             _tooltipPanel.SetActive(false);
+        }
+
+        private bool ResolveEmotionController()
+        {
+            if (_emotionController != null)
+            {
+                return true;
+            }
+
+            _emotionController = GetComponentInParent<Boss2EmotionController>();
+            if (_emotionController == null)
+            {
+                _emotionController = FindAnyObjectByType<Boss2EmotionController>();
+            }
+
+            return _emotionController != null;
         }
 
         private static bool TryGetDescription(Boss2Emotion emotion, out string description)

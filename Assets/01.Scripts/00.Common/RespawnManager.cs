@@ -207,6 +207,9 @@ namespace Minsung.Common
 
             player.SetPose(point.Position, Vector2.zero, false);
             player.RequestClearClones();
+            // 복귀 직후 되감기를 쓰면 씬 배치 스폰에서 복귀 지점까지의 기록으로 끌려가고,
+            // 그 궤적이 보스방 입구 트리거를 다시 통과해 입장 연출과 엉킨다
+            player.LockRewindAfterTeleport();
             if (player.TryGetComponent(out PlayerHealth health))
             {
                 health.ResetHearts();

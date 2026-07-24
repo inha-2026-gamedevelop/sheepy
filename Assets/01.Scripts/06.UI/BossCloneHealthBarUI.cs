@@ -1,4 +1,5 @@
 // Unity
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,13 @@ namespace Minsung.UI
         [SerializeField] private BossCloneController _clone;
         [SerializeField] private Slider _slider;
 
+        [Header("바 흔들림")]
+        [SerializeField] private float _shakeAmplitude = 6f;   // 흔들림 크기(px)
+        [SerializeField] private float _shakeDuration  = 0.15f;
+
         private float _lastHealth = 1f; // 페이즈 전환 시점에도 사망 여부를 판단할 수 있게 마지막 체력을 기억
+        private Coroutine _shakeRoutine;
+        private Vector2   _sliderBasePos;
 
         private void OnEnable()
         {
@@ -51,7 +58,15 @@ namespace Minsung.UI
 
             if (_slider != null)
             {
-                _slider.value = (total > 0f) ? Mathf.Clamp01(current / total) : 0f;
+                float value = (total > 0f) ? Mathf.Clamp01(current / total) : 0f;
+                bool damaged = value < (_slider.value - 0.0001f);
+                
+                _slider.value = value;
+                
+                if (damaged)
+                {
+                    StartShake();
+                }
             }
             RefreshVisibility();
         }
@@ -81,6 +96,54 @@ namespace Minsung.UI
             foreach (Transform child in _slider.transform)
             {
                 child.gameObject.SetActive(visible);
+            }
+        }
+
+        private void StartShake()
+        {
+            if (_shakeAmplitude <= 0f)
+            {
+                return;
+            }
+
+            RectTransform sliderRt = _slider != null ? _slider.transform as RectTransform : null;
+            if (sliderRt == null)
+            {
+                return;
+            }
+
+            if (_shakeRoutine != null)
+            {
+                StopCoroutine(_shakeRoutine);
+                RestoreShakePositions(sliderRt);
+            }
+
+            _sliderBasePos = sliderRt.anchoredPosition;
+            _shakeRoutine = StartCoroutine(CoShake(sliderRt));
+        }
+
+        private IEnumerator CoShake(RectTransform sliderRt)
+        {
+            float elapsed = 0f;
+            while (elapsed < _shakeDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float damp = 1f - Mathf.Clamp01(elapsed / _shakeDuration);
+                Vector2 offset = Random.insideUnitCircle * (_shakeAmplitude * damp);
+
+                sliderRt.anchoredPosition = _sliderBasePos + offset;
+                yield return null;
+            }
+
+            RestoreShakePositions(sliderRt);
+            _shakeRoutine = null;
+        }
+
+        private void RestoreShakePositions(RectTransform sliderRt)
+        {
+            if (sliderRt != null)
+            {
+                sliderRt.anchoredPosition = _sliderBasePos;
             }
         }
     }

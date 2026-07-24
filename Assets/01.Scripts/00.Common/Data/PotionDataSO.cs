@@ -15,18 +15,22 @@ namespace Minsung.Common.Data
         [SerializeField] private float _collectRadius = 0.3f;
 
         [Header("Potion")]
-        [SerializeField, Min(1)] private int _maxCarryCount = 3;
-        [SerializeField, Min(1)] private int _healHalves = 2;
+        [SerializeField, Min(0)] private int   _initialCarryCount = 100; // 게임 시작 시 지급 수량
+        [SerializeField, Min(1)] private int   _maxCarryCount     = 100; // 최대 소지 수량
+        [SerializeField, Min(1)] private int   _healHalves        = 2;   // 사용 시 회복량(반칸 단위)
+        [SerializeField, Min(0f)] private float _useCooldown      = 15f; // 사용 재사용 대기시간(초)
 
         [Header("Pool")]
         [SerializeField, Min(1)] private int _poolSize = 16;
 
-        public float DropChance => _dropChance;
-        public float MagnetRadius => _magnetRadius;
-        public float MagnetSpeed => _magnetSpeed;
-        public float CollectRadius => _collectRadius;
-        public int MaxCarryCount => _maxCarryCount;
-        public int HealHalves => _healHalves;
-        public int PoolSize => _poolSize;
+        public float DropChance         => _dropChance;
+        public float MagnetRadius       => _magnetRadius;
+        public float MagnetSpeed        => _magnetSpeed;
+        public float CollectRadius      => _collectRadius;
+        public int InitialCarryCount    => _initialCarryCount;
+        public int MaxCarryCount        => _maxCarryCount;
+        public int HealHalves           => _healHalves;
+        public float UseCooldown        => _useCooldown;
+        public int PoolSize             => _poolSize;
     }
 }

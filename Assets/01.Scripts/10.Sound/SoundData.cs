@@ -28,6 +28,7 @@ namespace Minsung.Sound
         BossPhase2,
         Ending,
         Radio, // 라디오 상호작용 시 재생되는 저장된 BGM
+        UIsfx, // 랜덤하게 재생할 UIsfx 모음
     }
 
     // 아래 enum들은 각 ESfxState 카테고리 안에서의 클립 인덱스

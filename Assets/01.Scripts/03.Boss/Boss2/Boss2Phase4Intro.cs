@@ -65,6 +65,10 @@ public class Boss2Phase4Intro : MonoBehaviour
             Cleanup(); // 씬 언로드/비활성에서도 동결/포커스/잠금이 잔류하지 않도록
             _running = false;
         }
+        if (_aura != null)
+        {
+            _aura.SetActive(false); // 오라는 전투 내내 켜져 있으므로 컴포넌트가 꺼질 때(씬 언로드 등)만 최종적으로 정리
+        }
     }
 
     /****************************************
@@ -155,13 +159,9 @@ public class Boss2Phase4Intro : MonoBehaviour
     }
 
     // 정상 종료/비활성/예외 어디서 불려도 동일하게 원상복구(두 번 호출해도 안전)
+    // 오라는 여기서 끄지 않는다 - 4페이즈 진입 후에는 전투 내내 계속 켜져 있어야 한다(OnDisable에서만 최종 정리)
     private void Cleanup()
     {
-        if (_aura != null)
-        {
-            _aura.SetActive(false);
-        }
-
         for (int i = 0; i < _screamAnimators.Length; ++i)
         {
             Animator a = _screamAnimators[i];

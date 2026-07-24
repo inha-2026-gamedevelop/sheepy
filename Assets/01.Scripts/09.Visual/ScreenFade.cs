@@ -20,7 +20,7 @@ namespace Minsung.Visual
 
         [Header("페이드 설정")]
         [SerializeField] private Color _fadeColor       = Color.black;
-        [SerializeField] private float _defaultDuration = 0.5f;
+        [SerializeField] private float _defaultDuration = 1f;
 
         private Image _fadeImage;   // 자동 생성되는 전체 화면 이미지
         private Coroutine _coFade;  // 진행 중 페이드 (새 요청이 오면 교체해 겹침 방지)
