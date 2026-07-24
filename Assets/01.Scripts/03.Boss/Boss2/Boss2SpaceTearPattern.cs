@@ -88,19 +88,6 @@ namespace Minsung.Boss2
             }
         }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        // 디버그 - 체력 임계와 상관없이 숫자 6으로 공간찢기를 즉시 실행한다(연출 확인용)
-        // 체력 동결은 걸지 않으므로 시퀀스 도중에도 보스는 평소처럼 피해를 받는다
-        private void Update()
-        {
-            if (Input.GetKeyDown(Constants.Combat.KEY_DEBUG_SPACE_TEAR)
-                || Input.GetKeyDown(Constants.Combat.KEY_DEBUG_SPACE_TEAR_KEYPAD))
-            {
-                HandleTrigger(); // 이미 실행 중이면 내부 _running 가드가 무시한다
-            }
-        }
-#endif
-
         /****************************************
         *                Methods
         ****************************************/
