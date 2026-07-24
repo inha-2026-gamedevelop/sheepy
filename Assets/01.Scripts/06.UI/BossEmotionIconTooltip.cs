@@ -15,6 +15,19 @@ namespace Minsung.UI
         [SerializeField] private GameObject _tooltipPanel;
         [SerializeField] private TextMeshProUGUI _tooltipText;
 
+        private void Awake()
+        {
+            if (TryGetComponent(out UnityEngine.UI.Image icon))
+            {
+                icon.raycastTarget = true;
+            }
+
+            if (_tooltipPanel != null)
+            {
+                _tooltipPanel.SetActive(false);
+            }
+        }
+
         public void OnPointerEnter(PointerEventData eventData)
         {
             BossEmotionController emotionController = ResolveEmotionController();
@@ -46,7 +59,13 @@ namespace Minsung.UI
                 return _emotionController;
             }
 
-            return _boss != null ? _boss.EmotionController : null;
+            _emotionController = _boss != null ? _boss.EmotionController : null;
+            if (_emotionController == null)
+            {
+                _emotionController = FindAnyObjectByType<BossEmotionController>();
+            }
+
+            return _emotionController;
         }
 
         // 감정별 효과 설명
@@ -72,9 +91,9 @@ namespace Minsung.UI
                 case BossEmotion.Angry:
                     description = "화남 - 주기적으로 조작이 반전된다";
                     return true;
-                default:
-                    description = null;
-                    return false;
+            default:
+                description = "현재 보스 감정이 아직 결정되지 않았습니다.";
+                return true;
             }
         }
     }

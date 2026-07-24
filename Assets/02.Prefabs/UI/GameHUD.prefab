@@ -1163,6 +1163,7 @@ GameObject:
   - component: {fileID: 4780136056741330819}
   - component: {fileID: 8582233848409608711}
   - component: {fileID: 5567545961625614399}
+  - component: {fileID: 357019981321604793}
   m_Layer: 5
   m_Name: Phase4InvincibilityIcon
   m_TagString: Untagged
@@ -1246,6 +1247,20 @@ MonoBehaviour:
   _icon: {fileID: 8582233848409608711}
   _cooldownFill: {fileID: 6695968463281220904}
   _cooldownText: {fileID: 6461928274179401664}
+--- !u!114 &357019981321604793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5233463652798526950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e729570207837a4abec57ba5428a632, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.UI.Boss2InvincibilityIconTooltip
+  _font: {fileID: 0}
+  _fontSize: 18
 --- !u!1 &6140776716052512601
 GameObject:
   m_ObjectHideFlags: 0

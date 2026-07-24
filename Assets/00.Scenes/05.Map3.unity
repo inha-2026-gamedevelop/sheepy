@@ -71976,7 +71976,7 @@ MonoBehaviour:
   _playerOvershootDistance: 3
   _bannerText: "\uBCF4\uC2A4\uBCF4\uB2E4 \uC2DC\uAC04\uC744 \uB290\uB9AC\uAC8C \uD558\uC5EC
     \uBCF4\uC2A4\uC758 \uD328\uD134\uC744 \uB9C9\uC544\uBCF4\uC138\uC694!"
-  _swallowWarningText: "\uC7A1\uC544\uBA39\uD78C\uB2E4! Ctrl\uB85C \uD68C\uD53C\uD558\uB77C!"
+  _swallowWarningText: "\uC7A1\uC544\uBA39\uD78C\uB2E4! S\uB85C \uD68C\uD53C\uD558\uB77C!"
   _windowPresentation: {fileID: 123306551}
   _cinematicMoveSpeed: 14
   _cinematicDashSpeed: 7
@@ -72538,6 +72538,10 @@ PrefabInstance:
       propertyPath: m_ActiveFontFeatures.Array.size
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 357019981321604793, guid: fa2f0881626673141912ab732f706a30, type: 3}
+      propertyPath: _font
+      value: 
+      objectReference: {fileID: 11400000, guid: aed1456b3a86d7d4e952559fb5f9b097, type: 2}
     - target: {fileID: 572078142863993384, guid: fa2f0881626673141912ab732f706a30, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -72630,6 +72634,10 @@ PrefabInstance:
       propertyPath: m_AdditionalShaderChannelsFlag
       value: 25
       objectReference: {fileID: 0}
+    - target: {fileID: 4684002717605500368, guid: fa2f0881626673141912ab732f706a30, type: 3}
+      propertyPath: _clonePool
+      value: 
+      objectReference: {fileID: 893629471}
     - target: {fileID: 5233463652798526950, guid: fa2f0881626673141912ab732f706a30, type: 3}
       propertyPath: m_Name
       value: 'Phase4InvincibilityIcon[OFF]'
@@ -79574,7 +79582,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 084ec6a12928de845bca029ea92131e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FallZone
-  spawnPoint: {fileID: 1714128144}
+  _spawnPoint: {fileID: 1714128144}
 --- !u!61 &1841036418
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -81930,6 +81938,7 @@ GameObject:
   - component: {fileID: 1911249564}
   - component: {fileID: 1911249566}
   - component: {fileID: 1911249565}
+  - component: {fileID: 1911249567}
   m_Layer: 0
   m_Name: EmotionIcon
   m_TagString: Untagged
@@ -81972,7 +81981,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -81988,6 +81997,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1911249567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911249563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1aa0b84f2ac1a7e4184161da1569b3f9, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.UI.Boss2EmotionIconTooltip
 --- !u!222 &1911249566
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -90417,7 +90438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 084ec6a12928de845bca029ea92131e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FallZone
-  spawnPoint: {fileID: 965012282}
+  _spawnPoint: {fileID: 965012282}
 --- !u!61 &2109362187
 BoxCollider2D:
   m_ObjectHideFlags: 0

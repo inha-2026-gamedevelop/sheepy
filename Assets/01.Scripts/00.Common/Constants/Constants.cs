@@ -39,6 +39,7 @@ namespace Minsung.Common
             public const string MAP_1        = "03.Map1";
             public const string MAP_2        = "04.Map2";
             public const string MAP_3        = "05.Map3";
+            public const string OUTTRO       = "06.Outtro";
             public const string BOSS         = "Boss";
         }
 

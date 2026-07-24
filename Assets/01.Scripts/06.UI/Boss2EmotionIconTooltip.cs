@@ -27,6 +27,11 @@ namespace Minsung.UI
             CreateTooltip();
         }
 
+        private void Start()
+        {
+            ResolveEmotionController();
+        }
+
         public void Configure(Boss2EmotionController emotionController)
         {
             _emotionController = emotionController;
@@ -34,7 +39,7 @@ namespace Minsung.UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if ((_emotionController == null) || (_tooltipPanel == null) || (_tooltipText == null))
+            if (!ResolveEmotionController() || (_tooltipPanel == null) || (_tooltipText == null))
             {
                 return;
             }
@@ -100,6 +105,22 @@ namespace Minsung.UI
             _tooltipText.raycastTarget = false;
 
             _tooltipPanel.SetActive(false);
+        }
+
+        private bool ResolveEmotionController()
+        {
+            if (_emotionController != null)
+            {
+                return true;
+            }
+
+            _emotionController = GetComponentInParent<Boss2EmotionController>();
+            if (_emotionController == null)
+            {
+                _emotionController = FindAnyObjectByType<Boss2EmotionController>();
+            }
+
+            return _emotionController != null;
         }
 
         private static bool TryGetDescription(Boss2Emotion emotion, out string description)

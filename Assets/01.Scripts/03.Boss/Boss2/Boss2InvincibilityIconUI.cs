@@ -34,6 +34,8 @@ namespace Minsung.Boss2
                 _icon = GetComponent<Image>();
             }
 
+            EnsureTooltip();
+
             SetVisible(false);
             SetCooldownVisible(false);
         }
@@ -128,6 +130,14 @@ namespace Minsung.Boss2
             if (_cooldownText != null)
             {
                 _cooldownText.enabled = visible;
+            }
+        }
+
+        private void EnsureTooltip()
+        {
+            if (!TryGetComponent(out Minsung.UI.Boss2InvincibilityIconTooltip _))
+            {
+                gameObject.AddComponent<Minsung.UI.Boss2InvincibilityIconTooltip>();
             }
         }
     }
