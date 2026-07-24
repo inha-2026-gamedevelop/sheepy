@@ -21,13 +21,16 @@ namespace Minsung.Boss
         [SerializeField] private TMP_FontAsset  _font;         // 비우면 TMP 기본 폰트
 
         [Header("배치")]
-        [SerializeField] private float _spawnRadius  = 1.2f;  // 중심에서 이 반경 안 랜덤 위치
+        [Tooltip("데미지 숫자가 뜨는 영역 반경(월드 유닛) - 몬스터가 작으면 이 값을 줄인다. 플레이 중 변경도 즉시 반영")]
+        [SerializeField] private float _spawnRadius  = 0.6f;  // 중심에서 이 반경 안 랜덤 위치
         [SerializeField] private float _riseDistance = 1.0f;  // 떠오르는 거리(월드 유닛)
         [SerializeField] private float _lifetime     = 0.7f;  // 표시 시간(초)
 
         [Header("모양")]
-        [SerializeField] private float _fontSize     = 11f;   // 인스펙터에서 조절 - 매 스폰마다 적용돼 플레이 중 변경도 즉시 반영
-        [SerializeField] private float _canvasScale  = 0.03f; // 월드 스페이스 캔버스 스케일 - 폰트*스케일 ≈ 월드 높이
+        [Tooltip("글자 폰트 크기 - 매 스폰마다 적용돼 플레이 중 변경도 즉시 반영")]
+        [SerializeField] private float _fontSize     = 8f;
+        [Tooltip("월드 스페이스 캔버스 스케일 - 폰트*스케일 ≈ 월드 높이. 전체 숫자 크기를 한 번에 줄일 때 사용. 플레이 중 변경도 즉시 반영")]
+        [SerializeField] private float _canvasScale  = 0.03f;
         [SerializeField] private Color _color        = new Color(1f, 0.95f, 0.6f, 1f); // 보스 피격 - 밝은 노랑
         [SerializeField] private Color _reflectColor = new Color(1f, 0.35f, 0.3f, 1f); // 반사 피해(플레이어) - 빨강
         [SerializeField] private int   _poolSize     = 16;
@@ -67,6 +70,7 @@ namespace Minsung.Boss
                 _health.OnDamaged        -= HandleDamaged;
                 _health.OnDamageReflected -= HandleReflected;
             }
+            ClearActiveNumbers(); // 주체가 죽어 비활성화되면 씬 루트 캔버스에 떠 있던 숫자가 얼어붙어 남는다 - 즉시 정리
         }
 
         private void OnDestroy()
@@ -131,6 +135,27 @@ namespace Minsung.Boss
             return -1;
         }
 
+        // 떠 있는 숫자를 모두 즉시 감추고 코루틴을 멈춘다 - 주체 비활성화(사망)로 CoFloat가 중단돼 숫자가 얼어붙는 잔여물을 막는다
+        private void ClearActiveNumbers()
+        {
+            if (_pool == null)
+            {
+                return;
+            }
+            StopAllCoroutines();
+            for (int i = 0; i < _pool.Length; ++i)
+            {
+                if (_pool[i] != null)
+                {
+                    _pool[i].gameObject.SetActive(false);
+                }
+                if (_running != null)
+                {
+                    _running[i] = null;
+                }
+            }
+        }
+
         private IEnumerator CoFloat(int slot, Vector3 startPos, string text, Color color)
         {
             TMP_Text tmp = _pool[slot];
@@ -139,6 +164,10 @@ namespace Minsung.Boss
                 tmp.font = _font; // 인스펙터에서 폰트를 바꾸면 즉시 반영된다
             }
             tmp.fontSize = _fontSize; // 매 스폰마다 적용 - 인스펙터에서 플레이 중 바꿔도 즉시 반영된다
+            if (_canvas != null)
+            {
+                _canvas.transform.localScale = Vector3.one * _canvasScale; // 캔버스 스케일도 매 스폰마다 반영해 플레이 중 조절이 먹히게 한다
+            }
             tmp.text = text;
             tmp.gameObject.SetActive(true);
             tmp.transform.position      = startPos;
