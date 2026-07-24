@@ -108,6 +108,7 @@ namespace Minsung.Common
             PlayerPrefs.DeleteKey(Constants.Save.KEY_SLOW_ABILITY_UNLOCKED);
             PlayerPrefs.DeleteKey(Constants.Save.KEY_PLAYER_STATE);
             PlayerPrefs.DeleteKey(Constants.Save.KEY_BOSS_CLEARED);
+            PlayerPrefs.DeleteKey(Constants.Save.KEY_HUD_TUTORIAL_SEEN);
             TouchLocalUpdatedAt(); // 리셋도 하나의 "변경"이므로 최신 시각으로 기록 - 서버 리셋과 동기화 비교 시 일관성 유지
             PlayerPrefs.Save();
         }
@@ -182,6 +183,24 @@ namespace Minsung.Common
         public void SetBossCleared(bool cleared)
         {
             PlayerPrefs.SetInt(Constants.Save.KEY_BOSS_CLEARED, cleared ? 1 : 0);
+            TouchLocalUpdatedAt();
+            PlayerPrefs.Save();
+        }
+
+        /****************************************
+        *          PlayerHUD 튜토리얼
+        ****************************************/
+
+        /// <summary> PlayerHUD 최초 안내 튜토리얼을 이미 봤는지 여부 </summary>
+        public bool IsHudTutorialSeen()
+        {
+            return PlayerPrefs.GetInt(Constants.Save.KEY_HUD_TUTORIAL_SEEN, 0) == 1;
+        }
+
+        /// <summary> PlayerHUD 튜토리얼 시청 여부 저장 </summary>
+        public void SetHudTutorialSeen(bool seen)
+        {
+            PlayerPrefs.SetInt(Constants.Save.KEY_HUD_TUTORIAL_SEEN, seen ? 1 : 0);
             TouchLocalUpdatedAt();
             PlayerPrefs.Save();
         }

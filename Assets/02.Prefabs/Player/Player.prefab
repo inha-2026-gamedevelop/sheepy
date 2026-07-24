@@ -179,6 +179,7 @@ GameObject:
   - component: {fileID: 791400920361226543}
   - component: {fileID: 8660223756431269588}
   - component: {fileID: 3685642815392228094}
+  - component: {fileID: 3585868660032622757}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -582,6 +583,19 @@ MonoBehaviour:
     _enabled: 1
     _sfx: 5
     _pitch: 1
+--- !u!114 &3585868660032622757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9072529289304806868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81e6aa47c9ca88643ad5a13760927228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Player.PlayerDeathBurstEffect
+  _blobSprite: {fileID: 21300000, guid: d9fa81495aa33fc438b2bc8e3a967428, type: 3}
 --- !u!1 &9087557472143693558
 GameObject:
   m_ObjectHideFlags: 0

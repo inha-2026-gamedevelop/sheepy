@@ -16,6 +16,8 @@ namespace Minsung.UI
         [SerializeField] private ClonePool _clonePool;  // 구독할 분신 풀
         [SerializeField] private Image[]   _cloneIcons; // 분신 슬롯 이미지들 (왼쪽부터 순서대로, 전부 동일한 clone 스프라이트)
 
+        private bool _forcedPreview; // true면 실제 분신 수와 무관하게 전부 켜서 보여준다 (PlayerHudTutorialUI가 호출)
+
         /****************************************
         *              Unity Event
         ****************************************/
@@ -62,8 +64,24 @@ namespace Minsung.UI
         *                Methods
         ****************************************/
 
+        /// <summary> 실제 분신 수와 무관하게 전체 슬롯을 강제로 켜서 보여준다/해제한다. PlayerHudTutorialUI가 호출. </summary>
+        public void SetForcedPreview(bool enabled)
+        {
+            _forcedPreview = enabled;
+            ApplyIconStates(enabled ? _cloneIcons.Length : (_clonePool != null ? _clonePool.ActiveCount : 0));
+        }
+
         // 활성 분신 수만큼 왼쪽부터 아이콘을 켜고 나머지는 끈다 - 0개면 전부 꺼져 아무것도 표시되지 않는다
         private void Redraw(int activeCount)
+        {
+            if (_forcedPreview)
+            {
+                return; // 프리뷰 중엔 실제 분신 수 변화를 무시한다
+            }
+            ApplyIconStates(activeCount);
+        }
+
+        private void ApplyIconStates(int activeCount)
         {
             for (int i = 0; i < _cloneIcons.Length; ++i)
             {
