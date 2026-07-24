@@ -143,7 +143,11 @@ namespace Minsung.Boss2
             SetHoldUiVisible(false);
 
             float fadeDuration = (_dataSo != null) ? _dataSo.EndingFadeDuration : 1.5f;
-            EnsureScreenFade().FadeOut(fadeDuration, () => AchievementManager.Instance?.Unlock(AchievementIds.ENDING_CREDITS));
+            EnsureScreenFade().FadeOut(fadeDuration, () => 
+            {
+                AchievementManager.Instance?.Unlock(AchievementIds.ENDING_CREDITS);
+                Minsung.Common.GameManager.Instance?.LoadSceneFadeInOnly("06.Outtro");
+            });
             return true;
         }
 
