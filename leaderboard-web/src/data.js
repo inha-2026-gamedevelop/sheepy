@@ -54,7 +54,7 @@ async function request(path) {
 
 export async function loadLeaderboard() {
   const [scoresResult, playersResult, achievementsResult] = await Promise.allSettled([
-    request('scores?select=username,duration_ms,created_at&duration_ms=not.is.null&order=duration_ms.asc'),
+    request('scores?select=username,duration_ms,created_at&order=duration_ms.asc.nullslast'),
     request('players?select=username,created_at'),
     request('player_achievements?select=username,achievement_id'),
   ])
@@ -77,15 +77,34 @@ export async function loadLeaderboard() {
 
   const bestScoreByName = new Map()
   scoresResult.value.forEach((score) => {
-    if (!bestScoreByName.has(score.username)) bestScoreByName.set(score.username, score)
+    if (Number.isFinite(Number(score.duration_ms)) && !bestScoreByName.has(score.username)) {
+      bestScoreByName.set(score.username, score)
+    }
   })
 
-  return [...bestScoreByName.values()]
-    .map((score) => ({
-      username: score.username,
-      createdAt: playersByName.get(score.username)?.created_at ?? score.created_at,
-      clearTimeMs: Number(score.duration_ms),
-      achievements: achievementsByName.get(score.username) ?? [],
-    }))
-    .sort((first, second) => first.clearTimeMs - second.clearTimeMs)
+  const usernames = new Set([
+    ...playersByName.keys(),
+    ...bestScoreByName.keys(),
+    ...achievementsByName.keys(),
+  ])
+
+  return [...usernames]
+    .map((username) => {
+      const player = playersByName.get(username)
+      const score = bestScoreByName.get(username)
+      return {
+        username,
+        createdAt: player?.created_at ?? score?.created_at ?? null,
+        clearTimeMs: score ? Number(score.duration_ms) : null,
+        achievements: achievementsByName.get(username) ?? [],
+      }
+    })
+    .sort((first, second) => {
+      if (first.clearTimeMs === null && second.clearTimeMs === null) {
+        return first.username.localeCompare(second.username)
+      }
+      if (first.clearTimeMs === null) return 1
+      if (second.clearTimeMs === null) return -1
+      return first.clearTimeMs - second.clearTimeMs
+    })
 }

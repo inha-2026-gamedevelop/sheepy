@@ -10,11 +10,13 @@ function Icon({ name, size = 20 }) {
     arrow: <path d="m9 18 6-6-6-6" />,
     check: <path d="m5 12 4.2 4.2L19 6.5" />,
     refresh: <><path d="M20 11a8 8 0 0 0-14.9-3.9L3 9.5M4 13a8 8 0 0 0 14.9 3.9L21 14.5" /><path d="M3 4v5.5h5.5M21 20v-5.5h-5.5" /></>,
+    search: <><circle cx="10.8" cy="10.8" r="6.3" /><path d="m16 16 4 4" /></>,
   }
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
 function formatTime(milliseconds) {
+  if (!Number.isFinite(milliseconds)) return '기록 없음'
   const totalSeconds = Math.floor(milliseconds / 1000)
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = String(totalSeconds % 60).padStart(2, '0')
@@ -24,10 +26,21 @@ function formatTime(milliseconds) {
 
 function formatDate(value) {
   if (!value) return '기록 없음'
-  return new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value))
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(value))
+  const values = Object.fromEntries(parts.map(({ type, value: partValue }) => [type, partValue]))
+  return `${values.year}.${values.month}.${values.day} ${values.hour}:${values.minute} KST`
 }
 
 function rankLabel(rank) {
+  if (!Number.isFinite(rank)) return '—'
   return String(rank).padStart(2, '0')
 }
 
@@ -36,6 +49,7 @@ function App() {
   const [selectedName, setSelectedName] = useState(DEMO_PLAYERS[0].username)
   const [status, setStatus] = useState('demo')
   const [error, setError] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const refresh = async () => {
     setStatus('loading')
@@ -59,8 +73,15 @@ function App() {
     [players],
   )
   const selectedPlayer = rankedPlayers.find((player) => player.username === selectedName) ?? rankedPlayers[0]
-  const selectedRank = rankedPlayers.findIndex((player) => player.username === selectedPlayer?.username) + 1
-  const averageTime = rankedPlayers.reduce((total, player) => total + player.clearTimeMs, 0) / rankedPlayers.length
+  const selectedIndex = rankedPlayers.findIndex((player) => player.username === selectedPlayer?.username)
+  const selectedRank = selectedPlayer?.clearTimeMs === null ? null : selectedIndex + 1
+  const clearedPlayers = rankedPlayers.filter((player) => player.clearTimeMs !== null)
+  const averageTime = clearedPlayers.length
+    ? clearedPlayers.reduce((total, player) => total + player.clearTimeMs, 0) / clearedPlayers.length
+    : null
+  const filteredPlayers = rankedPlayers.filter((player) => (
+    player.username.toLocaleLowerCase('ko-KR').includes(searchTerm.trim().toLocaleLowerCase('ko-KR'))
+  ))
 
   return (
     <div className="app-shell">
@@ -81,14 +102,14 @@ function App() {
             <h1 id="page-title">시간을 거스른<br /><em>기록들.</em></h1>
             <p className="intro-copy">아자토스를 쓰러뜨린 플레이어들의 가장 빠른 순간과, 그들이 남긴 여정을 확인하세요.</p>
           </div>
-          <div className="hero-stat" aria-label={`현재 1위 ${rankedPlayers[0]?.username ?? ''}, ${formatTime(rankedPlayers[0]?.clearTimeMs ?? 0)}`}>
+          <div className="hero-stat" aria-label={clearedPlayers.length ? `현재 1위 ${clearedPlayers[0].username}, ${formatTime(clearedPlayers[0].clearTimeMs)}` : '아직 등록된 보스 클리어 기록이 없습니다'}>
             <div className="hero-stat-icon"><Icon name="trophy" size={25} /></div>
-            <div><span>FASTEST REWIND</span><strong>{formatTime(rankedPlayers[0]?.clearTimeMs ?? 0)}</strong><small>{rankedPlayers[0]?.username ?? '—'} · CURRENT #1</small></div>
+            <div><span>FASTEST REWIND</span><strong>{clearedPlayers.length ? formatTime(clearedPlayers[0].clearTimeMs) : '—'}</strong><small>{clearedPlayers.length ? `${clearedPlayers[0].username} · CURRENT #1` : 'CLEAR RECORD NEEDED'}</small></div>
           </div>
         </section>
 
         <section className="summary-grid" aria-label="기록 요약">
-          <article className="summary-card"><span className="summary-icon"><Icon name="trophy" /></span><div><small>REGISTERED RUNS</small><strong>{rankedPlayers.length}</strong></div></article>
+          <article className="summary-card"><span className="summary-icon"><Icon name="trophy" /></span><div><small>REGISTERED RUNS</small><strong>{clearedPlayers.length}</strong></div></article>
           <article className="summary-card"><span className="summary-icon"><Icon name="clock" /></span><div><small>AVERAGE CLEAR</small><strong>{formatTime(averageTime)}</strong></div></article>
           <article className="summary-card"><span className="summary-icon"><Icon name="spark" /></span><div><small>ACHIEVEMENTS</small><strong>{ACHIEVEMENTS.length}</strong></div></article>
         </section>
@@ -98,21 +119,28 @@ function App() {
         <section className="board-layout" aria-label="보스 클리어 랭킹">
           <div className="ranking-panel">
             <div className="section-heading"><div><p className="eyebrow">LEADERBOARD</p><h2>Boss Clear Ranking</h2></div><span>{status === 'live' ? 'LIVE DATA' : 'PREVIEW DATA'}</span></div>
+            <label className="search-box">
+              <span className="sr-only">플레이어 이름 검색</span>
+              <Icon name="search" size={16} />
+              <input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="플레이어 이름 검색" />
+            </label>
             <ol className="ranking-list">
-              {rankedPlayers.map((player, index) => {
+              {filteredPlayers.map((player) => {
                 const isSelected = player.username === selectedPlayer?.username
+                const playerRank = player.clearTimeMs === null ? null : rankedPlayers.findIndex((rankedPlayer) => rankedPlayer.username === player.username) + 1
                 return <li key={player.username}>
                   <button type="button" className={`rank-row ${isSelected ? 'is-selected' : ''}`} onClick={() => setSelectedName(player.username)} aria-pressed={isSelected}>
-                    <span className={`rank-number rank-${index + 1}`}>{rankLabel(index + 1)}</span>
+                    <span className={`rank-number rank-${playerRank ?? 'none'}`}>{rankLabel(playerRank)}</span>
                     <span className="player-avatar" aria-hidden="true">{player.username.slice(0, 1).toUpperCase()}</span>
                     <span className="rank-player"><strong>{player.username}</strong><small><Icon name="calendar" size={13} /> {formatDate(player.createdAt)} 가입</small></span>
                     <span className="rank-achievements"><Icon name="spark" size={15} /> {player.achievements.length}/{ACHIEVEMENTS.length}</span>
-                    <time className="rank-time">{formatTime(player.clearTimeMs)}</time>
+                    <time className={`rank-time ${player.clearTimeMs === null ? 'is-empty' : ''}`}>{formatTime(player.clearTimeMs)}</time>
                     <Icon name="arrow" size={18} />
                   </button>
                 </li>
               })}
             </ol>
+            {!filteredPlayers.length && <p className="empty-search" role="status">“{searchTerm}”와 일치하는 플레이어가 없습니다.</p>}
           </div>
 
           {selectedPlayer && <PlayerDetail player={selectedPlayer} rank={selectedRank} />}
@@ -128,12 +156,12 @@ function PlayerDetail({ player, rank }) {
   const completion = Math.round((unlocked.size / ACHIEVEMENTS.length) * 100)
   return <aside className="detail-panel" aria-labelledby="profile-title">
     <div className="profile-top">
-      <span className="profile-rank">RANK #{rankLabel(rank)}</span>
+      <span className="profile-rank">{rank === null ? 'NO CLEAR RECORD' : `RANK #${rankLabel(rank)}`}</span>
       <span className="profile-avatar" aria-hidden="true">{player.username.slice(0, 1).toUpperCase()}</span>
       <h2 id="profile-title">{player.username}</h2>
       <p><Icon name="calendar" size={15} /> {formatDate(player.createdAt)}에 모험 시작</p>
     </div>
-    <div className="personal-best"><span>PERSONAL BEST</span><strong>{formatTime(player.clearTimeMs)}</strong><small>AZATHOTH · BOSS CLEAR</small></div>
+    <div className="personal-best"><span>PERSONAL BEST</span><strong className={player.clearTimeMs === null ? 'is-empty' : ''}>{formatTime(player.clearTimeMs)}</strong><small>{player.clearTimeMs === null ? 'AZATHOTH · NOT CLEARED YET' : 'AZATHOTH · BOSS CLEAR'}</small></div>
     <section className="achievement-section" aria-labelledby="achievement-title">
       <div className="achievement-heading"><div><p className="eyebrow">COLLECTION</p><h3 id="achievement-title">업적 진행도</h3></div><strong>{unlocked.size}<small> / {ACHIEVEMENTS.length}</small></strong></div>
       <div className="progress-track" role="progressbar" aria-label="업적 진행도" aria-valuemin="0" aria-valuemax={ACHIEVEMENTS.length} aria-valuenow={unlocked.size}><span style={{ width: `${completion}%` }} /></div>
@@ -143,7 +171,7 @@ function PlayerDetail({ player, rank }) {
           const isUnlocked = unlocked.has(achievement.id)
           return <li className={isUnlocked ? 'is-unlocked' : 'is-locked'} key={achievement.id}>
             <span className="achievement-state">{isUnlocked ? <Icon name="check" size={16} /> : <span />}</span>
-            <span><strong>{isUnlocked ? achievement.title : '숨겨진 기억'}</strong><small>{isUnlocked ? achievement.description : '아직 발견하지 못한 업적입니다.'}</small></span>
+            <span><strong>{achievement.title}</strong><small>{isUnlocked ? achievement.description : '달성 조건은 업적을 해금한 후 확인할 수 있습니다.'}</small></span>
           </li>
         })}
       </ul>
