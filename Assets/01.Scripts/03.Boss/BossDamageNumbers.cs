@@ -7,9 +7,7 @@ using TMPro;
 
 namespace Minsung.Boss
 {
-    // 피격 데미지 숫자를 띄운다 - 보스 피격은 보스 근처(노랑), 감정 반사 피해는 플레이어 근처(빨강)에 표시 (Boss1/Boss2 공용)
-    // 떠오르며 페이드아웃. 월드 스페이스 캔버스 + TMP 풀. timeScale 0(히트스톱) 중에도 흐르도록 unscaled 시간 사용
-    // 캔버스는 보스 하위가 아니라 씬 루트에 둔다 - 보스가 좌우로 뒤집혀도(음수 스케일) 숫자가 따라 뒤집히지 않게
+    // 피격 데미지 숫자를 띄운다 - 보스 피격은 보스 근처(노랑), 감정 반사 피해는 플레이어 근처(빨강)에 표시
     [AddComponentMenu("Minsung/Boss Damage Numbers")]
     public class BossDamageNumbers : MonoBehaviour
     {

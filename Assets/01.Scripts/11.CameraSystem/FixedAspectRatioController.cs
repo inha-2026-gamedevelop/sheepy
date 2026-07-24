@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 // Unity
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -33,6 +34,8 @@ namespace Minsung.CameraSystem
         private readonly List<Canvas> _releasedCanvases = new();
 
         private Camera           _targetCamera;
+        private Camera           _uiCamera;   // HUD 전용 오버레이 카메라(PP off) - UI가 Bloom/색보정/비네트에 물들지 않게 한다
+        private int              _uiLayer = -1;
         private RectTransform[]  _blackBars;
         private int              _screenWidth;
         private int              _screenHeight;
@@ -46,6 +49,7 @@ namespace Minsung.CameraSystem
             public float      PlaneDistance;
             public int        SortingLayerId;
             public int        SortingOrder;
+            public int        GameObjectLayer;
         }
 
         /****************************************
@@ -66,6 +70,7 @@ namespace Minsung.CameraSystem
 
         protected override void OnSingletonAwake()
         {
+            _uiLayer           = LayerMask.NameToLayer("UI");
             _topSortingLayerId = FindTopSortingLayerId();
             CreateBlackBars();
             SceneManager.sceneLoaded += HandleSceneLoaded;
@@ -90,6 +95,8 @@ namespace Minsung.CameraSystem
             {
                 return;
             }
+
+            UpdateUiCamera();
 
             if (_spaceTearViewportActive)
             {
@@ -201,6 +208,70 @@ namespace Minsung.CameraSystem
             }
 
             _targetCamera = mainCamera;
+            UpdateUiCamera();
+        }
+
+        // HUD 전용 오버레이 카메라를 보장하고, 현재 메인 카메라 스택에 얹은 뒤 투영/뷰포트를 메인과 맞춘다
+        // 이 카메라는 PP를 끄고 UI 레이어만 그려, 월드 포스트프로세싱은 그대로 두고 UI만 물들지 않게 한다
+        private void UpdateUiCamera()
+        {
+            if (_targetCamera == null)
+            {
+                return;
+            }
+
+            EnsureUiCamera();
+            RegisterUiCameraToStack();
+
+            Transform src = _targetCamera.transform;
+            _uiCamera.transform.SetPositionAndRotation(src.position, src.rotation);
+            _uiCamera.orthographic     = _targetCamera.orthographic;
+            _uiCamera.orthographicSize = _targetCamera.orthographicSize;
+            _uiCamera.nearClipPlane    = _targetCamera.nearClipPlane;
+            _uiCamera.farClipPlane     = _targetCamera.farClipPlane;
+
+            // 공간찢기 연출 중에도 켜 둔다 - 가짜 창/조각/폴백 데스크톱이 담긴 프레젠테이션 캔버스가 이 카메라로 그려지기 때문
+            // (연출 중 창 안으로 캡처되는 HUD는 별도의 _hudCamera가 RenderTexture로 처리한다)
+            _uiCamera.enabled = true;
+        }
+
+        private void EnsureUiCamera()
+        {
+            if (_uiCamera != null)
+            {
+                return;
+            }
+
+            GameObject go = new GameObject("@UICamera");
+            go.transform.SetParent(transform, false);
+
+            _uiCamera = go.AddComponent<Camera>();
+            _uiCamera.orthographic = true;
+            _uiCamera.clearFlags   = CameraClearFlags.Depth;
+            _uiCamera.cullingMask  = (_uiLayer >= 0) ? (1 << _uiLayer) : 0;
+
+            UniversalAdditionalCameraData data = _uiCamera.GetUniversalAdditionalCameraData();
+            data.renderType           = CameraRenderType.Overlay;
+            data.renderPostProcessing = false;
+        }
+
+        // 오버레이 카메라는 스택에 등록돼야 렌더된다 - 씬마다 메인 카메라가 바뀌므로 매번 등록을 보장한다
+        private void RegisterUiCameraToStack()
+        {
+            if ((_targetCamera == null) || (_uiCamera == null) || (_targetCamera == _uiCamera))
+            {
+                return;
+            }
+
+            UniversalAdditionalCameraData baseData = _targetCamera.GetUniversalAdditionalCameraData();
+            if (baseData == null)
+            {
+                return;
+            }
+            if (!baseData.cameraStack.Contains(_uiCamera))
+            {
+                baseData.cameraStack.Add(_uiCamera);
+            }
         }
 
         private void ApplyViewport()
@@ -270,13 +341,21 @@ namespace Minsung.CameraSystem
                         PlaneDistance = canvas.planeDistance,
                         SortingLayerId = canvas.sortingLayerID,
                         SortingOrder = canvas.sortingOrder,
+                        GameObjectLayer = canvas.gameObject.layer,
                     };
                     _overlayCanvasStates.Add(canvas, state);
                 }
 
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = _targetCamera;
+                // 월드+PP 메인 카메라가 아니라 PP 꺼진 UI 오버레이 카메라로 그린다 - HUD가 포스트프로세싱에 물들지 않는다
+                canvas.worldCamera = (_uiCamera != null) ? _uiCamera : _targetCamera;
                 canvas.planeDistance = state.PlaneDistance;
+
+                // UI 오버레이 카메라는 UI 레이어만 그리므로 캔버스도 UI 레이어에 있어야 렌더된다
+                if (_uiLayer >= 0)
+                {
+                    canvas.gameObject.layer = _uiLayer;
+                }
 
                 // Overlay였을 때는 항상 월드 위에 그려졌지만 ScreenSpaceCamera는 스프라이트와 같은 정렬을 탄다.
                 // 최상위 Sorting Layer로 올리되 원본 순서에 offset만 더해 캔버스끼리의 상대 순서는 유지한다
@@ -300,6 +379,7 @@ namespace Minsung.CameraSystem
                 canvas.planeDistance = pair.Value.PlaneDistance;
                 canvas.sortingLayerID = pair.Value.SortingLayerId;
                 canvas.sortingOrder = pair.Value.SortingOrder;
+                canvas.gameObject.layer = pair.Value.GameObjectLayer;
             }
 
             _overlayCanvasStates.Clear();

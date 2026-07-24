@@ -575,6 +575,13 @@ namespace Minsung.Visual
             _playerCamera = CreateWorldCamera("PlayerFragmentCamera");
             _playerCamera.targetTexture = _playerRt;
 
+            // 찢긴 창 안 월드에는 Bloom/색보정을 유지한다 - 이 RT는 검정 배경이라 Main Camera 키 색상과 무관해 색상 키를 오염시키지 않는다
+            UniversalAdditionalCameraData playerData = _playerCamera.GetUniversalAdditionalCameraData();
+            if (playerData != null)
+            {
+                playerData.renderPostProcessing = true;
+            }
+
             // HUD는 조각과 따로 렌더한다 - 절단으로 조각이 갈라지거나 파괴돼도 HUD는 그대로 남아야 한다
             _hudRt = CreateRenderTexture("SpaceTearWindow_HudRT");
             _hudCamera = CreateWorldCamera("HudCamera");

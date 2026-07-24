@@ -41,6 +41,7 @@ namespace Minsung.TimeSystem
         private Coroutine _coAttackFlash;
         private Material _material;
         private WaitForSeconds _waitAttackFlash;
+        private float _despawnUnscaledTime;
 
         // 리와인드 참여 상태
         private RewindManager _rewindManager;
@@ -146,6 +147,16 @@ namespace Minsung.TimeSystem
             ApplyVisual();
         }
 
+        private void Update()
+        {
+            if (Time.unscaledTime < _despawnUnscaledTime)
+            {
+                return;
+            }
+
+            ReturnToPool();
+        }
+
         /****************************************
         *                Methods
         ****************************************/
@@ -163,6 +174,7 @@ namespace Minsung.TimeSystem
             _index          = 0;
             _attackFlashing = false;
             _finished       = (_clip.Count == 0);
+            _despawnUnscaledTime = Time.unscaledTime + GameDB.Time.CloneLifetime;
 
             _health.ResetHearts();
             UtilCoroutine.CheckStopCoroutine(ref _coAttackFlash, this);
@@ -197,6 +209,7 @@ namespace Minsung.TimeSystem
             _rewindBuffer?.Clear();
             _deadTicks   = 0;
             _isRewinding = false;
+            _despawnUnscaledTime = 0f;
         }
 
         /// <summary> 피격 시 하트 amount개 차감 </summary>
