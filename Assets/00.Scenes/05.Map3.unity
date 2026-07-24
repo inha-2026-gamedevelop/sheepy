@@ -31598,7 +31598,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84757469c471688478a56d5be813d7b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.Sound.MapBgmPlayer
-  _bgm: 1
+  _bgm: 4
   _isLoop: 1
   _pitch: 1
 --- !u!1 &821594937
@@ -71983,6 +71983,7 @@ MonoBehaviour:
   _bossGrowMultiplier: 5
   _bossGrowTime: 0.6
   _swallowDelay: 1.5
+  _killDelayAfterSwallowBanner: 1
 --- !u!114 &1684505839
 MonoBehaviour:
   m_ObjectHideFlags: 0

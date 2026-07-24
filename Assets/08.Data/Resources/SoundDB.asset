@@ -29,7 +29,8 @@ MonoBehaviour:
     - {fileID: 8300000, guid: b0b79893ed2aea74aae27bc0539fb532, type: 3}
   - _clips:
     - {fileID: 8300000, guid: bc5e76434f8b0fa46a4d5c5cc8c11668, type: 3}
-  - _clips: []
+  - _clips:
+    - {fileID: 8300000, guid: a0a02a11ef7886a4d9728ae7f73531ac, type: 3}
   - _clips:
     - {fileID: 8300000, guid: c66093bdba967554095b4c5bd940193c, type: 3}
     - {fileID: 8300000, guid: b4b8466d1d3c7a94fa1cc9e258688b94, type: 3}
