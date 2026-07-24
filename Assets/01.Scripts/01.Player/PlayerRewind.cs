@@ -115,10 +115,9 @@ namespace Minsung.Player
 
         /// <summary>
         /// 리스폰/보스 복귀/이어하기처럼 플레이어를 순간이동시킨 직후 호출한다.
-        /// 기록 길이(GameDB.Time.RecordSeconds)만큼 되감기를 잠가, 잠금이 풀릴 때 버퍼에 이동 이전 기록이
-        /// 전혀 남아있지 않게 한다 (보스 입장 잠금과 같은 방식) - 되감기로 이전 위치에 끌려가는 것을 막는다.
+        /// 커스텀 시간을 넘기지 않으면 기록 길이(GameDB.Time.RecordSeconds)만큼 잠근다.
         /// </summary>
-        public void LockRewindAfterTeleport()
+        public void LockRewindAfterTeleport(float customLockTime = -1f)
         {
             RewindManager manager = _rewindManager != null ? _rewindManager : RewindManager.Instance;
             if (manager == null)
@@ -134,13 +133,15 @@ namespace Minsung.Player
             _teleportLock.Dispose();
 
             _teleportLock          = manager.AcquireRewindLock(this);
-            _teleportLockCoroutine = StartCoroutine(CoReleaseTeleportLock());
+            
+            float lockTime = customLockTime > 0f ? customLockTime : GameDB.Time.RecordSeconds;
+            _teleportLockCoroutine = StartCoroutine(CoReleaseTeleportLock(lockTime));
         }
 
         // 슬로우/일시정지에 영향받지 않도록 실시간 기준으로 센다 (기록은 물리 틱마다 계속 쌓인다)
-        private IEnumerator CoReleaseTeleportLock()
+        private IEnumerator CoReleaseTeleportLock(float lockTime)
         {
-            yield return new WaitForSecondsRealtime(GameDB.Time.RecordSeconds);
+            yield return new WaitForSecondsRealtime(lockTime);
             _teleportLock.Dispose();
             _teleportLockCoroutine = null;
         }

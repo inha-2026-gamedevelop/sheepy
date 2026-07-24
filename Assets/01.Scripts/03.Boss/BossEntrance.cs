@@ -54,6 +54,11 @@ namespace Minsung.Boss
                     Vector2 prevPos = player.transform.position;
                     player.SetPose(_playerSpawn.position, Vector2.zero, false);
                     Unity.Cinemachine.CinemachineCore.OnTargetObjectWarped(player.transform, (Vector2)_playerSpawn.position - prevPos);
+
+                    if (player.TryGetComponent(out PlayerRewind rewind))
+                    {
+                        rewind.LockRewindAfterTeleport(15f); // 10초간 잠금
+                    }
                 }
             });
             _used = _oneShot;
