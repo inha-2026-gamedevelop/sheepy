@@ -118932,7 +118932,7 @@ MonoBehaviour:
   _brightFlashPeak: 1.5
   _continuousRippleIntensity: 0.5
   _explosionRippleIntensity: 3
-  _endPowerupSound: {fileID: 0}
+  _endPowerupSound: {fileID: 8300000, guid: a3d0df2c20c74944d94e0f6f8500e158, type: 3}
 --- !u!61 &1320086452
 BoxCollider2D:
   m_ObjectHideFlags: 0
