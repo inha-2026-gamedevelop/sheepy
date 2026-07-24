@@ -25,13 +25,10 @@ MonoBehaviour:
     - {fileID: 8300000, guid: b7807fbed8b3be3429f02355330da3d1, type: 3}
     - {fileID: 8300000, guid: 346d2d4a7c2077e4d90a09b8bcea1717, type: 3}
     - {fileID: 8300000, guid: 1a6cd7936adbcc442b55bd1266541918, type: 3}
+    - {fileID: 8300000, guid: a9e2eea8b93622744bd0f95a92d3f675, type: 3}
+    - {fileID: 8300000, guid: b0b79893ed2aea74aae27bc0539fb532, type: 3}
   - _clips:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 8300000, guid: bc5e76434f8b0fa46a4d5c5cc8c11668, type: 3}
   - _clips: []
   - _clips:
     - {fileID: 8300000, guid: c66093bdba967554095b4c5bd940193c, type: 3}
