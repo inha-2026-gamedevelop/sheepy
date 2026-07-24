@@ -252,8 +252,10 @@ namespace Minsung.Boss
                 return;
             }
 
-            bool isPlayerAboveBoss = playerBounds.min.y >= bossBounds.max.y;
-            if (isPlayerAboveBoss)
+            // 물리 엔진의 1프레임 낙하 관통을 고려하여, 발끝이 머리 부근에 닿았고 
+            // 실제로 콜라이더가 겹친(Intersects) 상태라면 위에서 올라탄 것으로 간주하고 통과시킨다.
+            bool isPlayerAboveBoss = playerBounds.min.y >= bossBounds.max.y - 0.5f;
+            if (isPlayerAboveBoss && bossBounds.Intersects(playerBounds))
             {
                 SetPlayerBodyCollisionIgnored(true);
             }
