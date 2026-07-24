@@ -29031,6 +29031,8 @@ GameObject:
   - component: {fileID: 689947055}
   - component: {fileID: 689947054}
   - component: {fileID: 689947053}
+  - component: {fileID: 689947058}
+  - component: {fileID: 689947057}
   m_Layer: 0
   m_Name: BossClone1
   m_TagString: Untagged
@@ -29147,6 +29149,54 @@ Transform:
   - {fileID: 492357940}
   m_Father: {fileID: 1635183405}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &689947057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689947052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fca34b1992cf8f14c80c936b557dd016, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Boss.BossDamageNumbers
+  _healthSource: {fileID: 0}
+  _center: {fileID: 0}
+  _font: {fileID: 11400000, guid: aed1456b3a86d7d4e952559fb5f9b097, type: 2}
+  _spawnRadius: 1.2
+  _riseDistance: 1
+  _lifetime: 0.7
+  _fontSize: 10
+  _canvasScale: 0.03
+  _color: {r: 1, g: 0.95, b: 0.6, a: 1}
+  _reflectColor: {r: 1, g: 0.35, b: 0.3, a: 1}
+  _poolSize: 16
+--- !u!114 &689947058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689947052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d45e8543c78b3e478ea5b89b74322a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Boss.BossHitFeedback
+  _healthSource: {fileID: 0}
+  _hitCenter: {fileID: 0}
+  _useHitStop: 1
+  _hitStopDuration: 0.05
+  _useSparks: 1
+  _sparkCountMin: 5
+  _sparkCountMax: 9
+  _sparkSpeed: 6
+  _sparkSize: 0.18
+  _sparkLifetime: 0.35
+  _sparkSpawnRadius: 0.8
+  _sparkColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  _sparkTexture: {fileID: 2800000, guid: 683a7c56b9be4b341942954a9c11ec19, type: 3}
 --- !u!1 &689970638
 GameObject:
   m_ObjectHideFlags: 0
@@ -41525,7 +41575,7 @@ Transform:
   m_GameObject: {fileID: 955675416}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.91, y: 0.374, z: -6}
+  m_LocalPosition: {x: 0.07, y: -28.519999, z: -6}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -41650,7 +41700,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 1.7
+  orthographic size: 3.2
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -57501,6 +57551,8 @@ GameObject:
   - component: {fileID: 1313617316}
   - component: {fileID: 1313617315}
   - component: {fileID: 1313617314}
+  - component: {fileID: 1313617318}
+  - component: {fileID: 1313617317}
   m_Layer: 0
   m_Name: BossClone2
   m_TagString: Untagged
@@ -57617,6 +57669,54 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &1313617317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1313617312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fca34b1992cf8f14c80c936b557dd016, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Boss.BossDamageNumbers
+  _healthSource: {fileID: 0}
+  _center: {fileID: 0}
+  _font: {fileID: 11400000, guid: aed1456b3a86d7d4e952559fb5f9b097, type: 2}
+  _spawnRadius: 1.2
+  _riseDistance: 1
+  _lifetime: 0.7
+  _fontSize: 10
+  _canvasScale: 0.03
+  _color: {r: 1, g: 0.95, b: 0.6, a: 1}
+  _reflectColor: {r: 1, g: 0.35, b: 0.3, a: 1}
+  _poolSize: 16
+--- !u!114 &1313617318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1313617312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d45e8543c78b3e478ea5b89b74322a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Minsung.Boss.BossHitFeedback
+  _healthSource: {fileID: 0}
+  _hitCenter: {fileID: 0}
+  _useHitStop: 1
+  _hitStopDuration: 0.05
+  _useSparks: 1
+  _sparkCountMin: 5
+  _sparkCountMax: 9
+  _sparkSpeed: 6
+  _sparkSize: 0.18
+  _sparkLifetime: 0.35
+  _sparkSpawnRadius: 0.8
+  _sparkColor: {r: 1, g: 0.85, b: 0.4, a: 1}
+  _sparkTexture: {fileID: 2800000, guid: 683a7c56b9be4b341942954a9c11ec19, type: 3}
 --- !u!1 &1314383275
 GameObject:
   m_ObjectHideFlags: 0
@@ -81296,7 +81396,7 @@ PrefabInstance:
       objectReference: {fileID: 864650613}
     - target: {fileID: 3062819898327440988, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 20
+      value: 0.07
       objectReference: {fileID: 0}
     - target: {fileID: 3062819898327440988, guid: b297443ce614cd34ab4d7ff9dec1a5a3, type: 3}
       propertyPath: m_LocalPosition.y
@@ -89489,7 +89589,7 @@ Transform:
   m_GameObject: {fileID: 2053844238}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 20, y: -28.519999, z: -6}
+  m_LocalPosition: {x: 0.07, y: -28.519999, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

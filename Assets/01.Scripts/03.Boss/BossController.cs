@@ -506,8 +506,7 @@ namespace Minsung.Boss
             StartCoroutine(CoPhaseEnd());
         }
 
-#if UNITY_EDITOR
-        /// <summary> QA 전용 - 기믹/전환 연출 없이 지정 페이즈로 즉시 이동 (BossPhaseQaDebug 전용, 빌드 미포함) </summary>
+        /// <summary> QA 전용 - 기믹/전환 연출 없이 지정 페이즈로 즉시 이동 (BossPhaseQaDebug 전용) </summary>
         public void QaJumpToPhase(int targetPhaseIndex)
         {
             if (_transitioning || (targetPhaseIndex == _phaseIndex)
@@ -538,7 +537,7 @@ namespace Minsung.Boss
             OnPhaseChanged?.Invoke(_phaseIndex);
         }
 
-        // QA 전용 - 전투 진행 없이 사망 연출(DeathBody+DeathLightFx)만 즉시 재생 (BossPhaseQaDebug 전용, 빌드 미포함)
+        // QA 전용 - 전투 진행 없이 사망 연출(DeathBody+DeathLightFx)만 즉시 재생 (BossPhaseQaDebug 전용)
         // 이미 DeathBody 상태인 채로 재호출하면 SetTrigger만으로는 같은 상태를 재진입하지 않아 애니메이션이 다시 재생되지 않는다 - Play로 강제 재시작
         public void QaForceDeath()
         {
@@ -561,7 +560,6 @@ namespace Minsung.Boss
             }
             _deathCircleFxCoroutine = StartCoroutine(CoActivateDeathCircleFx());
         }
-#endif
 
         // 페이즈 종료: 피통 동결 -> 종료 기믹(즉사 레이저/컷신 등) -> 다음 페이즈
         // 기믹 중에는 리와인드를 잠가 동결된 피통/기믹 진행이 되감기와 엉키지 않게 한다

@@ -272,6 +272,12 @@ namespace Minsung.CameraSystem
             {
                 baseData.cameraStack.Add(_uiCamera);
             }
+
+            // 메인 카메라가 UI 레이어를 함께 그리면 HUD가 두 번(월드 PP + 오버레이) 렌더돼 겹쳐 보인다 - UI는 오버레이 카메라에만 맡긴다
+            if (_uiLayer >= 0)
+            {
+                _targetCamera.cullingMask &= ~(1 << _uiLayer);
+            }
         }
 
         private void ApplyViewport()

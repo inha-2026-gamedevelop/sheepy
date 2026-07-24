@@ -14,7 +14,7 @@ namespace Minsung.Boss
 {
     // 1페이즈 보스 분신 - 근거리 몬스터형 개체. 각자 독립 피통(CloneHealth)을 가지며 보스 본체 총 피통과 분리돼 있다
     // (감정 반사 규칙만 BossController.ReflectIfNeeded로 공유. 2체 전멸 시 1페이즈 종료 기믹 발동)
-    public class BossCloneController : BossMeleeUnitBase
+    public class BossCloneController : BossMeleeUnitBase, IBossHittable
     {
         /****************************************
         *             Inner Types
@@ -48,6 +48,11 @@ namespace Minsung.Boss
 
         public event Action<BossCloneController> OnCloneDied;              // 사망 연출/사운드 연동용
         public event Action<float, float> OnHealthChanged; // (현재, 최대) - 1페이즈 분신 개별 체력바 UI 연동
+
+        // IBossHittable - 분신은 BossController와 별개 GameObject라 부모 탐색으로 못 찾는다.
+        // 분신 개체 자체에 히트스톱/스파크/데미지 넘버(BossHitFeedback/BossDamageNumbers)를 붙이려면 이 구현이 필요하다
+        public event Action<float> OnDamaged;
+        public event Action<Vector3, int> OnDamageReflected;
 
         // 근접 개체 공통 수치 (BossMeleeUnitBase)
         protected override float MoveSpeed        => GameDB.Boss.CloneMoveSpeed;
@@ -127,11 +132,17 @@ namespace Minsung.Boss
             }
             if (_boss.ReflectIfNeeded(source, attacker))
             {
+                // 반사 - 공격자(플레이어)가 대신 피해를 입으므로 플레이어 위치에 피해량을 표시하도록 알린다
+                if (attacker != null)
+                {
+                    OnDamageReflected?.Invoke(attacker.transform.position, GameDB.Boss.ReflectHalves);
+                }
                 return false; // 감정 반사 - 분신 피통 유지
             }
 
             _health -= dmg;
             OnHealthChanged?.Invoke(Mathf.Max(0f, _health), GameDB.Boss.CloneHealth);
+            OnDamaged?.Invoke(dmg);
             if (_health <= 0f)
             {
                 Die();
