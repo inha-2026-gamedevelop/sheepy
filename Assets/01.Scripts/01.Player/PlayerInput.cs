@@ -67,7 +67,7 @@ namespace Minsung.Player
             }
             if (Input.GetKeyDown(Constants.Player.KEY_REWIND))
             {
-                Debug.Log("[RewindDebug] R input received by PlayerInput.");
+                Debug.Log("[RewindDebug] D input received by PlayerInput.");
                 _rewind?.RequestRewind();
             }
             if (Input.GetKeyDown(Constants.Player.KEY_CLEAR_CLONES))

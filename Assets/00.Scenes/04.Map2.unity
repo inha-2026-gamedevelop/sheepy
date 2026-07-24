@@ -59210,7 +59210,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46e4d2a3a89fc5f4db321f53785582ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Minsung.TimeSystem.SlowMotionController
-  _slowKey: 304
+  _slowKey: 119
 --- !u!1 &1356110824
 GameObject:
   m_ObjectHideFlags: 0

@@ -25,7 +25,7 @@ namespace Minsung.TimeSystem
         };
 
         [Header("테스트 입력 (나중에 스킬 시스템이 대체)")]
-        [SerializeField] private KeyCode _slowKey = KeyCode.LeftShift;
+        [SerializeField] private KeyCode _slowKey = Constants.Player.KEY_SLOW;
 
         private float _slowScale; // 슬로우 배율 - TimeDB(GameDB.Time)에서 Awake 때 로드
 
