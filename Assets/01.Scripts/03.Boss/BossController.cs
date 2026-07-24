@@ -19,7 +19,7 @@ using Minsung.Visual;
 namespace Minsung.Boss
 {
     // Azathoth 보스. 총 피통 64,000을 4페이즈가 16,000씩 나눠 갖는 단일 피통 방식으로 동작한다
-    public class BossController : MonoBehaviour, IRewindable, IDamageable
+    public class BossController : MonoBehaviour, IRewindable, IDamageable, IBossHittable
     {
         private static readonly int PARAM_ROAR       = Animator.StringToHash(Constants.Combat.BOSS_ANIM_ROAR);
         private static readonly int PARAM_DEATH      = Animator.StringToHash(Constants.Combat.BOSS_ANIM_DEATH);
@@ -149,6 +149,8 @@ namespace Minsung.Boss
         public event Action OnBattleStarted;
         public event Action<BossEmotion> OnEmotionChanged;   // 감정 아이콘/연출 UI 연동
         public event Action<float, float> OnHealthChanged;   // (현재, 총) 보스 HP 바 연동 - Minsung.UI.BossHealthBarUI가 구독
+        public event Action<float>        OnDamaged;         // 실제 적용된 피해량 - 타격감 연출(히트스톱/스파크/데미지 넘버/HP바)용
+        public event Action<Vector3, int> OnDamageReflected; // 감정 반사로 공격자(플레이어)가 대신 피해를 입음 (플레이어 위치, 반칸량)
 
         /****************************************
         *              Unity Event
@@ -455,8 +457,15 @@ namespace Minsung.Boss
                 return false;
             }
 
+            float previous = _currentHealth;
             _currentHealth = Mathf.Max(PhaseFloorHealth, _currentHealth - dmg);
             OnHealthChanged?.Invoke(_currentHealth, GameDB.Boss.TotalHealth);
+
+            float applied = previous - _currentHealth; // 페이즈 하한 클램프 반영한 실제 피해량
+            if (applied > 0f)
+            {
+                OnDamaged?.Invoke(applied);
+            }
 
             // 페이즈별 자체 트리거(예: 1페이즈 분신 전멸)를 쓰는 경우 피통 하한 도달만으로는 기믹을 시작하지 않는다
             if ((_currentHealth <= PhaseFloorHealth) && (_states[_phaseIndex].UsesHealthFloorTrigger))
@@ -477,6 +486,11 @@ namespace Minsung.Boss
             if (reflected)
             {
                 AchievementTrigger.AttackReflected();
+                // 반사 - 공격자(플레이어)가 대신 피해를 입으므로 플레이어 위치에 피해량을 표시하도록 알린다
+                if (attacker != null)
+                {
+                    OnDamageReflected?.Invoke(attacker.transform.position, GameDB.Boss.ReflectHalves);
+                }
             }
             return reflected;
         }

@@ -8,12 +8,13 @@ using Minsung.Common;
 using Minsung.Player;
 using Minsung.TimeSystem;
 using Minsung.CameraSystem;
+using Minsung.Boss;
 
 namespace Minsung.Boss2
 {
     // 부유 보스(Boss2) 체력
     // TODO: 피격 리액션/사망 연출 미구현
-    public class Boss2Health : MonoBehaviour, IDamageable, IRewindable
+    public class Boss2Health : MonoBehaviour, IDamageable, IRewindable, IBossHittable
     {
         /****************************************
         *                Fields
@@ -77,6 +78,8 @@ namespace Minsung.Boss2
         public bool IsSpaceTearActive => _spaceTearActive;
 
         public event Action<float, float> OnHealthChanged; // (현재, 최대)
+        public event Action<float>        OnDamaged;         // 실제 적용된 피해량 - 타격감 연출(히트스톱/스파크/데미지 넘버/HP바)용
+        public event Action<Vector3, int> OnDamageReflected; // 감정 반사로 공격자(플레이어)가 대신 피해를 입음 (플레이어 위치, 반칸량)
         public event Action<int>          OnPhaseChanged;   // 새 페이즈 인덱스
         public event Action               OnDefeated;
         public event Action               OnSpaceTearTriggered; // 4페이즈 체력 임계 첫 통과 - 공간찢기 시퀀스 시작 트리거
@@ -119,6 +122,11 @@ namespace Minsung.Boss2
             }
             if ((_emotionController != null) && _emotionController.ReflectIfNeeded(source, attacker))
             {
+                // 반사 - 공격자(플레이어)가 대신 피해를 입으므로 플레이어 위치에 피해량을 표시하도록 알린다
+                if ((attacker != null) && (_dataSo != null))
+                {
+                    OnDamageReflected?.Invoke(attacker.transform.position, _dataSo.ReflectHalves);
+                }
                 return false;
             }
 
@@ -141,8 +149,13 @@ namespace Minsung.Boss2
                 }
             }
 
+            float applied = _currentHealth - projected; // 실제로 깎인 양(페이즈 하한 클램프 반영)
             _currentHealth = projected;
             OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
+            if (applied > 0f)
+            {
+                OnDamaged?.Invoke(applied);
+            }
 
             if ((_currentHealth <= PhaseFloorHealth) && !IsFinalPhase)
             {
