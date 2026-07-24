@@ -202,6 +202,55 @@ namespace Minsung.Boss2
             OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary> DevelopmentBuildTools용: 보스 2 전투 시작 체력과 페이즈로 되돌린다. </summary>
+        public void QaResetToBattleStart()
+        {
+            QaSetHealth(MaxHealth, 0);
+        }
+
+        /// <summary> DevelopmentBuildTools용: 보스 2의 50% 체력(최종 페이즈 전환) 상태로 이동한다. </summary>
+        public void QaSetToHalfHealth()
+        {
+            QaSetHealth(MaxHealth * 0.5f, 1);
+        }
+
+        /// <summary> DevelopmentBuildTools용: 다음 공격으로 공간 찢기가 발동할 체력으로 이동한다. </summary>
+        public void QaSetToSpaceTearReadyHealth()
+        {
+            if ((_dataSo == null) || (MaxHealth <= 0f))
+            {
+                return;
+            }
+
+            float thresholdHealth = MaxHealth * _dataSo.SpaceTearHealthPercent;
+            float readyHealth = Mathf.Min(MaxHealth, thresholdHealth + 0.01f);
+            QaSetHealth(readyHealth, _dataSo.PhaseCount - 1);
+        }
+
+        private void QaSetHealth(float health, int phaseIndex)
+        {
+            if ((_dataSo == null) || (MaxHealth <= 0f))
+            {
+                return;
+            }
+
+            int clampedPhaseIndex = Mathf.Clamp(phaseIndex, 0, _dataSo.PhaseCount - 1);
+            bool phaseChanged = _phaseIndex != clampedPhaseIndex;
+
+            _currentHealth = Mathf.Clamp(health, 0f, MaxHealth);
+            _phaseIndex = clampedPhaseIndex;
+            _spaceTearTriggered = false;
+            _spaceTearActive = false;
+
+            OnHealthChanged?.Invoke(_currentHealth, MaxHealth);
+            if (phaseChanged)
+            {
+                OnPhaseChanged?.Invoke(_phaseIndex);
+            }
+        }
+#endif
+
         /****************************************
         *            IRewindable
         ****************************************/
