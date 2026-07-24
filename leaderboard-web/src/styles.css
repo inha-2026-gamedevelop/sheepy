@@ -31,3 +31,19 @@ footer { width: min(1240px, calc(100% - 48px)); margin: 0 auto; padding: 0 0 31p
   font-size: 13px;
   letter-spacing: -.02em;
 }
+
+.rank-times { display: flex; justify-content: end; gap: 13px; }
+.rank-time { display: grid; gap: 2px; min-width: 74px; text-align: right; }
+.rank-time small { color: #899687; font: 500 8px "DM Mono", monospace; letter-spacing: .04em; }
+.personal-best > span::after { content: " — 조정 시간"; }
+.actual-time-detail { padding: 18px 25px; border-bottom: 1px solid #e5eee2; }
+.actual-time-detail > span, .actual-time-detail small { display: block; color: #879486; font: 500 9px "DM Mono", monospace; letter-spacing: .1em; }
+.actual-time-detail strong { display: block; margin: 5px 0 3px; color: #367e2e; font: 700 26px "DM Mono", monospace; letter-spacing: -.08em; }
+.actual-time-detail strong.is-empty { color: #98a596; font-family: Manrope, "Apple SD Gothic Neo", sans-serif; font-size: 13px; letter-spacing: -.02em; }
+
+@media (max-width: 620px) {
+  .rank-times { display: grid; gap: 5px; }
+  .rank-time { min-width: 66px; font-size: 11px; }
+  .rank-time small { font-size: 7px; }
+  .actual-time-detail { padding-left: 20px; padding-right: 20px; }
+}

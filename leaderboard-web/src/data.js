@@ -25,13 +25,13 @@ export const ACHIEVEMENTS = [
 const demoIds = ACHIEVEMENTS.map(({ id }) => id)
 
 export const DEMO_PLAYERS = [
-  { username: 'Memento', createdAt: '2026-06-03T10:20:00Z', clearTimeMs: 163840, achievements: demoIds },
-  { username: 'Re:Turn', createdAt: '2026-06-08T06:45:00Z', clearTimeMs: 169210, achievements: demoIds.slice(0, 19) },
-  { username: 'sheepy', createdAt: '2026-06-01T12:00:00Z', clearTimeMs: 174605, achievements: demoIds.slice(0, 16) },
-  { username: 'Astra', createdAt: '2026-06-12T03:32:00Z', clearTimeMs: 181892, achievements: demoIds.slice(0, 14) },
-  { username: 'Fable', createdAt: '2026-06-17T09:15:00Z', clearTimeMs: 186476, achievements: demoIds.slice(0, 12) },
-  { username: 'Lumi', createdAt: '2026-06-20T01:10:00Z', clearTimeMs: 193501, achievements: demoIds.slice(0, 11) },
-  { username: 'Sora', createdAt: '2026-06-22T08:05:00Z', clearTimeMs: 201928, achievements: demoIds.slice(0, 9) },
+  { username: 'Memento', createdAt: '2026-06-03T10:20:00Z', clearTimeMs: 163840, actualTimeMs: 171540, achievements: demoIds },
+  { username: 'Re:Turn', createdAt: '2026-06-08T06:45:00Z', clearTimeMs: 169210, actualTimeMs: 178330, achievements: demoIds.slice(0, 19) },
+  { username: 'sheepy', createdAt: '2026-06-01T12:00:00Z', clearTimeMs: 174605, actualTimeMs: 184470, achievements: demoIds.slice(0, 16) },
+  { username: 'Astra', createdAt: '2026-06-12T03:32:00Z', clearTimeMs: 181892, actualTimeMs: 191210, achievements: demoIds.slice(0, 14) },
+  { username: 'Fable', createdAt: '2026-06-17T09:15:00Z', clearTimeMs: 186476, actualTimeMs: 198820, achievements: demoIds.slice(0, 12) },
+  { username: 'Lumi', createdAt: '2026-06-20T01:10:00Z', clearTimeMs: 193501, actualTimeMs: 205670, achievements: demoIds.slice(0, 11) },
+  { username: 'Sora', createdAt: '2026-06-22T08:05:00Z', clearTimeMs: 201928, actualTimeMs: 215090, achievements: demoIds.slice(0, 9) },
 ]
 
 const getEnv = (name) => import.meta.env[name]?.trim()
@@ -52,9 +52,19 @@ async function request(path) {
   return response.json()
 }
 
+function getActualTimeMs(score) {
+  if (!score?.boss_enter_at || !score?.boss_end_at) return null
+
+  const startedAt = Date.parse(score.boss_enter_at)
+  const endedAt = Date.parse(score.boss_end_at)
+  if (!Number.isFinite(startedAt) || !Number.isFinite(endedAt) || endedAt < startedAt) return null
+
+  return endedAt - startedAt
+}
+
 export async function loadLeaderboard() {
   const [scoresResult, playersResult, achievementsResult] = await Promise.allSettled([
-    request('scores?select=username,duration_ms,created_at&order=duration_ms.asc.nullslast'),
+    request('scores?select=username,duration_ms,boss_enter_at,boss_end_at,created_at&order=duration_ms.asc.nullslast'),
     request('players?select=username,created_at'),
     request('player_achievements?select=username,achievement_id'),
   ])
@@ -96,6 +106,7 @@ export async function loadLeaderboard() {
         username,
         createdAt: player?.created_at ?? score?.created_at ?? null,
         clearTimeMs: score ? Number(score.duration_ms) : null,
+        actualTimeMs: getActualTimeMs(score),
         achievements: achievementsByName.get(username) ?? [],
       }
     })

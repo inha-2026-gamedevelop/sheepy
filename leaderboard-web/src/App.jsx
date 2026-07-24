@@ -134,7 +134,10 @@ function App() {
                     <span className="player-avatar" aria-hidden="true">{player.username.slice(0, 1).toUpperCase()}</span>
                     <span className="rank-player"><strong>{player.username}</strong><small><Icon name="calendar" size={13} /> {formatDate(player.createdAt)} 가입</small></span>
                     <span className="rank-achievements"><Icon name="spark" size={15} /> {player.achievements.length}/{ACHIEVEMENTS.length}</span>
-                    <time className={`rank-time ${player.clearTimeMs === null ? 'is-empty' : ''}`}>{formatTime(player.clearTimeMs)}</time>
+                    <span className="rank-times">
+                      <time className={`rank-time ${player.clearTimeMs === null ? 'is-empty' : ''}`}><small>보스 클리어 시간</small>{formatTime(player.clearTimeMs)}</time>
+                      <time className={`rank-time ${player.actualTimeMs === null ? 'is-empty' : ''}`}><small>실제 소요 시간</small>{formatTime(player.actualTimeMs)}</time>
+                    </span>
                     <Icon name="arrow" size={18} />
                   </button>
                 </li>
@@ -162,6 +165,11 @@ function PlayerDetail({ player, rank }) {
       <p><Icon name="calendar" size={15} /> {formatDate(player.createdAt)}에 모험 시작</p>
     </div>
     <div className="personal-best"><span>PERSONAL BEST</span><strong className={player.clearTimeMs === null ? 'is-empty' : ''}>{formatTime(player.clearTimeMs)}</strong><small>{player.clearTimeMs === null ? 'AZATHOTH · NOT CLEARED YET' : 'AZATHOTH · BOSS CLEAR'}</small></div>
+    <div className="actual-time-detail">
+      <span>실제 소요 시간</span>
+      <strong className={player.actualTimeMs === null ? 'is-empty' : ''}>{formatTime(player.actualTimeMs)}</strong>
+      <small>보스 종료 시각 - 시작 시각</small>
+    </div>
     <section className="achievement-section" aria-labelledby="achievement-title">
       <div className="achievement-heading"><div><p className="eyebrow">COLLECTION</p><h3 id="achievement-title">업적 진행도</h3></div><strong>{unlocked.size}<small> / {ACHIEVEMENTS.length}</small></strong></div>
       <div className="progress-track" role="progressbar" aria-label="업적 진행도" aria-valuemin="0" aria-valuemax={ACHIEVEMENTS.length} aria-valuenow={unlocked.size}><span style={{ width: `${completion}%` }} /></div>
