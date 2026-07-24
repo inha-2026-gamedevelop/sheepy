@@ -50,6 +50,12 @@ public class PlayerRetireWall : MonoBehaviour
         if (isDropping && collision.gameObject.layer == playerLayer)
         {
             RespawnPlayer(collision);
+
+            // 리타이어 벽 충돌시 하트 반 칸 피해
+            if (collision.TryGetComponent(out Minsung.Player.PlayerHealth playerHealth))
+            {
+                playerHealth.TakeDamageHalves(1);
+            }
         }
     }
 
