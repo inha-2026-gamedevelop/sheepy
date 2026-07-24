@@ -53,6 +53,10 @@ namespace Minsung.Achievement
         // 구현: AchievementTrigger.PlayerDiedToBoss() (03.Boss/BossController.cs HandlePlayerDeath)
         public const string BOSS_FIRST_DEATH     = "boss_first_death";
 
+        // 초보 탐험가 - 가장 쉬운 구역을 탐색했다
+        // 구현: AchievementTrigger.HiddenAreaFound() (07.Achievement/Triggers/HiddenAreaTrigger.cs OnTriggerEnter2D)
+        public const string EASY_AREA_FOUND = "novice_explorer";
+
         // 진정한 탐험가 - 숨은 공간 발견
         // 구현: AchievementTrigger.HiddenAreaFound() (07.Achievement/Triggers/HiddenAreaTrigger.cs OnTriggerEnter2D)
         public const string HIDDEN_AREA_FOUND    = "hidden_area_found";
