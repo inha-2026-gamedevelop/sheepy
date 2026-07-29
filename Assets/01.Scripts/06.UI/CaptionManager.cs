@@ -23,9 +23,11 @@ namespace Minsung.UI
         public WaitForSeconds Wait => _wait ??= new WaitForSeconds(_duration);
     }
 
-    // 화면 하단 자막 HUD
+    // 화면 하단 자막 HUD.
+    // 자막 패널/텍스트가 씬 안의 Canvas 하위 오브젝트이므로 씬 로컬 싱글톤이어야 한다.
+    // (영속 싱글톤으로 두면 씬을 다시 로드했을 때 살아남은 인스턴스가 파괴된 옛 씬의 UI를 들고 있어 자막이 나오지 않는다)
     [AddComponentMenu("Minsung/Caption Manager")]
-    public class CaptionManager : PersistentSingleton<CaptionManager>
+    public class CaptionManager : SceneSingleton<CaptionManager>
     {
         /****************************************
         *                Fields
@@ -41,6 +43,13 @@ namespace Minsung.UI
         /****************************************
         *              Unity Event
         ****************************************/
+
+        // 도메인 리로드를 꺼도 static 인스턴스가 깨끗하게 초기화되도록.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            ResetStatic();
+        }
 
         protected override void OnSingletonAwake()
         {
