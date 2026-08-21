@@ -6,7 +6,9 @@
 
 ## 플레이 영상
 
-
+<a href="https://www.youtube.com/watch?v=-qxGgR9MSQM" target="_blank">
+  <img src="https://img.youtube.com/vi/-qxGgR9MSQM/maxresdefault.jpg" width="600" alt="Sheepy: The Last Rewind 포트폴리오 영상">
+</a>
 
 ## 소개
 
